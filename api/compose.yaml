@@ -1,0 +1,57 @@
+# Ambiente de DESENVOLVIMENTO local, espelhando a hospedagem compartilhada:
+# MariaDB/MySQL, sem Redis, fila no banco processada pelo agendador (decisão D16).
+# Uso: ver api/README.md. Portas publicadas apenas em 127.0.0.1.
+name: formularios
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  image: formularios-api:dev
+  volumes:
+    - .:/var/www/api
+  depends_on:
+    database:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *app
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  # Equivale ao cron do hPanel chamando `schedule:run` a cada minuto.
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+
+  database:
+    # Confirmar no hPanel a versão usada em produção e alinhar esta imagem.
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:-formularios}
+      MARIADB_USER: ${DB_USERNAME:-formularios}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-secret}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root-secret}
+    volumes:
+      - database-data:/var/lib/mysql
+      - ./docker/database/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql:ro
+    ports:
+      - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
+    restart: unless-stopped
+
+volumes:
+  database-data:

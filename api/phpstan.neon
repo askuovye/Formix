@@ -1,0 +1,14 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - app
+        - bootstrap/app.php
+        - config
+        - database
+        - routes
+    excludePaths:
+        # Config publicada pelo pacote referencia classes do MediaLibrary Pro (não utilizado).
+        - config/media-library.php
