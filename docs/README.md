@@ -4,6 +4,7 @@
 
 | Documento | Quando ler |
 |---|---|
+| [retomar.md](retomar.md) | **Ao começar uma sessão**: onde paramos, próximo passo, instalar o Docker e testar |
 | [decisions.md](decisions.md) | Antes de mudar arquitetura, stack ou infraestrutura; para entender o porquê de algo |
 | [barreiras.md](barreiras.md) | Antes de planejar uma fase ou o lançamento; funcionalidades e riscos pendentes |
 | [database.md](database.md) | Antes de criar ou alterar migrations; esquema atual e histórico |
