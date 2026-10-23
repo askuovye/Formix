@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\ApplyRetentionPolicy;
 use App\Jobs\PurgeExpiredExports;
+use App\Jobs\PurgeOrphanFormAssets;
 use Illuminate\Support\Facades\Schedule;
 
 /*
@@ -40,6 +41,13 @@ Schedule::command('queue:work database-long --queue=exports --stop-when-empty --
 Schedule::job(new ApplyRetentionPolicy)
     ->name('retention-policy')
     ->dailyAt('03:00')
+    ->timezone('America/Sao_Paulo')
+    ->withoutOverlapping();
+
+// Imagens de tema enviadas e nunca usadas.
+Schedule::job(new PurgeOrphanFormAssets)
+    ->name('purge-orphan-form-assets')
+    ->dailyAt('04:00')
     ->timezone('America/Sao_Paulo')
     ->withoutOverlapping();
 

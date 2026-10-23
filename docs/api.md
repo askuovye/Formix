@@ -93,7 +93,7 @@ Todas exigem login. Formulário de outra pessoa → `404`.
 }
 ```
 
-`FormSummary` é o mesmo objeto sem `description`, `schema` e `settings`. Datas em ISO 8601 (UTC). `notification_emails` vazio = email do dono.
+`FormSummary` é o mesmo objeto sem `description`, `schema` e `settings`, e com `submissions_count` e `last_submission_at` (ISO 8601 ou `null`). Datas em ISO 8601 (UTC). `notification_emails` vazio = email do dono.
 
 ### Formato do `schema`
 
@@ -136,6 +136,21 @@ Regras por tipo de campo:
 | `blocklist` | `values`: até 200 textos de até 100 | texto |
 | `min_words` | `value` 1–500 | texto longo |
 | `cpf`, `cnpj`, `phone_br`, `cep` | — | texto curto |
+
+### Blocos, estrelas, escala, lógica condicional e tema
+
+Formato completo em [`frontend-contract-requests.md`](frontend-contract-requests.md). Resumo:
+
+- Cada item tem `kind`: `input` (campo, tudo acima) ou `block` (`section_title`, `text`, `divider`, `page_break`, com `text` quando aplicável). Etapas = trechos entre `page_break`.
+- Tipos `rating` (`rating.max` 3–10) e `scale` (`scale.min`/`max` entre 0 e 10, rótulos opcionais); resposta inteira.
+- `visibility: { action: "show"|"hide", when: { field, operator, value? } }` em campos; a origem precisa vir antes. O servidor ignora e descarta campos ocultos no envio.
+- `schema.theme` (versionado): preset, cores, raio, fonte, estilo do botão, alinhamento, `cover`/`logo` com `asset_id` e `url`.
+
+| Método e rota | Corpo | Sucesso | Erros |
+|---|---|---|---|
+| `POST /me/forms/{id}/assets` | multipart `file` (JPG/PNG/WebP ≤ 5 MB), `kind` (`cover`/`logo`) | `201` `{ data: { id, kind, url, mime_type, size } }` | `404`, `409` (20 por formulário), `422`, `429` (30/h) |
+| `DELETE /me/forms/{id}/assets/{assetId}` | — | `204` | `404`, `409` (em uso pelo rascunho ou por versão publicada) |
+| `GET /assets/{assetId}` (público) | — | a imagem, cache imutável | `404` |
 
 O servidor devolve o schema **normalizado**: chaves desconhecidas são descartadas e os padrões preenchidos (`display: "radio"`, `max_files: 1`, `max_size_mb: 5`). Erros vêm por caminho, ex.: `errors["schema.fields.2.options.0.value"]`. Schema acima de 256 KB: `422` em `errors.schema`.
 

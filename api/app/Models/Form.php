@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property string $slug
  * @property FormStatus $status
- * @property array{fields: list<array<string, mixed>>} $schema
+ * @property array{fields: list<array<string, mixed>>, theme?: array<string, mixed>} $schema
  * @property int $schema_version
  * @property bool $has_unpublished_changes
  * @property FormSettings $settings
@@ -82,6 +82,14 @@ class Form extends Model
     public function latestVersion(): HasOne
     {
         return $this->hasOne(FormVersion::class)->latestOfMany('version');
+    }
+
+    /**
+     * @return HasMany<FormAsset, $this>
+     */
+    public function assets(): HasMany
+    {
+        return $this->hasMany(FormAsset::class);
     }
 
     /**

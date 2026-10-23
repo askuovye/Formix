@@ -43,7 +43,12 @@ final class UpdateSubmissionByRespondent
         $currentMedia = $submission->getMedia('*');
         $validated = $this->validator->validate($schema, $answers, $files, $this->countByField($currentMedia));
 
-        $replaced = $currentMedia->filter(fn (Media $media): bool => array_key_exists((string) $media->getCustomProperty('field_id'), $validated['files']));
+        // Sai o que foi substituído e o que ficou em campo agora oculto (dado que o respondente não vê mais).
+        $replaced = $currentMedia->filter(function (Media $media) use ($validated): bool {
+            $fieldId = (string) $media->getCustomProperty('field_id');
+
+            return array_key_exists($fieldId, $validated['files']) || in_array($fieldId, $validated['hidden'], strict: true);
+        });
         $storedFiles = [];
 
         try {

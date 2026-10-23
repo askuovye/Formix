@@ -18,6 +18,8 @@ enum FieldType: string
     case SingleChoice = 'single_choice';
     case MultipleChoice = 'multiple_choice';
     case File = 'file';
+    case Rating = 'rating';
+    case Scale = 'scale';
 
     public function isText(): bool
     {
@@ -27,6 +29,22 @@ enum FieldType: string
     public function hasOptions(): bool
     {
         return $this === self::SingleChoice || $this === self::MultipleChoice;
+    }
+
+    /**
+     * Resposta numérica comparável (lógica condicional com < <= > >=).
+     */
+    public function isNumeric(): bool
+    {
+        return in_array($this, [self::Number, self::Rating, self::Scale], strict: true);
+    }
+
+    /**
+     * Resposta inteira dentro de um intervalo configurado no campo.
+     */
+    public function isRange(): bool
+    {
+        return $this === self::Rating || $this === self::Scale;
     }
 
     public function acceptsPlaceholder(): bool

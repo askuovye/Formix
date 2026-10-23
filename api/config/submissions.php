@@ -23,6 +23,9 @@ return [
     // Validade de cada link de download gerado para uma exportação pronta.
     'export_link_ttl_minutes' => 60,
 
+    // Imagens de capa/logo dos formulários: públicas, servidas pela rota /assets/{id}.
+    'asset_disk' => env('FORM_ASSET_DISK', 'local'),
+
     // Respostas removidas por execução do Job de retenção (sem pcntl, Jobs devem ser curtos; D16).
     'retention_batch_size' => 500,
 

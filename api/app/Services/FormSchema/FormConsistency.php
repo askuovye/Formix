@@ -36,7 +36,8 @@ final class FormConsistency
 
     public function assertPublishable(Form $form): void
     {
-        if ($form->schema['fields'] === []) {
+        // Só blocos (títulos, textos) não formam um formulário: precisa de ao menos um campo.
+        if (SchemaItems::inputs($form->schema) === []) {
             throw ValidationException::withMessages(['schema' => self::NO_FIELDS_MESSAGE]);
         }
 
@@ -48,7 +49,7 @@ final class FormConsistency
      */
     private function isEmailField(array $schema, ?string $fieldId): bool
     {
-        foreach ($schema['fields'] as $field) {
+        foreach (SchemaItems::inputs($schema) as $field) {
             if ($field['id'] === $fieldId) {
                 return $field['type'] === FieldType::Email->value;
             }

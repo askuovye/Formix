@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Submissions;
 
 use App\Enums\FieldType;
+use App\Services\FormSchema\SchemaItems;
+use App\Validation\VisibilityEvaluator;
 use Closure;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -17,7 +19,12 @@ final class SubmissionPresenter
 {
     public const NOT_ANSWERED = '(não respondido)';
 
+    public function __construct(private readonly VisibilityEvaluator $visibility) {}
+
     /**
+     * Blocos e campos que estavam ocultos para o respondente (lógica condicional)
+     * não aparecem: ele não os viu, então não há o que apresentar.
+     *
      * @param  array{fields: list<array<string, mixed>>}  $schema
      * @param  array<string, mixed>  $data
      * @return list<array{field_id: string, label: string, value: string, multiline: bool, answered: bool}>
@@ -25,12 +32,13 @@ final class SubmissionPresenter
     public function present(array $schema, array $data): array
     {
         $rows = [];
+        $hidden = $this->visibility->hiddenFieldIds($schema, $data);
 
-        foreach ($schema['fields'] as $field) {
+        foreach (SchemaItems::inputs($schema) as $field) {
             $type = FieldType::from((string) $field['type']);
 
             // Anexos são apresentados à parte (presentFiles).
-            if ($type === FieldType::File) {
+            if ($type === FieldType::File || in_array($field['id'], $hidden, strict: true)) {
                 continue;
             }
 
@@ -70,7 +78,7 @@ final class SubmissionPresenter
 
         $groups = [];
 
-        foreach ($schema['fields'] as $field) {
+        foreach (SchemaItems::inputs($schema) as $field) {
             $files = $byField[(string) $field['id']] ?? [];
 
             if ($field['type'] === FieldType::File->value && $files !== []) {
@@ -104,6 +112,8 @@ final class SubmissionPresenter
                 (array) $value,
             )),
             FieldType::Date => $this->brazilianDate((string) $value),
+            FieldType::Rating => $value.' de '.(int) ($field['rating']['max'] ?? 0),
+            FieldType::Scale => $value.' (de '.(int) $field['scale']['min'].' a '.(int) $field['scale']['max'].')',
             default => (string) $value,
         };
     }

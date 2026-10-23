@@ -160,9 +160,11 @@ O formulário é descrito por um **schema JSON versionado** (o número da versã
 | `cpf` / `cnpj` | dígito verificador; rejeita sequências iguais (`111.111.111-11`) |
 | `phone_br` / `cep` | formato brasileiro |
 | `min_length` / `max_length` | limites de caracteres (após normalização) |
-| Regras de tipo | `email`, `number`, `date` e escolha (valor deve estar entre as opções), aplicadas pelo tipo do campo |
+| Regras de tipo | `email`, `number`, `date`, escolha (valor entre as opções) e `rating`/`scale` (inteiro no intervalo), aplicadas pelo tipo do campo |
 
 **Rigor** (`leve`/`médio`/`estrito`) é um atalho do builder: é expandido em regras explícitas **ao salvar**, e o schema guardado nunca contém o preset.
+
+**Lógica condicional** (mostrar/ocultar campo): avaliada pelo back-end a partir do schema salvo e das respostas; campo oculto não é validado e tem o valor descartado. O avaliador existe em PHP e em TypeScript, com os mesmos casos (`fixtures` → `visibility`). Detalhes em `docs/decisions.md` (D32, D33).
 
 Regras de projeto:
 

@@ -7,6 +7,7 @@ namespace App\Services\Submissions;
 use App\Models\Form;
 use App\Models\FormVersion;
 use App\Models\Submission;
+use App\Services\FormSchema\SchemaItems;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
@@ -82,7 +83,7 @@ final class SubmissionsCsvWriter
         $columns = [];
 
         foreach ($schemasNewestFirst as $schema) {
-            foreach ($schema['fields'] as $field) {
+            foreach (SchemaItems::inputs($schema) as $field) {
                 $columns[(string) $field['id']] ??= (string) $field['label'];
             }
         }

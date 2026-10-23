@@ -287,3 +287,24 @@ Decisões novas entram no fim; decisões revogadas são marcadas, não apagadas.
 - **Dashboard:** Ativos = `published`, Rascunhos = `draft`, Arquivados = `closed`. Nesta versão "Arquivar" = **fechar** o formulário, e a interface diz isso. Arquivar sem fechar exigiria um `archived_at` no futuro. A listagem ganha `submissions_count` e `last_submission_at` (`withCount`/`withMax`, sem N+1).
 - **Tema do formulário versionado:** dentro do schema; o público só vê ao publicar. Imagens de capa e logo são **imutáveis por versão** (trocar no rascunho não afeta a versão publicada) e só podem ser apagadas quando nenhuma versão as referenciar. São **públicas**, diferente dos anexos de respostas (privados e assinados).
 - **Landing:** sem "Preços" e "Blog". "Recursos" e "GitHub" (repositório público confirmado: github.com/askuovye/Formix).
+
+## D33. Implementação dos ajustes de contrato (D32)
+
+- **Schema:** cada item tem `kind`. `SchemaItems::inputs()` é o único jeito de ler "campos que geram resposta", usado pelo validador, apresentador, CSV e consistência. Itens sem `kind` são `input` (schemas antigos).
+- **Blocos:** `section_title` (texto ≤ 200), `text` (≤ 2000), `divider`, `page_break`. Toda chave de campo (`label`, `required`, `rules`, `visibility`…) é **proibida** em bloco. `page_break` não pode ser o primeiro, o último nem vir logo após outro.
+- **`rating`** (`rating.max` 3–10, padrão 5) e **`scale`** (`min` 0–9, `max` ≤ 10 e > `min`, rótulos ≤ 40): resposta inteira validada com `integer` + `between`; texto só com dígitos é aceito e gravado como inteiro.
+- **Lógica condicional:**
+  - formato `visibility: { action: show|hide, when: { field, operator, value? } }`, só em campos;
+  - **a origem precisa vir antes do campo**: com isso ciclos são impossíveis (A↔B é recusado) e a condição só depende de respostas já dadas (combina com etapas);
+  - operadores por tipo de origem em `VisibilityOperator::forSource`; origem não pode ser bloco nem arquivo; valor conferido contra o tipo (número, data, opção existente, texto ≤ 200); no máximo 50 condições por formulário;
+  - `VisibilityEvaluator` (PHP) percorre os campos em ordem; origem oculta conta como não respondida; comparação com origem não respondida é falsa. O **envio** calcula a visibilidade pelo schema salvo e pelas respostas: campo oculto não é validado nem exigido e fica `null`; arquivos de campo oculto são descartados (inclusive os que já existiam, quando uma edição oculta o campo);
+  - apresentador (emails, painel, CSV) **não mostra** campos que estavam ocultos.
+  - Contrato com o front: seção `visibility` das fixtures (16 casos).
+- **Tema:** `schema.theme`, normalizado com os padrões do "Clássico" (`FormTheme::DEFAULTS`); cores `#RRGGBB` gravadas em maiúsculas; fontes só locais/sistema.
+- **Imagens do tema** (`form_assets`):
+  - públicas por `GET /api/v1/assets/{id}` (cache de 1 ano `immutable`, `nosniff`, CSP `sandbox`), tipo real por conteúdo (JPG/PNG/WebP), até 5 MB e 20 por formulário;
+  - **imutáveis** (o model recusa `update`); o tema só aponta para imagens do próprio formulário e do tipo certo (capa/logo);
+  - apagar só se nem o rascunho nem nenhuma versão referencia (busca exata do ULID no JSON das versões); órfãs com mais de 24 h são apagadas diariamente (`PurgeOrphanFormAssets`);
+  - as respostas da API acrescentam `url` em `theme.cover`/`theme.logo`.
+- **Detecção de tipo real** extraída para `FileTypeDetector` (anexos e imagens usam a mesma).
+- **Listagem de formulários:** `submissions_count` (coluna já mantida no envio) e `last_submission_at` (`withMax`, sem N+1).

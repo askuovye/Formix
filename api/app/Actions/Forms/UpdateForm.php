@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Forms;
 
 use App\Models\Form;
+use App\Services\FormAssets;
 use App\Services\FormSchema\FormConsistency;
 use App\Services\FormSchema\FormSchemaNormalizer;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ final class UpdateForm
     public function __construct(
         private readonly FormSchemaNormalizer $normalizer,
         private readonly FormConsistency $consistency,
+        private readonly FormAssets $assets,
     ) {}
 
     /**
@@ -38,6 +40,8 @@ final class UpdateForm
 
             if (array_key_exists('schema', $data)) {
                 $content['schema'] = $this->normalizer->normalize($data['schema']);
+                // O tema só aponta para imagens deste formulário (nunca de outro dono).
+                $this->assets->assertThemeAssetsBelongTo($form, $content['schema']);
             }
 
             $form->fill($content);
