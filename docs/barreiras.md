@@ -1,0 +1,25 @@
+# Barreiras
+
+Funcionalidades e riscos conhecidos que **ainda não foram implementados**, mas precisam ser resolvidos antes ou depois do lançamento. Cada item diz por que importa e quando faz sentido atacá-lo.
+
+Prioridade: **alta** (antes de abrir ao público), **média** (logo após), **baixa** (quando houver demanda).
+
+| # | Barreira | Prioridade | Por que importa | Notas |
+|---|---|---|---|---|
+| B1 | **Denunciar formulário** (botão na página pública) | alta | A instância é pública: alguém pode criar formulários de phishing (banco falso, coleta de senhas). | Formulário de denúncia com motivo, rate limit por IP, aviso ao operador por email. |
+| B2 | **Suspender formulário/conta** pelo operador | alta | Responder rápido a denúncias e ordens judiciais (Marco Civil, art. 19). | Status `suspended` (o dono não consegue reabrir) e um painel ou comando `artisan` para o operador. |
+| B3 | **Novo aceite** quando os Termos/Política mudarem de versão | média | Usuários antigos ficam com aceite de uma versão desatualizada. | Comparar `legal_acceptances` com `config/legal.php` no `/auth/me` e bloquear até aceitar. |
+| B4 | **Antivírus nos anexos** | média | Anexos não são verificados (D8 revogada). | Exige VPS (`clamd`). O desenho original está em D8. |
+| B5 | **Validar o ambiente Docker e os testes no MariaDB** | alta | Os testes rodam em SQLite; o `compose.yaml` nunca foi executado. | Depende de instalar o Docker Desktop (WSL2). |
+| B6 | **Link da Política na página pública do formulário** (front) | alta | Respondentes também têm dados tratados. | A API já entrega `privacy_policy_url` (D25); falta a página pública exibir o link perto do botão de enviar. |
+| B7 | **Excluir a própria conta** pelo painel | média | Hoje a exclusão (LGPD) é só por email ao operador. | Endpoint autenticado com confirmação de senha, apagando formulários, respostas e anexos. |
+| B8 | **Edição simultânea do mesmo formulário** | baixa | Duas abas salvando o builder: a última sobrescreve a outra sem aviso. | Controle otimista: o cliente envia `updated_at` e recebe `409` se mudou. |
+| B10 | **Espelho do motor de validação no front** (Valibot) | alta | Sem ele o respondente só descobre o erro depois de enviar. | Implementar contra `fixtures/validation-cases.json` (ver `fixtures/README.md`); o teste do front deve percorrer as três seções. |
+| B11 | **Calibrar as heurísticas com respostas reais** | média | Falso positivo bloqueia gente honesta; falso negativo deixa passar lixo. | Depois do lançamento, revisar casos de recusa reportados e ampliar as fixtures. Nunca logar o conteúdo das respostas para isso. |
+| B12 | **CAPTCHA nas rotas públicas** | média | Honeypot e rate limit param bots simples; ataques distribuídos ou bots que ignoram o honeypot passam. | O contrato já existe (`CaptchaVerifier`, chamado no envio; D25). Basta implementar um verificador (ex.: Cloudflare Turnstile, gratuito e sem rastreamento) e trocar o binding no `AppServiceProvider`. O front precisa exibir o widget. |
+| B13 | **Confirmar os emails de notificação extras** | alta | O dono pode cadastrar qualquer endereço em `notification_emails` e mandar respostas para ele: alguém poderia usar a instância para enviar spam a terceiros, prejudicando a reputação do domínio de envio. | Enviar um link de confirmação para cada endereço novo e só notificar os confirmados. O email do próprio dono já é verificado no cadastro. |
+| B14 | **Resumo de notificações em formulários com muito volume** | média | Um email por resposta: um formulário com milhares de respostas gera milhares de emails (estoura o limite diário do provedor SMTP, ex. 300/dia no Brevo grátis, e lota a caixa de entrada). | Opção "resumo diário/por hora" nas configurações, com um Job agendado. |
+| B15 | **Escolher e configurar o provedor de email (SMTP)** | alta | Sem provedor configurado, nenhum email sai em produção (verificação de conta, senha, respostas). | Comparar Brevo (300/dia grátis, recomendado), Resend (3.000/mês, 100/dia) e o email da Hostinger (~100/dia); criar a conta, configurar SPF/DKIM/DMARC no DNS e preencher `MAIL_*` no `.env` (D29). |
+| B16 | **Apagar de vez formulários excluídos** (e suas respostas) | média | Exclusão é lógica (SoftDeletes): sem prazo de retenção configurado, as respostas de um formulário excluído ficam guardadas para sempre (LGPD: coleta e guarda mínimas). | Job agendado que apaga definitivamente, pelos models, formulários excluídos há mais de N dias (ex.: 30), avisando o dono antes. |
+| B17 | **Monitoramento e alertas** | média | Hoje só há log e o health check: ninguém é avisado se a fila parar, os emails falharem ou houver um ataque de força bruta. | Monitor externo gratuito batendo em `/api/v1/health` (ex.: UptimeRobot), alerta de log para `Falha definitiva` e volume de `429`. |
+| B9 | **Histórico de versões visível no painel** | baixa | As versões publicadas existem no banco, mas não há endpoint para listá-las. | `GET /forms/{id}/versions` e `.../versions/{n}`. |
