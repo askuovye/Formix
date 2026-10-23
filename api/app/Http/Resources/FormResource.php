@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Services\FormAssets;
 use Illuminate\Http\Request;
 
 /**
@@ -19,7 +20,7 @@ final class FormResource extends FormSummaryResource
         return [
             ...parent::toArray($request),
             'description' => $this->resource->description,
-            'schema' => $this->resource->schema,
+            'schema' => app(FormAssets::class)->withUrls($this->resource->schema),
             'settings' => $this->resource->settings->toArray(),
         ];
     }

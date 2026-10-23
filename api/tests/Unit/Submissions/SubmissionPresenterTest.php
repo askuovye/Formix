@@ -16,7 +16,7 @@ function presentAnswers(array $data): array
         ['id' => 'anexo', 'type' => 'file', 'label' => 'Anexo', 'file' => ['accept' => ['pdf']]],
     ]]);
 
-    return (new SubmissionPresenter)->present($schema, $data);
+    return app(SubmissionPresenter::class)->present($schema, $data);
 }
 
 it('apresenta as respostas na ordem do schema, com rótulos das opções', function () {

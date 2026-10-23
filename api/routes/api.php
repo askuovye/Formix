@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\Forms\FormAssetController;
 use App\Http\Controllers\Forms\FormController;
 use App\Http\Controllers\Forms\FormLifecycleController;
 use App\Http\Controllers\HealthCheckController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Submissions\ExportController;
 use App\Http\Controllers\Submissions\SubmissionController;
 use App\Http\Middleware\LimitRequestSize;
 use App\Http\Resources\ExportResource;
+use App\Services\FormAssets;
 use App\Services\Submissions\AttachmentLinks;
 use Illuminate\Support\Facades\Route;
 
@@ -81,6 +83,11 @@ Route::prefix('forms/{publicForm}')->name('public.forms.')->scopeBindings()->gro
         ->name('submissions.update');
 });
 
+// Imagem de capa/logo de formulário: pública e imutável (D32).
+Route::get('/assets/{asset}', [FormAssetController::class, 'show'])
+    ->middleware('throttle:assets')
+    ->name(FormAssets::ROUTE);
+
 // Download de anexo: só com link assinado e dentro da validade (AGENTS.md §6).
 Route::get('/files/{media}', DownloadAttachmentController::class)
     ->middleware(['signed', 'throttle:downloads'])
@@ -114,4 +121,12 @@ Route::middleware('auth:sanctum')->prefix('me/forms')->name('me.forms.')->group(
     Route::delete('/{form}', [FormController::class, 'destroy'])->can('delete', 'form')->name('destroy');
     Route::post('/{form}/publish', [FormLifecycleController::class, 'publish'])->can('publish', 'form')->name('publish');
     Route::post('/{form}/close', [FormLifecycleController::class, 'close'])->can('close', 'form')->name('close');
+    Route::post('/{form}/assets', [FormAssetController::class, 'store'])
+        ->can('update', 'form')
+        ->middleware('throttle:asset-uploads')
+        ->name('assets.store');
+    Route::delete('/{form}/assets/{asset}', [FormAssetController::class, 'destroy'])
+        ->can('update', 'form')
+        ->scopeBindings()
+        ->name('assets.destroy');
 });

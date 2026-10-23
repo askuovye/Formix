@@ -8,9 +8,9 @@ use App\Data\AcceptedFile;
 use App\Data\FileValidationResult;
 use App\Enums\FieldType;
 use App\Enums\FileCategory;
-use finfo;
+use App\Services\FileTypeDetector;
+use App\Services\FormSchema\SchemaItems;
 use Illuminate\Http\UploadedFile;
-use Throwable;
 
 /**
  * Valida os arquivos enviados para os campos `file` do schema publicado.
@@ -41,19 +41,22 @@ final class FileAnswersValidator
 
     private const FALLBACK_NAME = 'arquivo';
 
+    public function __construct(private readonly FileTypeDetector $detector) {}
+
     /**
      * @param  array{fields: list<array<string, mixed>>}  $schema
      * @param  array<string, mixed>  $files  arquivos enviados por id de campo (um ou uma lista)
      * @param  array<string, int>  $existingCounts  arquivos já guardados por campo (edição)
+     * @param  list<string>  $hiddenFieldIds  campos ocultos pela lógica condicional: arquivos descartados
      */
-    public function validate(array $schema, array $files, array $existingCounts = []): FileValidationResult
+    public function validate(array $schema, array $files, array $existingCounts = [], array $hiddenFieldIds = []): FileValidationResult
     {
         $accepted = [];
         $errors = [];
         $totalBytes = 0;
 
-        foreach ($schema['fields'] as $field) {
-            if ($field['type'] !== FieldType::File->value) {
+        foreach (SchemaItems::inputs($schema) as $field) {
+            if ($field['type'] !== FieldType::File->value || in_array($field['id'], $hiddenFieldIds, strict: true)) {
                 continue;
             }
 
@@ -146,41 +149,21 @@ final class FileAnswersValidator
     }
 
     /**
-     * MIME pelo conteúdo, com finfo direto no arquivo: não usa getMimeType(), que
-     * pode ser sobrescrito (o arquivo falso dos testes, por exemplo, responde pela
-     * extensão). Exceção única: CSV não tem assinatura binária e o finfo costuma
-     * dizer "text/plain"; aceita como CSV se a extensão for .csv e CSV for permitido.
+     * MIME pelo conteúdo (FileTypeDetector). Exceção única: CSV não tem assinatura
+     * binária e o finfo costuma dizer "text/plain"; aceita como CSV se a extensão
+     * for .csv e CSV for permitido.
      *
      * @param  list<string>  $allowed
      */
     private function detectMimeType(UploadedFile $upload, array $allowed): string
     {
-        $detected = $this->sniff($upload);
+        $detected = $this->detector->detect($upload);
 
         $looksLikeCsv = $detected === 'text/plain'
             && mb_strtolower($upload->getClientOriginalExtension()) === 'csv'
             && in_array('text/csv', $allowed, strict: true);
 
         return $looksLikeCsv ? 'text/csv' : $detected;
-    }
-
-    /**
-     * Arquivo que não dá para ler (ex.: bloqueado pelo antivírus do servidor) fica
-     * sem tipo e é recusado como "tipo não aceito", nunca derruba o envio com 500.
-     */
-    private function sniff(UploadedFile $upload): string
-    {
-        $path = $upload->getRealPath();
-
-        if ($path === false) {
-            return '';
-        }
-
-        try {
-            return (string) (new finfo(FILEINFO_MIME_TYPE))->file($path);
-        } catch (Throwable) {
-            return '';
-        }
     }
 
     /**

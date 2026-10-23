@@ -87,6 +87,13 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('downloads', fn (Request $request): Limit => Limit::perMinute(30)
             ->by('downloads:'.$request->ip()));
 
+        // Imagens públicas: uma página carrega capa e logo; generoso para muitos visitantes atrás do mesmo IP.
+        RateLimiter::for('assets', fn (Request $request): Limit => Limit::perMinute(120)
+            ->by('assets:'.$request->ip()));
+
+        RateLimiter::for('asset-uploads', fn (Request $request): Limit => Limit::perHour(30)
+            ->by('asset-uploads:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('exports', fn (Request $request): Limit => Limit::perHour(10)
             ->by('exports:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }

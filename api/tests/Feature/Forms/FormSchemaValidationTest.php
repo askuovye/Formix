@@ -42,12 +42,14 @@ it('salva um schema válido já normalizado', function () {
     expect($fields)->toHaveCount(5)
         ->and($fields[0])->toBe([
             'id' => 'nome',
+            'kind' => 'input',
             'type' => 'short_text',
             'label' => 'Nome completo',
             'help_text' => null,
             'required' => true,
             'placeholder' => null,
             'rules' => [['type' => 'min_length', 'value' => 5], ['type' => 'no_repeated_chars', 'threshold' => 0.8]],
+            'visibility' => null,
         ])
         ->and($fields[2]['rules'][0]['message'])->toBe('Escreva pelo menos 3 palavras.')
         ->and($fields[3]['display'])->toBe('select')

@@ -6,6 +6,7 @@ use App\Enums\RuleType;
 use App\Validation\FormSubmissionValidator;
 use App\Validation\InputNormalizer;
 use App\Validation\RuleRegistry;
+use App\Validation\VisibilityEvaluator;
 use Illuminate\Validation\ValidationException;
 
 /*
@@ -37,8 +38,12 @@ function fixtureCases(string $section): array
 }
 
 it('tem a estrutura esperada pelos dois lados', function () {
-    expect(validationFixtures())->toHaveKeys(['normalization', 'rules', 'fields']);
+    expect(validationFixtures())->toHaveKeys(['normalization', 'rules', 'fields', 'visibility']);
 });
+
+it('avalia a visibilidade da lógica condicional', function (array $case) {
+    expect(app(VisibilityEvaluator::class)->hiddenFieldIds($case['schema'], $case['answers']))->toBe($case['hidden']);
+})->with(fixtureCases('visibility'));
 
 it('cobre todas as regras do catálogo com casos válidos e inválidos', function (RuleType $type) {
     $cases = validationFixtures()['rules'][$type->value] ?? [];

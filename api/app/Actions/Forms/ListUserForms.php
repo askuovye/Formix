@@ -21,6 +21,8 @@ final class ListUserForms
     {
         return $owner->forms()
             ->when($status, fn ($query, FormStatus $status) => $query->where('status', $status))
+            // Última resposta numa subconsulta só (sem N+1); o total já é a coluna submissions_count.
+            ->withMax('submissions', 'created_at')
             ->orderByDesc('id')
             ->cursorPaginate($perPage);
     }

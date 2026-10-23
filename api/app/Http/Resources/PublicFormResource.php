@@ -6,6 +6,7 @@ namespace App\Http\Resources;
 
 use App\Enums\FormAvailability;
 use App\Models\Form;
+use App\Services\FormAssets;
 use App\Services\FrontendUrlGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -35,7 +36,7 @@ final class PublicFormResource extends JsonResource
             'availability' => $availability->value,
             'unavailable_message' => $availability->message(),
             // Sem formulário aberto não há por que entregar os campos.
-            'schema' => $accepts ? $version['schema'] : null,
+            'schema' => $accepts ? app(FormAssets::class)->withUrls($version['schema']) : null,
             'opens_at' => $form->settings->opensAt?->utc()->toIso8601String(),
             'closes_at' => $form->settings->closesAt?->utc()->toIso8601String(),
             'allows_respondent_edit' => $form->settings->allowRespondentEdit,

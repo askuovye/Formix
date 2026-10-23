@@ -6,6 +6,8 @@ namespace App\Validation;
 
 use App\Enums\FieldType;
 use App\Enums\RuleType;
+use App\Services\FormSchema\FormSchemaRules;
+use App\Services\FormSchema\SchemaItems;
 use Closure;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Validation\Rule;
@@ -32,37 +34,100 @@ final class FormSubmissionValidator
         private readonly ValidationFactory $validationFactory,
         private readonly InputNormalizer $normalizer,
         private readonly RuleRegistry $registry,
+        private readonly VisibilityEvaluator $visibility,
     ) {}
 
     /**
      * @param  array{fields: list<array<string, mixed>>}  $schema
      * @param  array<string, mixed>  $input  respostas enviadas, por id de campo
-     * @return array<string, mixed> respostas normalizadas por id (null = não respondido)
+     * @return array<string, mixed> respostas normalizadas por id (null = não respondido ou oculto)
      *
      * @throws ValidationException
      */
     public function validate(array $schema, array $input): array
     {
-        $data = [];
+        return $this->validateVisible($schema, $input)['answers'];
+    }
+
+    /**
+     * Valida só o que o respondente viu. A visibilidade é calculada aqui, pelo
+     * schema salvo e pelas respostas, nunca a partir do que o cliente diz (D32):
+     * campo oculto não é validado, não é obrigatório e tem o valor descartado.
+     *
+     * @param  array{fields: list<array<string, mixed>>}  $schema
+     * @param  array<string, mixed>  $input
+     * @return array{answers: array<string, mixed>, hidden: list<string>}
+     *
+     * @throws ValidationException
+     */
+    public function validateVisible(array $schema, array $input): array
+    {
+        $fields = $this->answerableFields($schema);
+        $data = $this->prepareAll($fields, $input);
+        $hidden = $this->visibility->hiddenFieldIds($schema, $data);
         $rules = [];
         $attributes = [];
 
-        foreach ($schema['fields'] as $field) {
-            $type = FieldType::from((string) $field['type']);
+        foreach ($fields as $field) {
+            $id = (string) $field['id'];
 
-            if ($type === FieldType::File) {
+            if (in_array($id, $hidden, strict: true)) {
+                $data[$id] = null;
+
                 continue;
             }
 
-            $id = (string) $field['id'];
-            $data[$id] = $this->prepare($type, $input[$id] ?? null);
             $attributes[$id] = (string) $field['label'];
-            $rules = [...$rules, ...$this->rulesFor($id, $type, $field)];
+            $rules = [...$rules, ...$this->rulesFor($id, FieldType::from((string) $field['type']), $field)];
         }
 
         $this->validationFactory->make($data, $rules, [], $attributes)->validate();
 
         // Não usa validated(): ele reordena listas (D22) e a ordem das escolhas importa.
+        return ['answers' => $data, 'hidden' => $hidden];
+    }
+
+    /**
+     * Campos ocultos pela lógica condicional para estas respostas (inclusive de
+     * arquivo), calculados mesmo quando as respostas têm erros.
+     *
+     * @param  array{fields: list<array<string, mixed>>}  $schema
+     * @param  array<string, mixed>  $input
+     * @return list<string>
+     */
+    public function hiddenFieldIds(array $schema, array $input): array
+    {
+        return $this->visibility->hiddenFieldIds($schema, $this->prepareAll($this->answerableFields($schema), $input));
+    }
+
+    /**
+     * Campos que geram resposta neste validador (arquivos têm fluxo próprio).
+     *
+     * @param  array{fields: list<array<string, mixed>>}  $schema
+     * @return list<array<string, mixed>>
+     */
+    private function answerableFields(array $schema): array
+    {
+        return array_values(array_filter(
+            SchemaItems::inputs($schema),
+            fn (array $field): bool => $field['type'] !== FieldType::File->value,
+        ));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $fields
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    private function prepareAll(array $fields, array $input): array
+    {
+        $data = [];
+
+        foreach ($fields as $field) {
+            $id = (string) $field['id'];
+            $data[$id] = $this->prepare(FieldType::from((string) $field['type']), $input[$id] ?? null);
+        }
+
         return $data;
     }
 
@@ -82,10 +147,23 @@ final class FormSubmissionValidator
             FieldType::Number => $this->prepareNumber($value),
             FieldType::Date, FieldType::SingleChoice => is_string($value) ? trim($value) : $value,
             FieldType::MultipleChoice => $value === [] ? null : $value,
+            FieldType::Rating, FieldType::Scale => $this->prepareInteger($value),
             FieldType::File => $value,
         };
 
         return $prepared === '' ? null : $prepared;
+    }
+
+    /**
+     * Estrelas e escala: inteiro (ou texto só com dígitos) vira int; o resto falha em `integer`.
+     */
+    private function prepareInteger(mixed $value): mixed
+    {
+        if (is_string($value) && preg_match('/^-?\d{1,4}$/', trim($value)) === 1) {
+            return (int) trim($value);
+        }
+
+        return $value;
     }
 
     private function prepareNumber(mixed $value): mixed
@@ -129,6 +207,8 @@ final class FormSubmissionValidator
             FieldType::Date => ['string', 'date_format:Y-m-d'],
             FieldType::SingleChoice => ['string', Rule::in($this->optionValues($field))],
             FieldType::MultipleChoice => ['array', 'list', 'max:'.count($this->optionValues($field))],
+            FieldType::Rating => ['integer', 'between:1,'.(int) ($field['rating']['max'] ?? FormSchemaRules::DEFAULT_RATING_STARS)],
+            FieldType::Scale => ['integer', 'between:'.(int) $field['scale']['min'].','.(int) $field['scale']['max']],
             FieldType::File => [],
         };
     }

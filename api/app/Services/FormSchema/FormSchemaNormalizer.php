@@ -4,41 +4,66 @@ declare(strict_types=1);
 
 namespace App\Services\FormSchema;
 
+use App\Enums\BlockType;
 use App\Enums\FieldType;
+use App\Enums\ItemKind;
 use App\Enums\RuleType;
 use App\Enums\StrictnessPreset;
 
 /**
- * Reconstrói o schema (já validado) só com as chaves conhecidas de cada tipo.
+ * Reconstrói o schema (já validado) só com as chaves conhecidas de cada item.
  *
- * Por quê: o schema vem do cliente e é guardado como JSON. Copiar campo a campo
+ * Por quê: o schema vem do cliente e é guardado como JSON. Copiar item a item
  * descarta chaves desconhecidas e aninhamentos arbitrários, garante a mesma
- * forma para todo consumidor (motor de validação, renderer, exportação) e
- * expande os presets de rigor em regras explícitas.
+ * forma para todo consumidor (motor de validação, renderer, exportação),
+ * preenche padrões (kind, tema) e expande os presets de rigor em regras explícitas.
  */
 final class FormSchemaNormalizer
 {
     /**
      * @param  array<string, mixed>  $schema
-     * @return array{fields: list<array<string, mixed>>}
+     * @return array{fields: list<array<string, mixed>>, theme: array<string, mixed>}
      */
     public function normalize(array $schema): array
     {
-        $fields = is_array($schema['fields'] ?? null) ? array_values($schema['fields']) : [];
+        $items = is_array($schema['fields'] ?? null) ? array_values($schema['fields']) : [];
 
-        return ['fields' => array_map($this->field(...), $fields)];
+        return [
+            'fields' => array_map(
+                fn (array $item): array => SchemaItems::isInput($item) ? $this->input($item) : $this->block($item),
+                $items,
+            ),
+            'theme' => $this->theme(is_array($schema['theme'] ?? null) ? $schema['theme'] : []),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private function block(array $item): array
+    {
+        $type = BlockType::from((string) $item['type']);
+        $block = ['id' => (string) $item['id'], 'kind' => ItemKind::Block->value, 'type' => $type->value];
+
+        if ($type->hasText()) {
+            $block['text'] = trim((string) $item['text']);
+        }
+
+        return $block;
     }
 
     /**
      * @param  array<string, mixed>  $field
      * @return array<string, mixed>
      */
-    private function field(array $field): array
+    private function input(array $field): array
     {
         $type = FieldType::from((string) $field['type']);
 
         $normalized = [
             'id' => (string) $field['id'],
+            'kind' => ItemKind::Input->value,
             'type' => $type->value,
             'label' => trim((string) $field['label']),
             'help_text' => $this->nullableText($field['help_text'] ?? null),
@@ -61,7 +86,21 @@ final class FormSchemaNormalizer
             $normalized['file'] = $this->fileSettings($field['file']);
         }
 
+        if ($type === FieldType::Rating) {
+            $normalized['rating'] = ['max' => (int) ($field['rating']['max'] ?? FormSchemaRules::DEFAULT_RATING_STARS)];
+        }
+
+        if ($type === FieldType::Scale) {
+            $normalized['scale'] = [
+                'min' => (int) $field['scale']['min'],
+                'max' => (int) $field['scale']['max'],
+                'min_label' => $this->nullableText($field['scale']['min_label'] ?? null),
+                'max_label' => $this->nullableText($field['scale']['max_label'] ?? null),
+            ];
+        }
+
         $normalized['rules'] = $this->rules($type, $field);
+        $normalized['visibility'] = $this->visibility($field['visibility'] ?? null);
 
         return $normalized;
     }
@@ -88,6 +127,54 @@ final class FormSchemaNormalizer
             'accept' => array_values(array_map('strval', $file['accept'])),
             'max_files' => (int) ($file['max_files'] ?? FormSchemaRules::DEFAULT_MAX_FILES),
             'max_size_mb' => (int) ($file['max_size_mb'] ?? FormSchemaRules::DEFAULT_MAX_FILE_SIZE_MB),
+        ];
+    }
+
+    /**
+     * @return array{action: string, when: array{field: string, operator: string, value?: mixed}}|null
+     */
+    private function visibility(mixed $visibility): ?array
+    {
+        if (! is_array($visibility)) {
+            return null;
+        }
+
+        $when = ['field' => (string) $visibility['when']['field'], 'operator' => (string) $visibility['when']['operator']];
+
+        if (array_key_exists('value', $visibility['when']) && $visibility['when']['value'] !== null) {
+            $when['value'] = $visibility['when']['value'];
+        }
+
+        return ['action' => (string) $visibility['action'], 'when' => $when];
+    }
+
+    /**
+     * Tema completo: o que não veio assume o padrão "Clássico".
+     *
+     * @param  array<string, mixed>  $theme
+     * @return array<string, mixed>
+     */
+    private function theme(array $theme): array
+    {
+        $defaults = FormTheme::DEFAULTS;
+        $colors = is_array($theme['colors'] ?? null) ? $theme['colors'] : [];
+
+        return [
+            'preset' => (string) ($theme['preset'] ?? $defaults['preset']),
+            'colors' => array_combine(
+                FormTheme::COLOR_KEYS,
+                array_map(fn (string $key): string => strtoupper((string) ($colors[$key] ?? $defaults['colors'][$key])), FormTheme::COLOR_KEYS),
+            ),
+            'radius' => (string) ($theme['radius'] ?? $defaults['radius']),
+            'font' => (string) ($theme['font'] ?? $defaults['font']),
+            'button_style' => (string) ($theme['button_style'] ?? $defaults['button_style']),
+            'alignment' => (string) ($theme['alignment'] ?? $defaults['alignment']),
+            'cover' => is_array($theme['cover'] ?? null) ? [
+                'asset_id' => (string) $theme['cover']['asset_id'],
+                'fit' => (string) ($theme['cover']['fit'] ?? FormTheme::COVER_FITS[0]),
+                'overlay_opacity' => (int) ($theme['cover']['overlay_opacity'] ?? 0),
+            ] : null,
+            'logo' => is_array($theme['logo'] ?? null) ? ['asset_id' => (string) $theme['logo']['asset_id']] : null,
         ];
     }
 

@@ -20,7 +20,7 @@ use LogicException;
  * @property int $version
  * @property string $title
  * @property string|null $description
- * @property array{fields: list<array<string, mixed>>} $schema
+ * @property array{fields: list<array<string, mixed>>, theme?: array<string, mixed>} $schema
  * @property Carbon $published_at
  */
 #[Fillable(['version', 'title', 'description', 'schema', 'published_at'])]

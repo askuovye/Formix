@@ -177,6 +177,100 @@
     { "note": "múltipla escolha fora das opções", "field": { "type": "multiple_choice", "required": true, "options": ["a", "b"] }, "value": ["c"], "valid": false },
     { "note": "múltipla escolha não aceita texto", "field": { "type": "multiple_choice", "required": true, "options": ["a", "b"] }, "value": "a", "valid": false },
     { "note": "múltipla escolha obrigatória vazia", "field": { "type": "multiple_choice", "required": true, "options": ["a", "b"] }, "value": [], "valid": false },
-    { "note": "múltipla escolha opcional vazia", "field": { "type": "multiple_choice", "required": false, "options": ["a", "b"] }, "value": [], "valid": true, "normalized": null }
+    { "note": "múltipla escolha opcional vazia", "field": { "type": "multiple_choice", "required": false, "options": ["a", "b"] }, "value": [], "valid": true, "normalized": null },
+    { "note": "estrelas dentro do limite", "field": { "type": "rating", "required": true, "rating": { "max": 5 } }, "value": 4, "valid": true, "normalized": 4 },
+    { "note": "estrelas em texto numérico", "field": { "type": "rating", "required": true, "rating": { "max": 5 } }, "value": "3", "valid": true, "normalized": 3 },
+    { "note": "estrelas abaixo de 1", "field": { "type": "rating", "required": true, "rating": { "max": 5 } }, "value": 0, "valid": false },
+    { "note": "estrelas acima do máximo", "field": { "type": "rating", "required": true, "rating": { "max": 5 } }, "value": 6, "valid": false },
+    { "note": "estrelas não aceitam fração", "field": { "type": "rating", "required": true, "rating": { "max": 5 } }, "value": 2.5, "valid": false },
+    { "note": "escala no início do intervalo", "field": { "type": "scale", "required": true, "scale": { "min": 0, "max": 10 } }, "value": 0, "valid": true, "normalized": 0 },
+    { "note": "escala no fim do intervalo", "field": { "type": "scale", "required": true, "scale": { "min": 0, "max": 10 } }, "value": 10, "valid": true, "normalized": 10 },
+    { "note": "escala fora do intervalo", "field": { "type": "scale", "required": true, "scale": { "min": 1, "max": 5 } }, "value": 0, "valid": false },
+    { "note": "escala com texto", "field": { "type": "scale", "required": true, "scale": { "min": 0, "max": 10 } }, "value": "dez", "valid": false }
+  ],
+  "visibility": [
+    { "note": "mostra quando a nota é menor ou igual a 2",
+      "schema": { "fields": [
+        { "id": "nota", "type": "rating" },
+        { "id": "motivo", "type": "long_text", "visibility": { "action": "show", "when": { "field": "nota", "operator": "lte", "value": 2 } } } ] },
+      "answers": { "nota": 2 }, "hidden": [] },
+    { "note": "oculta quando a nota é maior que 2",
+      "schema": { "fields": [
+        { "id": "nota", "type": "rating" },
+        { "id": "motivo", "type": "long_text", "visibility": { "action": "show", "when": { "field": "nota", "operator": "lte", "value": 2 } } } ] },
+      "answers": { "nota": 4 }, "hidden": ["motivo"] },
+    { "note": "comparação com origem não respondida é falsa",
+      "schema": { "fields": [
+        { "id": "nota", "type": "rating" },
+        { "id": "motivo", "type": "long_text", "visibility": { "action": "show", "when": { "field": "nota", "operator": "lte", "value": 2 } } } ] },
+      "answers": {}, "hidden": ["motivo"] },
+    { "note": "neq com origem não respondida também é falsa",
+      "schema": { "fields": [
+        { "id": "cor", "type": "single_choice", "options": ["azul", "verde"] },
+        { "id": "outra", "type": "short_text", "visibility": { "action": "show", "when": { "field": "cor", "operator": "neq", "value": "azul" } } } ] },
+      "answers": { "cor": null }, "hidden": ["outra"] },
+    { "note": "ação ocultar quando a condição é verdadeira",
+      "schema": { "fields": [
+        { "id": "filhos", "type": "single_choice", "options": ["sim", "nao"] },
+        { "id": "quantos", "type": "number", "visibility": { "action": "hide", "when": { "field": "filhos", "operator": "eq", "value": "nao" } } } ] },
+      "answers": { "filhos": "nao" }, "hidden": ["quantos"] },
+    { "note": "ação ocultar com condição falsa mantém visível",
+      "schema": { "fields": [
+        { "id": "filhos", "type": "single_choice", "options": ["sim", "nao"] },
+        { "id": "quantos", "type": "number", "visibility": { "action": "hide", "when": { "field": "filhos", "operator": "eq", "value": "nao" } } } ] },
+      "answers": { "filhos": "sim" }, "hidden": [] },
+    { "note": "múltipla escolha includes",
+      "schema": { "fields": [
+        { "id": "canais", "type": "multiple_choice", "options": ["email", "telefone"] },
+        { "id": "telefone", "type": "short_text", "visibility": { "action": "show", "when": { "field": "canais", "operator": "includes", "value": "telefone" } } } ] },
+      "answers": { "canais": ["email", "telefone"] }, "hidden": [] },
+    { "note": "múltipla escolha excludes",
+      "schema": { "fields": [
+        { "id": "canais", "type": "multiple_choice", "options": ["email", "telefone"] },
+        { "id": "email", "type": "email", "visibility": { "action": "show", "when": { "field": "canais", "operator": "excludes", "value": "email" } } } ] },
+      "answers": { "canais": ["email"] }, "hidden": ["email"] },
+    { "note": "lista vazia conta como não respondida",
+      "schema": { "fields": [
+        { "id": "canais", "type": "multiple_choice", "options": ["email", "telefone"] },
+        { "id": "porque", "type": "short_text", "visibility": { "action": "show", "when": { "field": "canais", "operator": "not_answered" } } } ] },
+      "answers": { "canais": [] }, "hidden": [] },
+    { "note": "texto compara sem maiúsculas e acentos",
+      "schema": { "fields": [
+        { "id": "resposta", "type": "short_text" },
+        { "id": "detalhe", "type": "short_text", "visibility": { "action": "show", "when": { "field": "resposta", "operator": "eq", "value": "sim" } } } ] },
+      "answers": { "resposta": "  SÍM " }, "hidden": [] },
+    { "note": "número em texto com vírgula",
+      "schema": { "fields": [
+        { "id": "valor", "type": "number" },
+        { "id": "aviso", "type": "short_text", "visibility": { "action": "show", "when": { "field": "valor", "operator": "lte", "value": 3 } } } ] },
+      "answers": { "valor": "2,5" }, "hidden": [] },
+    { "note": "valor não numérico torna a condição falsa",
+      "schema": { "fields": [
+        { "id": "valor", "type": "number" },
+        { "id": "aviso", "type": "short_text", "visibility": { "action": "show", "when": { "field": "valor", "operator": "lte", "value": 3 } } } ] },
+      "answers": { "valor": "abc" }, "hidden": ["aviso"] },
+    { "note": "data maior ou igual",
+      "schema": { "fields": [
+        { "id": "inicio", "type": "date" },
+        { "id": "motivo", "type": "short_text", "visibility": { "action": "show", "when": { "field": "inicio", "operator": "gte", "value": "2026-01-01" } } } ] },
+      "answers": { "inicio": "2026-03-10" }, "hidden": [] },
+    { "note": "texto só com espaços não conta como respondido",
+      "schema": { "fields": [
+        { "id": "nome", "type": "short_text" },
+        { "id": "apelido", "type": "short_text", "visibility": { "action": "show", "when": { "field": "nome", "operator": "answered" } } } ] },
+      "answers": { "nome": "   " }, "hidden": ["apelido"] },
+    { "note": "cadeia: origem oculta conta como não respondida",
+      "schema": { "fields": [
+        { "id": "possui", "type": "single_choice", "options": ["sim", "nao"] },
+        { "id": "qual", "type": "short_text", "visibility": { "action": "show", "when": { "field": "possui", "operator": "eq", "value": "sim" } } },
+        { "id": "desde", "type": "date", "visibility": { "action": "show", "when": { "field": "qual", "operator": "answered" } } } ] },
+      "answers": { "possui": "nao", "qual": "valor antigo", "desde": "2025-01-01" }, "hidden": ["qual", "desde"] },
+    { "note": "blocos são ignorados pela avaliação",
+      "schema": { "fields": [
+        { "id": "secao", "kind": "block", "type": "section_title", "text": "Sobre você" },
+        { "id": "idade", "type": "number" },
+        { "id": "quebra", "kind": "block", "type": "page_break" },
+        { "id": "responsavel", "type": "short_text", "visibility": { "action": "show", "when": { "field": "idade", "operator": "lt", "value": 18 } } } ] },
+      "answers": { "idade": 15 }, "hidden": [] }
   ]
 }

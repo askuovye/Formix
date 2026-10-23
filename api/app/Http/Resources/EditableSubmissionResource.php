@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Models\Submission;
+use App\Services\FormAssets;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,7 +29,7 @@ final class EditableSubmissionResource extends JsonResource
             'version' => $version['version'],
             'title' => $version['title'],
             'description' => $version['description'],
-            'schema' => $version['schema'],
+            'schema' => app(FormAssets::class)->withUrls($version['schema']),
             'answers' => $submission->data,
             'editable_until' => $submission->editable_until?->utc()->toIso8601String(),
             'edited_at' => $submission->edited_at?->utc()->toIso8601String(),
