@@ -10,6 +10,7 @@ import AppTextField from '@/components/AppTextField.vue'
 import { useFormValidation } from '@/composables/useFormValidation'
 import AuthCard from '@/features/auth/AuthCard.vue'
 import AuthForm from '@/features/auth/AuthForm.vue'
+import NewPasswordField from '@/features/auth/NewPasswordField.vue'
 import { resetPasswordSchema } from '@/features/auth/schemas'
 import { useToastStore } from '@/stores/useToastStore'
 import { auth } from '@/strings'
@@ -68,14 +69,10 @@ async function submit(): Promise<void> {
     <AuthForm ref="form" :error="generalError" @submit="submit">
       <!-- Ajuda gerenciadores de senha a associar a nova senha à conta certa. -->
       <input type="email" :value="email" autocomplete="username" hidden readonly />
-      <AppTextField
+      <NewPasswordField
         v-model="values.password"
-        type="password"
         :label="auth.fields.newPassword"
-        :hint="auth.fields.passwordHint"
-        autocomplete="new-password"
         :error="errors.password"
-        required
       />
       <AppTextField
         v-model="values.password_confirmation"

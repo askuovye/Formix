@@ -9,6 +9,10 @@ export const auth = {
     passwordHint: 'De 8 a 72 caracteres, com letras e números.',
     remember: 'Manter conectado neste dispositivo',
   },
+  strength: {
+    label: 'Força da senha:',
+    levels: ['', 'fraca', 'razoável', 'boa', 'forte'],
+  },
   validation: {
     nameRequired: 'Informe seu nome.',
     nameMax: 'Use no máximo 120 caracteres.',

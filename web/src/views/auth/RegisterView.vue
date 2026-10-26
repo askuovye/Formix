@@ -12,6 +12,7 @@ import AppTextLink from '@/components/AppTextLink.vue'
 import { useFormValidation } from '@/composables/useFormValidation'
 import AuthCard from '@/features/auth/AuthCard.vue'
 import AuthForm from '@/features/auth/AuthForm.vue'
+import NewPasswordField from '@/features/auth/NewPasswordField.vue'
 import { registerSchema } from '@/features/auth/schemas'
 import { auth } from '@/strings'
 
@@ -82,14 +83,10 @@ async function submit(): Promise<void> {
         :error="errors.email"
         required
       />
-      <AppTextField
+      <NewPasswordField
         v-model="values.password"
-        type="password"
         :label="auth.fields.password"
-        :hint="auth.fields.passwordHint"
-        autocomplete="new-password"
         :error="errors.password"
-        required
       />
       <AppTextField
         v-model="values.password_confirmation"
