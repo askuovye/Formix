@@ -1,68 +1,133 @@
 <script setup lang="ts">
-import { useQuery } from '@tanstack/vue-query'
-import { computed } from 'vue'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 
-import { fetchForm } from '@/api/forms'
+import { fetchForm, updateForm } from '@/api/forms'
 import { queryKeys } from '@/api/queryKeys'
 import AppAlert from '@/components/AppAlert.vue'
-import AppBadge from '@/components/AppBadge.vue'
 import AppButton from '@/components/AppButton.vue'
-import AppCard from '@/components/AppCard.vue'
-import AppPageHeader from '@/components/AppPageHeader.vue'
+import AppSkipLink from '@/components/AppSkipLink.vue'
 import AppSpinner from '@/components/AppSpinner.vue'
-import { common, forms } from '@/strings'
+import BuilderTopbar from '@/features/builder/BuilderTopbar.vue'
+import BuilderWorkspace from '@/features/builder/BuilderWorkspace.vue'
+import { useAutosave } from '@/features/builder/useAutosave'
+import { useBuilderStore } from '@/features/builder/useBuilderStore'
+import { builder, common } from '@/strings'
 
-// Provisório: o editor de verdade (paleta, prévia e propriedades) chega na fase 3b.
 const props = defineProps<{
   id: string
 }>()
 
+const store = useBuilderStore()
+const queryClient = useQueryClient()
+
 const query = useQuery({
   queryKey: computed(() => queryKeys.form(props.id)),
   queryFn: () => fetchForm(props.id),
+  // O rascunho em edição vive no store; não recarregar por cima dele.
+  staleTime: Infinity,
+})
+
+const autosave = useAutosave(
+  () => store.revision,
+  async () => {
+    const form = await updateForm(props.id, { schema: store.schema })
+    // Atualiza situação e "alterações não publicadas" sem trocar o rascunho em edição.
+    queryClient.setQueryData(queryKeys.form(props.id), form)
+    await queryClient.invalidateQueries({ queryKey: queryKeys.formLists })
+  },
+)
+
+// Carrega no store quando o formulário chega (ou quando muda de formulário).
+watch(
+  () => query.data.value,
+  (form) => {
+    if (form && store.formId !== form.id) {
+      store.load(form.id, form.schema)
+      autosave.reset(store.revision)
+    }
+  },
+  { immediate: true },
+)
+
+const paletteOpen = ref(false)
+const propertiesOpen = ref(false)
+
+// Sair do editor salva o que estiver pendente antes.
+onBeforeRouteLeave(async () => {
+  await autosave.flush()
+})
+
+function warnUnsaved(event: BeforeUnloadEvent): void {
+  if (autosave.hasUnsaved()) {
+    event.preventDefault()
+  }
+}
+
+onMounted(() => window.addEventListener('beforeunload', warnUnsaved))
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', warnUnsaved)
+  // Na próxima abertura o store recarrega do servidor (o salvo é a fonte da verdade).
+  store.formId = null
 })
 </script>
 
 <template>
-  <AppButton :to="{ name: 'forms' }" variant="ghost" size="sm" icon-left="arrow-left">
-    {{ forms.builder.back }}
-  </AppButton>
+  <div class="builder-page">
+    <AppSkipLink target="conteudo" />
 
-  <p v-if="query.isPending.value" class="builder-soon__status" role="status">
-    <AppSpinner />
-    {{ common.loading }}
-  </p>
+    <div v-if="query.isPending.value" class="builder-page__status" role="status">
+      <AppSpinner />
+      {{ common.loading }}
+    </div>
 
-  <AppAlert v-else-if="query.isError.value" tone="danger">{{ forms.builder.loadError }}</AppAlert>
+    <div v-else-if="query.isError.value" class="builder-page__status">
+      <AppAlert tone="danger">{{ builder.loadError }}</AppAlert>
+      <AppButton variant="secondary" @click="query.refetch()">{{ builder.retry }}</AppButton>
+      <AppButton :to="{ name: 'forms' }" variant="ghost" icon-left="arrow-left">
+        {{ builder.back }}
+      </AppButton>
+    </div>
 
-  <template v-else-if="query.data.value">
-    <AppPageHeader :title="query.data.value.title" class="builder-soon__header">
-      <template #actions>
-        <AppBadge>{{ forms.status[query.data.value.status] }}</AppBadge>
-      </template>
-    </AppPageHeader>
-    <AppCard padding="lg">
-      <p class="builder-soon__text">{{ forms.builder.soon }}</p>
-    </AppCard>
-  </template>
+    <template v-else-if="query.data.value">
+      <BuilderTopbar
+        :title="query.data.value.title"
+        :status="query.data.value.status"
+        :save-status="autosave.status.value"
+        @retry-save="autosave.flush()"
+        @open-palette="paletteOpen = true"
+        @open-properties="propertiesOpen = true"
+      />
+      <BuilderWorkspace
+        v-model:palette-open="paletteOpen"
+        v-model:properties-open="propertiesOpen"
+        class="builder-page__workspace"
+      />
+    </template>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.builder-soon {
+.builder-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+  background: var(--color-bg);
+
   &__status {
-    display: flex;
-    gap: var(--space-3);
-    align-items: center;
-    padding-block: var(--space-12);
+    display: grid;
+    grid-row: 1 / -1;
+    gap: var(--space-4);
+    place-content: center;
+    justify-items: center;
+    padding: var(--space-4);
     color: var(--color-text-muted);
   }
 
-  &__header {
-    margin-block-start: var(--space-4);
-  }
-
-  &__text {
-    color: var(--color-text-muted);
+  &__workspace {
+    min-height: 0;
   }
 }
 </style>

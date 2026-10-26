@@ -30,6 +30,14 @@ const devRoutes: RouteRecordRaw[] = import.meta.env.DEV
 const routes: RouteRecordRaw[] = [
   // A landing chega na fase 6; até lá, o início é o painel.
   { path: '/', redirect: '/painel' },
+  // O editor ocupa a tela inteira, fora do shell do painel.
+  {
+    path: '/painel/formularios/:id',
+    name: 'form-builder',
+    component: () => import('@/views/panel/FormBuilderView.vue'),
+    props: true,
+    meta: { title: pageTitles.formEditor, requiresAuth: true },
+  },
   {
     path: '/painel',
     component: () => import('@/layouts/AppShellLayout.vue'),
@@ -41,13 +49,6 @@ const routes: RouteRecordRaw[] = [
         name: 'forms',
         component: () => import('@/views/panel/FormsView.vue'),
         meta: { title: pageTitles.forms },
-      },
-      {
-        path: 'formularios/:id',
-        name: 'form-builder',
-        component: () => import('@/views/panel/FormBuilderView.vue'),
-        props: true,
-        meta: { title: pageTitles.formEditor },
       },
       {
         path: 'configuracoes',

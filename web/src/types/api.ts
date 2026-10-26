@@ -1,3 +1,5 @@
+import type { FormSchema } from './schema'
+
 /** DTOs da API (docs/api.md). */
 
 export interface User {
@@ -46,10 +48,10 @@ export interface FormSummary {
   updated_at: string
 }
 
-/** Formulário completo. O schema e as configurações ganham tipos próprios no builder (fase 3b). */
+/** Formulário completo. As configurações ganham tipo próprio na aba de configurações (fase 3d). */
 export interface Form extends Omit<FormSummary, 'submissions_count' | 'last_submission_at'> {
   description: string | null
-  schema: unknown
+  schema: FormSchema
   settings: unknown
 }
 
