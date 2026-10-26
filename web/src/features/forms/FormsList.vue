@@ -67,6 +67,9 @@ function onAction(form: FormSummary, action: FormAction): void {
     case 'edit':
       void router.push({ name: 'form-builder', params: { id: form.id } })
       break
+    case 'submissions':
+      void router.push({ name: 'submissions', query: { form: form.id } })
+      break
     case 'copy-link':
       void copyLink(form.public_url)
       break

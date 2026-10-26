@@ -46,6 +46,7 @@ export const forms = {
   },
   actions: {
     edit: 'Editar',
+    submissions: 'Ver respostas',
     copyLink: 'Copiar link',
     archive: 'Arquivar',
     reopen: 'Reabrir',

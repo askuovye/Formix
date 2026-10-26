@@ -301,6 +301,7 @@ const PREVIEW = {
 /** Publicar, fechar e link do formulário. */
 const PUBLISH = {
   preview: 'Visualizar',
+  submissions: 'Ver respostas',
   publish: 'Publicar',
   publishChanges: 'Publicar alterações',
   published: 'Publicado',

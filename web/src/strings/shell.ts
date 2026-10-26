@@ -4,6 +4,7 @@ export const shell = {
   nav: {
     label: 'Navegação principal',
     forms: 'Formulários',
+    submissions: 'Respostas',
     settings: 'Configurações',
   },
   openMenu: 'Abrir menu',
@@ -28,6 +29,7 @@ export const shell = {
 /** Títulos da aba do navegador, por rota. */
 export const pageTitles = {
   forms: 'Formulários',
+  submissions: 'Respostas',
   formEditor: 'Editor',
   settings: 'Configurações',
   terms: 'Termos de Uso',
