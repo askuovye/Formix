@@ -3,6 +3,7 @@ export const common = {
   required: 'obrigatório',
   loading: 'Carregando…',
   close: 'Fechar',
+  cancel: 'Cancelar',
   selectPlaceholder: 'Selecione uma opção',
   tooManyAttempts: (seconds: number) =>
     `Muitas tentativas. Tente de novo em ${seconds} ${seconds === 1 ? 'segundo' : 'segundos'}.`,

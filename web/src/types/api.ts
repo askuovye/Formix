@@ -48,11 +48,26 @@ export interface FormSummary {
   updated_at: string
 }
 
-/** Formulário completo. As configurações ganham tipo próprio na aba de configurações (fase 3d). */
+/** Configurações do formulário (valem na hora, sem publicar). Datas em ISO 8601 (UTC). */
+export interface FormSettings {
+  /** Vazio = email do dono. */
+  notification_emails: string[]
+  success_message: string | null
+  max_submissions: number | null
+  opens_at: string | null
+  closes_at: string | null
+  send_copy_to_respondent: boolean
+  /** Id de um campo `email` do formulário (obrigatório se enviar cópia). */
+  respondent_email_field: string | null
+  allow_respondent_edit: boolean
+  retention_days: number | null
+}
+
+/** Formulário completo. */
 export interface Form extends Omit<FormSummary, 'submissions_count' | 'last_submission_at'> {
   description: string | null
   schema: FormSchema
-  settings: unknown
+  settings: FormSettings
 }
 
 /** Lista paginada por cursor (`cursorPaginate` do Laravel). */

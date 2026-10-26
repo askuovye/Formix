@@ -18,6 +18,16 @@ export const delay = {
   tooltip: 400,
   /** Tempo que um aviso (toast) fica na tela. */
   toast: 5000,
+  /** Mouse parado na borda antes de abrir um painel lateral (evita aberturas sem querer). */
+  panelOpen: 80,
+  /** Espera depois que o mouse sai antes de recolher um painel lateral. */
+  panelClose: 320,
+} as const
+
+/** Molas (motion-v) para movimentos com peso físico. Sem espelho em CSS. */
+export const spring = {
+  /** Painel lateral deslizando: rápido no começo, assentando sem quicar. */
+  panel: { type: 'spring', stiffness: 260, damping: 30, mass: 0.9 },
 } as const
 
 /** Curvas cúbicas de Bézier `[x1, y1, x2, y2]`. */

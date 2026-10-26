@@ -9,20 +9,27 @@ import AppSpinner from '@/components/AppSpinner.vue'
 import type { IconName } from '@/components/icons/iconNames'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import { builder, forms } from '@/strings'
-import type { FormStatus } from '@/types/api'
+import type { Form } from '@/types/api'
 
+import BuilderPublishControl from './BuilderPublishControl.vue'
 import type { SaveStatus } from './useAutosave'
 import { useBuilderStore } from './useBuilderStore'
 
 const props = defineProps<{
+  /** Título em edição (o rascunho, não o salvo). */
   title: string
-  status: FormStatus
+  form: Form
   saveStatus: SaveStatus
+  publishing: boolean
+  closing: boolean
 }>()
 
 const emit = defineEmits<{
   retrySave: []
+  openMenu: []
   openProperties: []
+  publish: []
+  close: [done: (closed: boolean) => void]
 }>()
 
 const store = useBuilderStore()
@@ -46,6 +53,12 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
 
 <template>
   <header class="builder-topbar">
+    <AppIconButton
+      icon="menu"
+      :label="t.rail.menu"
+      class="builder-topbar__menu"
+      @click="emit('openMenu')"
+    />
     <AppButton
       :to="{ name: 'forms' }"
       variant="ghost"
@@ -57,7 +70,7 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
 
     <div class="builder-topbar__heading">
       <h1 class="builder-topbar__title">{{ props.title }}</h1>
-      <AppBadge class="builder-topbar__badge">{{ forms.status[props.status] }}</AppBadge>
+      <AppBadge class="builder-topbar__badge">{{ forms.status[props.form.status] }}</AppBadge>
     </div>
 
     <p
@@ -80,23 +93,32 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
     </p>
 
     <div class="builder-topbar__actions">
-      <AppIconButton
-        icon="undo-2"
-        :label="t.toolbar.undo"
-        :disabled="!store.canUndo"
-        @click="store.undo()"
-      />
-      <AppIconButton
-        icon="redo-2"
-        :label="t.toolbar.redo"
-        :disabled="!store.canRedo"
-        @click="store.redo()"
-      />
+      <span class="builder-topbar__history">
+        <AppIconButton
+          icon="undo-2"
+          :label="t.toolbar.undo"
+          :disabled="!store.canUndo"
+          @click="store.undo()"
+        />
+        <AppIconButton
+          icon="redo-2"
+          :label="t.toolbar.redo"
+          :disabled="!store.canRedo"
+          @click="store.redo()"
+        />
+      </span>
       <AppIconButton
         icon="sliders-horizontal"
         :label="t.toolbar.openProperties"
         class="builder-topbar__mobile"
         @click="emit('openProperties')"
+      />
+      <BuilderPublishControl
+        :form="props.form"
+        :publishing="props.publishing"
+        :closing="props.closing"
+        @publish="emit('publish')"
+        @close="(done) => emit('close', done)"
       />
       <span class="builder-topbar__theme"><ThemeToggle /></span>
     </div>
@@ -185,9 +207,21 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
     align-items: center;
   }
 
-  &__mobile {
+  // Abaixo de lg o rail e as propriedades viram gavetas, abertas por estes botões.
+  &__mobile,
+  &__menu {
     @include up(lg) {
       display: none;
+    }
+  }
+
+  // No celular o "voltar" fica na gaveta do menu e desfazer/refazer flutuam no canto.
+  &__back,
+  &__history {
+    display: none;
+
+    @include up(md) {
+      display: inline-flex;
     }
   }
 

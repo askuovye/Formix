@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import draggable from 'vuedraggable'
 
 import AppIcon from '@/components/AppIcon.vue'
@@ -8,6 +9,11 @@ import { PALETTE, type PaletteEntry, type PaletteGroup } from './catalog'
 import { BUILDER_DRAG_GROUP } from './dragAndDrop'
 import { useBuilderStore } from './useBuilderStore'
 
+const props = defineProps<{
+  /** Campos (básicos e avançados) ou elementos de organização. */
+  section: 'fields' | 'elements'
+}>()
+
 const emit = defineEmits<{
   /** Um item foi adicionado pelo clique (a gaveta do celular fecha). */
   added: []
@@ -16,9 +22,16 @@ const emit = defineEmits<{
 const store = useBuilderStore()
 const t = builder.palette
 
-const groups: PaletteGroup[] = ['basic', 'advanced', 'element']
+const GROUPS: Record<typeof props.section, PaletteGroup[]> = {
+  fields: ['basic', 'advanced'],
+  elements: ['element'],
+}
+const groups = computed(() => GROUPS[props.section])
 const entriesByGroup = Object.fromEntries(
-  groups.map((group) => [group, PALETTE.filter((entry) => entry.group === group)]),
+  (['basic', 'advanced', 'element'] as const).map((group) => [
+    group,
+    PALETTE.filter((entry) => entry.group === group),
+  ]),
 ) as Record<PaletteGroup, PaletteEntry[]>
 
 function add(entry: PaletteEntry): void {
@@ -34,11 +47,11 @@ function cloneEntry(entry: PaletteEntry) {
 
 <template>
   <div class="palette">
-    <h2 class="palette__title">{{ t.title }}</h2>
-    <p class="palette__hint">{{ t.addHint }}</p>
+    <h2 class="palette__title">{{ builder.rail.sections[props.section] }}</h2>
+    <p class="palette__hint">{{ builder.rail.hints[props.section] }}</p>
 
     <section v-for="group in groups" :key="group" class="palette__group">
-      <h3 class="palette__group-title">{{ t.groups[group] }}</h3>
+      <h3 v-if="groups.length > 1" class="palette__group-title">{{ t.groups[group] }}</h3>
       <draggable
         :list="entriesByGroup[group]"
         :group="{ name: BUILDER_DRAG_GROUP, pull: 'clone', put: false }"
