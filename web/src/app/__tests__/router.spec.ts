@@ -35,9 +35,10 @@ describe('rotas', () => {
   beforeEach(async () => {
     vi.resetAllMocks()
     session('guest')
-    // Começa cada teste numa rota pública neutra.
+    // Começa cada teste numa rota pública neutra. Na 1ª vez compila a área pública
+    // sob demanda: com cache frio e a máquina ocupada passa dos 10 s padrão.
     await router.replace('/termos')
-  })
+  }, 30_000)
 
   // A 1ª navegação ao painel compila o shell inteiro sob demanda: lenta no Windows.
   it('logado: o início leva à lista de formulários', { timeout: 30_000 }, async () => {
