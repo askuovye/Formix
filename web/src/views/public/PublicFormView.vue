@@ -9,6 +9,7 @@ import AppButton from '@/components/AppButton.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import AppSpinner from '@/components/AppSpinner.vue'
 import { BRAND_NAME } from '@/config/brand'
+import FormPage from '@/features/renderer/FormPage.vue'
 import FormReceipt from '@/features/renderer/FormReceipt.vue'
 import FormStatusPanel from '@/features/renderer/FormStatusPanel.vue'
 import PublicFormRenderer from '@/features/renderer/PublicFormRenderer.vue'
@@ -54,7 +55,11 @@ function reload(): void {
 </script>
 
 <template>
-  <div class="public-form-page">
+  <FormPage
+    :theme="form?.schema?.theme"
+    :title="form && !receipt ? form.title : undefined"
+    :description="form && !receipt ? form.description : undefined"
+  >
     <p v-if="query.isPending.value" class="public-form-page__state" role="status">
       <AppSpinner />
       {{ renderer.loading }}
@@ -75,17 +80,12 @@ function reload(): void {
     <FormReceipt v-else-if="receipt" :receipt="receipt" />
 
     <template v-else-if="form">
-      <header class="public-form-page__header">
-        <h1 class="public-form-page__title">{{ form.title }}</h1>
-        <p v-if="form.description" class="public-form-page__description">
-          {{ form.description }}
-        </p>
-      </header>
-
       <PublicFormRenderer
         v-if="form.accepts_submissions && form.schema"
-        :form="form"
         :items="form.schema.fields"
+        :slug="form.slug"
+        :privacy-url="form.privacy_policy_url"
+        :button-style="form.schema.theme?.button_style"
         @submitted="(value) => (receipt = value)"
         @unavailable="reload"
       />
@@ -99,14 +99,11 @@ function reload(): void {
         <p v-if="opensAt" class="public-form-page__muted">{{ opensAt }}</p>
       </FormStatusPanel>
     </template>
-  </div>
+  </FormPage>
 </template>
 
 <style scoped lang="scss">
 .public-form-page {
-  display: grid;
-  gap: var(--space-8);
-
   &__state {
     display: flex;
     flex-wrap: wrap;
@@ -115,25 +112,6 @@ function reload(): void {
     justify-content: center;
     padding-block: var(--space-16);
     color: var(--color-text-muted);
-  }
-
-  &__header {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  &__title {
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-bold);
-    line-height: var(--line-height-tight);
-    letter-spacing: var(--letter-spacing-tight);
-    overflow-wrap: anywhere;
-  }
-
-  &__description {
-    color: var(--color-text-muted);
-    white-space: pre-line;
-    overflow-wrap: anywhere;
   }
 
   &__muted {

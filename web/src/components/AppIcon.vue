@@ -9,7 +9,8 @@ addCollection(lucideSubset)
 </script>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue/offline'
+import { Icon, type IconifyIcon } from '@iconify/vue/offline'
+import { computed } from 'vue'
 
 import type { IconName } from './icons/iconNames'
 
@@ -18,12 +19,29 @@ const props = defineProps<{
   name: IconName
   /** Texto para leitores de tela. Sem ele, o ícone é decorativo (aria-hidden). */
   label?: string
+  /** Preenche o desenho com a cor do texto (ex.: estrela marcada). */
+  filled?: boolean
 }>()
+
+const ICON_SIZE = lucideSubset.width
+
+// Os ícones Lucide são só contorno (fill="none"). Preenchido, o desenho vem da
+// mesma coleção local com o atributo trocado (o build offline não tem customise).
+const icon = computed<string | IconifyIcon>(() => {
+  const data = (lucideSubset.icons as Record<string, { body: string } | undefined>)[props.name]
+  if (!props.filled || !data) return `lucide:${props.name}`
+
+  return {
+    body: data.body.replace(/fill="none"/g, 'fill="currentColor"'),
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+  }
+})
 </script>
 
 <template>
   <Icon
-    :icon="`lucide:${props.name}`"
+    :icon="icon"
     class="app-icon"
     :role="props.label ? 'img' : undefined"
     :aria-label="props.label"

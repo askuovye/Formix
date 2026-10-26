@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, toRaw } from 'vue'
 
-import type { FormSchema, SchemaItem } from '@/types/schema'
+import type { FormSchema, FormTheme, SchemaItem } from '@/types/schema'
 
 import { PALETTE, type PaletteKey, nextId, paletteEntryFor } from './catalog'
 import { isTextField } from './rules'
@@ -38,8 +38,8 @@ function clone<T>(value: T): T {
 export const useBuilderStore = defineStore('builder', () => {
   const formId = ref<string | null>(null)
   const items = ref<SchemaItem[]>([])
-  /** Tema (fase 4): preservado como veio, para não ser apagado ao salvar. */
-  const theme = shallowRef<unknown>(undefined)
+  /** Tema do formulário (ausente = Clássico). */
+  const theme = shallowRef<FormTheme | undefined>(undefined)
   const selectedId = ref<string | null>(null)
   /**
    * Sobe a cada seleção feita pelo dono no canvas (mesmo repetindo o item).

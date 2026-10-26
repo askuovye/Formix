@@ -44,7 +44,7 @@ const lit = computed(() => hovered.value ?? model.value ?? 0)
           :value="star"
           :aria-invalid="props.error ? 'true' : undefined"
         />
-        <AppIcon name="star" class="rating__icon" />
+        <AppIcon name="star" :filled="star <= lit" />
         <span class="rating__text">{{ renderer.rating(star, props.field.rating.max) }}</span>
       </label>
       <button
@@ -91,10 +91,6 @@ const lit = computed(() => hovered.value ?? model.value ?? 0)
     &--lit {
       color: var(--color-warning);
     }
-  }
-
-  &__icon {
-    fill: currentcolor;
   }
 
   &__input,

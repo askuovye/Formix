@@ -9,26 +9,33 @@ import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import { fade, slideUp } from '@/motion'
 import { renderer } from '@/strings'
-import type { PublicForm, Receipt } from '@/types/api'
-import type { SchemaItem } from '@/types/schema'
+import type { Receipt } from '@/types/api'
+import type { FormTheme, SchemaItem } from '@/types/schema'
 
 import FormItem from './FormItem.vue'
 import { useFormRenderer } from './useFormRenderer'
 
 /**
- * Formulário público montado a partir do schema publicado. Valida no cliente
- * (espelho do back-end), mas quem decide é o servidor: os erros 422 dele
- * voltam para os campos.
+ * Formulário montado a partir do schema. Valida no cliente (espelho do
+ * back-end), mas quem decide é o servidor: os erros 422 dele voltam para os
+ * campos. Na pré-visualização do builder nada é enviado.
  */
 const props = defineProps<{
-  form: PublicForm
   items: SchemaItem[]
+  /** Formulário que recebe a resposta (ignorado na pré-visualização). */
+  slug?: string
+  privacyUrl?: string
+  buttonStyle?: FormTheme['button_style']
+  /** Pré-visualização: valida tudo, mas emite `previewed` em vez de enviar. */
+  preview?: boolean
 }>()
 
 const emit = defineEmits<{
   submitted: [receipt: Receipt]
   /** O servidor deixou de aceitar respostas (409): a página recarrega a situação. */
   unavailable: []
+  /** Pré-visualização chegou ao fim com tudo válido. */
+  previewed: []
 }>()
 
 const state = useFormRenderer(() => props.items)
@@ -42,10 +49,11 @@ const idempotencyKey = crypto.randomUUID()
 const totalSteps = computed(() => state.steps.value.length)
 const currentItems = computed(() => state.steps.value[state.stepIndex.value] ?? [])
 const errorCount = computed(() => Object.keys(state.errors.value).length)
+const primaryVariant = computed(() => (props.buttonStyle === 'outline' ? 'outline' : 'primary'))
 
 const mutation = useMutation({
   mutationFn: (answers: Record<string, unknown>) =>
-    submitAnswers(props.form.slug, { answers, website: honeypot.value }, idempotencyKey),
+    submitAnswers(props.slug ?? '', { answers, website: honeypot.value }, idempotencyKey),
   onSuccess: (receipt) => emit('submitted', receipt),
   onError: (error) => {
     const apiError = toApiError(error)
@@ -103,7 +111,8 @@ function onSubmit(): void {
     return
   }
 
-  mutation.mutate(answers)
+  if (props.preview) emit('previewed')
+  else mutation.mutate(answers)
 }
 </script>
 
@@ -163,6 +172,7 @@ function onSubmit(): void {
       <AppButton
         v-if="!state.isLastStep.value"
         type="submit"
+        :variant="primaryVariant"
         icon-right="arrow-right"
         class="public-form__primary"
       >
@@ -171,6 +181,7 @@ function onSubmit(): void {
       <AppButton
         v-else
         type="submit"
+        :variant="primaryVariant"
         icon-right="send"
         class="public-form__primary"
         :loading="mutation.isPending.value"
@@ -179,11 +190,11 @@ function onSubmit(): void {
       </AppButton>
     </div>
 
-    <p v-if="state.isLastStep.value" class="public-form__privacy">
+    <p v-if="state.isLastStep.value && props.privacyUrl" class="public-form__privacy">
       {{ renderer.privacy }}
       <a
         class="public-form__link"
-        :href="props.form.privacy_policy_url"
+        :href="props.privacyUrl"
         target="_blank"
         rel="noopener noreferrer"
       >

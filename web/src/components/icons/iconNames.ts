@@ -55,6 +55,7 @@ export const ICON_NAMES = [
   'settings',
   'shapes',
   'sliders-horizontal',
+  'smartphone',
   'square-check',
   'star',
   'sun',

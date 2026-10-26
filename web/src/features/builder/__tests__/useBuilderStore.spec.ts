@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_THEME } from '@/features/renderer/theme'
 import { SCHEMA_LIMITS, type SchemaItem } from '@/types/schema'
 
 import { PALETTE, nextId, paletteEntryFor } from '../catalog'
@@ -38,11 +39,11 @@ describe('useBuilderStore', () => {
     const store = useBuilderStore()
     store.load('f1', {
       fields: [{ id: 'nome', type: 'short_text', label: 'Nome' } as SchemaItem],
-      theme: { preset: 'classico' },
+      theme: DEFAULT_THEME,
     })
 
     expect(store.items[0]?.kind).toBe('input')
-    expect(store.schema.theme).toEqual({ preset: 'classico' })
+    expect(store.schema.theme).toEqual(DEFAULT_THEME)
     expect(store.revision).toBe(0)
     expect(store.canUndo).toBe(false)
   })

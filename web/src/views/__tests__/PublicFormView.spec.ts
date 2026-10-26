@@ -1,6 +1,7 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { ApiError } from '@/api/client'
 import * as publicApi from '@/api/publicForms'
@@ -35,10 +36,14 @@ function publicForm(overrides: Partial<PublicForm> = {}): PublicForm {
 
 function mountView() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/', component: { template: '<div />' } }],
+  })
 
   return mount(PublicFormView, {
     props: { slug: 'inscricao' },
-    global: { plugins: [[VueQueryPlugin, { queryClient }]] },
+    global: { plugins: [[VueQueryPlugin, { queryClient }], router] },
     attachTo: document.body,
   })
 }

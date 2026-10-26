@@ -236,10 +236,21 @@ const SETTINGS = {
   retentionDaysHint: 'Vazio = até você excluir. Depois do prazo, as respostas são apagadas.',
 } as const
 
+/** Pré-visualização do rascunho (janela no builder). */
+const PREVIEW = {
+  title: 'Pré-visualização',
+  notice: 'Rascunho atual, como quem responde vai ver. Nada é enviado.',
+  devices: 'Tamanho da tela',
+  desktop: 'Computador',
+  mobile: 'Celular',
+  restart: 'Recomeçar',
+  doneTitle: 'Fim da pré-visualização',
+  doneText: 'Tudo certo com as respostas. Nada foi enviado.',
+} as const
+
 /** Publicar, fechar e link do formulário. */
 const PUBLISH = {
   preview: 'Visualizar',
-  previewSoon: 'Visualizar (em breve)',
   publish: 'Publicar',
   publishChanges: 'Publicar alterações',
   published: 'Publicado',
@@ -331,6 +342,7 @@ export const builder = {
   details: DETAILS,
   settings: SETTINGS,
   publish: PUBLISH,
+  preview: PREVIEW,
   toolbar: {
     undo: 'Desfazer',
     redo: 'Refazer',

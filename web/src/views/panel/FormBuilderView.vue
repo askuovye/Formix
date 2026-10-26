@@ -10,6 +10,7 @@ import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppSkipLink from '@/components/AppSkipLink.vue'
 import AppSpinner from '@/components/AppSpinner.vue'
+import BuilderPreviewDialog from '@/features/builder/BuilderPreviewDialog.vue'
 import BuilderTopbar from '@/features/builder/BuilderTopbar.vue'
 import BuilderWorkspace from '@/features/builder/BuilderWorkspace.vue'
 import { detailsServerErrors } from '@/features/builder/details'
@@ -105,6 +106,7 @@ watch(
 const publishing = usePublishing(() => props.id, autosave)
 
 const menuOpen = ref(false)
+const previewOpen = ref(false)
 const propertiesOpen = ref(false)
 const section = ref<BuilderSection>('fields')
 
@@ -159,6 +161,7 @@ onBeforeUnmount(() => {
         @open-menu="menuOpen = true"
         @open-properties="propertiesOpen = true"
         @publish="publishing.publish()"
+        @preview="previewOpen = true"
         @close="close"
       />
       <BuilderWorkspace
@@ -167,6 +170,7 @@ onBeforeUnmount(() => {
         v-model:section="section"
         class="builder-page__workspace"
       />
+      <BuilderPreviewDialog v-model:open="previewOpen" />
     </template>
   </div>
 </template>
