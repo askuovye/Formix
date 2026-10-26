@@ -13,6 +13,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
+    "icons": "node scripts/generate-icons.ts",
     "format:check": "prettier --check --experimental-cli src/"
   },
   "dependencies": {
@@ -25,6 +26,8 @@
     "vue-router": "^5.3.1"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.147",
+    "@iconify/utils": "^3.1.7",
     "@tsconfig/node24": "^24.0.5",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^24.13.4",
