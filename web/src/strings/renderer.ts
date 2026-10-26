@@ -24,6 +24,7 @@ export const renderer = {
   next: 'Continuar',
   submit: 'Enviar resposta',
   submitting: 'Enviando…',
+  submittingProgress: (percent: number) => `Enviando… ${percent}%`,
   privacy: 'Seus dados são tratados conforme a',
   privacyLink: 'Política de Privacidade',
   fixErrors: (count: number) =>
@@ -35,7 +36,19 @@ export const renderer = {
   choicePlaceholder: 'Selecione uma opção',
   rating: (value: number, max: number) => `${value} de ${max}`,
   ratingClear: 'Limpar nota',
-  fileSoon: 'O envio de arquivos chega em breve.',
+  file: {
+    drop: 'Arraste arquivos para cá ou',
+    dropOne: 'Arraste um arquivo para cá ou',
+    choose: 'escolha no aparelho',
+    tap: 'Toque para escolher arquivos',
+    tapOne: 'Toque para escolher um arquivo',
+    limits: (types: string, maxMb: number, maxFiles: number) =>
+      `${types} · até ${maxMb} MB ${maxFiles === 1 ? 'por arquivo' : `cada · até ${maxFiles} arquivos`}`,
+    remove: (name: string) => `Remover ${name}`,
+    added: (name: string) => `${name} adicionado.`,
+    removed: (name: string) => `${name} removido.`,
+    loading: 'Preparando o envio de arquivos…',
+  },
   receipt: {
     title: 'Tudo certo!',
     edit: 'Editar minha resposta',

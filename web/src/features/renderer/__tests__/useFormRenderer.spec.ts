@@ -94,10 +94,8 @@ describe('useFormRenderer', () => {
 
     state.update('nome', '  Maria   Souza ')
     expect(state.payload()).toEqual({
-      nome: 'Maria Souza',
-      filhos: 'nao',
-      quantos: null,
-      nota: null,
+      answers: { nome: 'Maria Souza', filhos: 'nao', quantos: null, nota: null },
+      files: {},
     })
   })
 
@@ -118,5 +116,44 @@ describe('useFormRenderer', () => {
 
     state.update('nome', 'Maria')
     expect(state.errors.value).toEqual({})
+  })
+})
+
+describe('useFormRenderer com anexos', () => {
+  const withFile: SchemaItem[] = [
+    {
+      id: 'tem',
+      kind: 'input',
+      type: 'single_choice',
+      label: 'Tem comprovante?',
+      options: [
+        { value: 'sim', label: 'Sim' },
+        { value: 'nao', label: 'Não' },
+      ],
+    },
+    {
+      id: 'doc',
+      kind: 'input',
+      type: 'file',
+      label: 'Comprovante',
+      required: true,
+      file: { accept: ['pdf'], max_files: 1, max_size_mb: 5 },
+      visibility: { action: 'show', when: { field: 'tem', operator: 'eq', value: 'sim' } },
+    },
+  ]
+
+  it('arquivo obrigatório vira erro; visível vai em files; oculto não vai', () => {
+    const state = useFormRenderer(withFile)
+    state.update('tem', 'sim')
+
+    expect(state.payload()).toBeNull()
+    expect(state.errors.value).toEqual({ doc: 'Este campo é obrigatório.' })
+
+    const recibo = new File(['%PDF'], 'recibo.pdf', { type: 'application/pdf' })
+    state.update('doc', [recibo])
+    expect(state.payload()).toEqual({ answers: { tem: 'sim' }, files: { doc: [recibo] } })
+
+    state.update('tem', 'nao')
+    expect(state.payload()?.files).toEqual({})
   })
 })

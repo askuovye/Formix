@@ -1,8 +1,9 @@
 import { computed, reactive, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { isAnswerable, validateAnswers, type AnswersResult } from '@/features/validation/answers'
+import { validateAnswers } from '@/features/validation/answers'
+import { filesError } from '@/features/validation/files'
 import { hiddenFieldIds } from '@/features/validation/visibility'
-import type { InputField, SchemaItem } from '@/types/schema'
+import type { FileField, InputField, SchemaItem } from '@/types/schema'
 
 /** Etapas = trechos entre quebras de página (a quebra em si não aparece). Etapas vazias somem. */
 export function splitSteps(items: readonly SchemaItem[]): SchemaItem[][] {
@@ -21,15 +22,27 @@ export function splitSteps(items: readonly SchemaItem[]): SchemaItem[][] {
 export function emptyAnswer(field: InputField): unknown {
   switch (field.type) {
     case 'multiple_choice':
+    case 'file':
       return []
     case 'single_choice':
     case 'rating':
     case 'scale':
-    case 'file':
       return null
     default:
       return ''
   }
+}
+
+/** Respostas e anexos prontos para enviar. */
+export interface RendererPayload {
+  answers: Record<string, unknown>
+  /** Arquivos por id de campo (só campos visíveis, com pelo menos um arquivo). */
+  files: Record<string, File[]>
+}
+
+interface Validation {
+  payload: RendererPayload
+  errors: Record<string, string>
 }
 
 /**
@@ -80,9 +93,29 @@ export function useFormRenderer(source: MaybeRefOrGetter<readonly SchemaItem[]>)
     return null
   }
 
-  function refreshClientErrors(
-    result: AnswersResult = validateAnswers(items.value, answers),
-  ): void {
+  function filesOf(field: FileField): File[] {
+    const value = answers[field.id]
+    return Array.isArray(value) ? value.filter((item): item is File => item instanceof File) : []
+  }
+
+  /** Respostas (motor de validação) mais os anexos dos campos de arquivo visíveis. */
+  function validate(): Validation {
+    const result = validateAnswers(items.value, answers)
+    const errors = { ...result.errors }
+    const files: Record<string, File[]> = {}
+
+    for (const field of inputs.value) {
+      if (field.type !== 'file' || hidden.value.has(field.id)) continue
+      const list = filesOf(field)
+      const error = filesError(field, list)
+      if (error) errors[field.id] = error
+      else if (list.length > 0) files[field.id] = list
+    }
+
+    return { payload: { answers: result.answers, files }, errors }
+  }
+
+  function refreshClientErrors(result: Validation = validate()): void {
     clientErrors.value = Object.fromEntries(
       Object.entries(result.errors).filter(([id]) => checked.value.has(id)),
     )
@@ -101,9 +134,11 @@ export function useFormRenderer(source: MaybeRefOrGetter<readonly SchemaItem[]>)
 
   /** Valida os campos da etapa e passa a mostrar os erros deles; devolve se está tudo certo. */
   function checkStep(index: number): boolean {
-    const ids = (steps.value[index] ?? []).filter(isAnswerable).map((field) => field.id)
+    const ids = (steps.value[index] ?? [])
+      .filter((item) => item.kind === 'input')
+      .map((field) => field.id)
     ids.forEach((id) => checked.value.add(id))
-    const result = validateAnswers(items.value, answers)
+    const result = validate()
     refreshClientErrors(result)
 
     return ids.every((id) => !(id in result.errors))
@@ -130,14 +165,13 @@ export function useFormRenderer(source: MaybeRefOrGetter<readonly SchemaItem[]>)
   }
 
   /**
-   * Respostas prontas para enviar ou `null` se houver erro (leva à etapa dele).
-   * Campos ocultos vão como `null`: o servidor descarta de todo jeito.
+   * Respostas e anexos prontos para enviar ou `null` se houver erro (leva à
+   * etapa dele). Campos ocultos vão como `null` (e sem arquivos): o servidor
+   * descarta de todo jeito.
    */
-  function payload(): Record<string, unknown> | null {
-    steps.value.forEach((step) =>
-      step.filter(isAnswerable).forEach((field) => checked.value.add(field.id)),
-    )
-    const result = validateAnswers(items.value, answers)
+  function payload(): RendererPayload | null {
+    inputs.value.forEach((field) => checked.value.add(field.id))
+    const result = validate()
     refreshClientErrors(result)
 
     if (Object.keys(errors.value).length > 0) {
@@ -145,7 +179,7 @@ export function useFormRenderer(source: MaybeRefOrGetter<readonly SchemaItem[]>)
       return null
     }
 
-    return result.answers
+    return result.payload
   }
 
   /**
