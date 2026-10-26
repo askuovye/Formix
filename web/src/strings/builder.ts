@@ -101,6 +101,102 @@ const ERRORS = {
   pageBreakPlacement:
     'A quebra de etapa não pode ser o primeiro nem o último item, nem vir logo após outra.',
   itemHasErrors: 'Há ajustes a fazer neste item.',
+  email: 'Informe um e-mail válido.',
+  emailRepeated: 'Este e-mail já está na lista.',
+  slug: 'Use de 3 a 80 letras minúsculas, números e hífens (sem hífen no início ou no fim).',
+} as const
+
+/** Barra lateral de seções (rail) do builder. */
+const RAIL = {
+  label: 'Seções do editor',
+  soon: 'Em breve',
+  menu: 'Abrir menu do editor',
+  sections: {
+    fields: 'Campos',
+    elements: 'Elementos',
+    logic: 'Lógica',
+    design: 'Design',
+    settings: 'Configurações',
+  },
+  hints: {
+    fields: 'Clique para adicionar ou arraste para a posição desejada.',
+    elements: 'Títulos, textos e divisões para organizar o formulário. Clique ou arraste.',
+  },
+} as const
+
+/** Aba "Formulário" das propriedades: dados gerais do formulário. */
+const DETAILS = {
+  tabs: { label: 'O que editar', field: 'Campo', form: 'Formulário' },
+  title: 'Título do formulário',
+  description: 'Descrição (opcional)',
+  descriptionHint: 'Aparece abaixo do título, para quem responde.',
+  slug: 'Endereço do link',
+  slugHint: (url: string) => `O link fica assim: ${url}`,
+  slugLocked:
+    'O endereço não muda depois da primeira publicação, para não quebrar links já enviados.',
+  publicLink: 'Link público',
+  copyLink: 'Copiar link',
+  openLink: 'Abrir o formulário publicado',
+} as const
+
+/** Configurações do formulário (valem na hora, sem publicar). */
+const SETTINGS = {
+  title: 'Configurações',
+  intro: 'Valem na hora, mesmo com o formulário publicado.',
+  sections: {
+    notifications: 'Notificações',
+    responses: 'Respostas',
+    respondent: 'Quem responde',
+    privacy: 'Privacidade',
+  },
+  notificationEmails: 'E-mails que recebem as respostas',
+  notificationEmailsHint: (max: number) =>
+    `Um por linha, até ${max}. Vazio = o e-mail da sua conta.`,
+  notificationEmailsMax: (max: number) => `Use no máximo ${max} e-mails.`,
+  sendCopy: 'Enviar cópia para quem responde',
+  sendCopyHint: 'A pessoa recebe as próprias respostas no e-mail que informar.',
+  sendCopyNeedsEmail: 'Adicione um campo de E-mail ao formulário para usar esta opção.',
+  respondentEmailField: 'Campo com o e-mail de quem responde',
+  respondentEmailFieldRequired: 'Escolha o campo de e-mail.',
+  allowEdit: 'Permitir que a pessoa edite a resposta',
+  allowEditHint: 'Ela recebe um link de edição válido por 4 horas. Você é avisado a cada edição.',
+  successMessage: 'Mensagem depois do envio (opcional)',
+  successMessagePlaceholder: 'Vazio = "Resposta enviada. Obrigado!"',
+  maxSubmissions: 'Limite de respostas',
+  maxSubmissionsHint: 'Vazio = sem limite. Ao atingir, o formulário para de aceitar respostas.',
+  opensAt: 'Abre em',
+  closesAt: 'Fecha em',
+  datesHint:
+    'Opcional. Fora do período, o link mostra que o formulário não está aceitando respostas.',
+  closesBeforeOpens: 'O fechamento deve ser depois da abertura.',
+  retentionDays: 'Guardar respostas por (dias)',
+  retentionDaysHint: 'Vazio = até você excluir. Depois do prazo, as respostas são apagadas.',
+} as const
+
+/** Publicar, fechar e link do formulário. */
+const PUBLISH = {
+  preview: 'Visualizar',
+  previewSoon: 'Visualizar (em breve)',
+  publish: 'Publicar',
+  publishChanges: 'Publicar alterações',
+  published: 'Publicado',
+  reopen: 'Reabrir',
+  more: 'Mais ações de publicação',
+  copyLink: 'Copiar link',
+  openLink: 'Abrir formulário',
+  close: 'Fechar formulário',
+  closeConfirmTitle: 'Fechar este formulário?',
+  closeConfirmText:
+    'O link para de aceitar respostas na hora. As respostas recebidas continuam guardadas, e você pode reabrir quando quiser.',
+  closeConfirm: 'Fechar formulário',
+  toasts: {
+    published: 'Formulário publicado',
+    publishedDescription: 'Quem tiver o link já vê esta versão.',
+    reopened: 'Formulário reaberto',
+    closed: 'Formulário fechado',
+    fixFirst: 'Corrija os itens marcados antes de publicar.',
+    saveFirst: 'Não foi possível salvar o rascunho. Tente de novo antes de publicar.',
+  },
 } as const
 
 /** Editor de formulário (builder). */
@@ -166,6 +262,10 @@ export const builder = {
   },
   properties: PROPERTIES,
   errors: ERRORS,
+  rail: RAIL,
+  details: DETAILS,
+  settings: SETTINGS,
+  publish: PUBLISH,
   toolbar: {
     undo: 'Desfazer',
     redo: 'Refazer',

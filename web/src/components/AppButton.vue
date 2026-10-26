@@ -15,6 +15,8 @@ const props = withDefaults(
     type?: 'button' | 'submit' | 'reset'
     /** Com `to`, vira um link de rota com aparência de botão. */
     to?: RouteLocationRaw
+    /** Com `href`, vira um link externo que abre em outra aba. */
+    href?: string
     iconLeft?: IconName
     iconRight?: IconName
     loading?: boolean
@@ -43,6 +45,22 @@ const isInactive = computed(() => props.disabled || props.loading)
     <slot />
     <AppIcon v-if="props.iconRight" :name="props.iconRight" />
   </RouterLink>
+  <a
+    v-else-if="props.href"
+    :href="props.href"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="app-button"
+    :class="[
+      `app-button--${props.variant}`,
+      `app-button--${props.size}`,
+      { 'app-button--block': props.block },
+    ]"
+  >
+    <AppIcon v-if="props.iconLeft" :name="props.iconLeft" />
+    <slot />
+    <AppIcon v-if="props.iconRight" :name="props.iconRight" />
+  </a>
   <button
     v-else
     :type="props.type"

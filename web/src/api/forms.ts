@@ -1,4 +1,11 @@
-import type { CursorPage, DataEnvelope, Form, FormStatus, FormSummary } from '@/types/api'
+import type {
+  CursorPage,
+  DataEnvelope,
+  Form,
+  FormSettings,
+  FormStatus,
+  FormSummary,
+} from '@/types/api'
 import type { FormSchema } from '@/types/schema'
 
 import { http } from './client'
@@ -51,10 +58,14 @@ export async function closeForm(id: string): Promise<Form> {
 export interface UpdateFormPayload {
   title?: string
   description?: string | null
+  /** Só antes da primeira publicação. */
+  slug?: string
   schema?: FormSchema
+  /** Parcial: só as chaves enviadas mudam. */
+  settings?: Partial<FormSettings>
 }
 
-/** Salva o rascunho. O `schema` vai inteiro e substitui o anterior. */
+/** Salva o rascunho. O `schema` vai inteiro e substitui o anterior; `settings` valem na hora. */
 export async function updateForm(id: string, payload: UpdateFormPayload): Promise<Form> {
   const response = await http.patch<DataEnvelope<Form>>(`/me/forms/${id}`, payload)
 

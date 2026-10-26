@@ -10,7 +10,7 @@ const model = defineModel<string>({ default: '' })
 const props = withDefaults(
   defineProps<{
     label: string
-    type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url'
+    type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'datetime-local'
     placeholder?: string
     hint?: string
     error?: string

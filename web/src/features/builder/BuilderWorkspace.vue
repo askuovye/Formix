@@ -3,16 +3,25 @@ import { onBeforeUnmount, onMounted } from 'vue'
 
 import AppButton from '@/components/AppButton.vue'
 import AppDrawer from '@/components/AppDrawer.vue'
+import AppIconButton from '@/components/AppIconButton.vue'
 import { builder } from '@/strings'
 
 import BuilderCanvas from './BuilderCanvas.vue'
-import BuilderPalette from './BuilderPalette.vue'
 import BuilderProperties from './BuilderProperties.vue'
+import BuilderSidebar from './BuilderSidebar.vue'
+import type { BuilderSection } from './sections'
 import { useBuilderStore } from './useBuilderStore'
 
 /** Gavetas do celular (abaixo de lg as colunas laterais somem). */
-const paletteOpen = defineModel<boolean>('paletteOpen', { default: false })
+const menuOpen = defineModel<boolean>('menuOpen', { default: false })
 const propertiesOpen = defineModel<boolean>('propertiesOpen', { default: false })
+/** Seção aberta na coluna da esquerda (ou na gaveta do menu). */
+const section = defineModel<BuilderSection>('section', { default: 'fields' })
+
+function openFields(): void {
+  section.value = 'fields'
+  menuOpen.value = true
+}
 
 const store = useBuilderStore()
 
@@ -46,15 +55,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 <template>
   <div class="workspace">
     <aside class="workspace__side workspace__side--start">
-      <BuilderPalette />
+      <BuilderSidebar v-model:section="section" />
     </aside>
 
     <main id="conteudo" class="workspace__canvas" tabindex="-1">
       <BuilderCanvas />
     </main>
 
-    <!-- No celular a paleta abre por um botão flutuante, ao alcance do polegar. -->
-    <AppButton icon-left="plus" class="workspace__fab" @click="paletteOpen = true">
+    <!-- No celular: desfazer/refazer e "Adicionar campo" flutuam ao alcance do polegar. -->
+    <div class="workspace__history">
+      <AppIconButton
+        icon="undo-2"
+        :label="builder.toolbar.undo"
+        :disabled="!store.canUndo"
+        @click="store.undo()"
+      />
+      <AppIconButton
+        icon="redo-2"
+        :label="builder.toolbar.redo"
+        :disabled="!store.canRedo"
+        @click="store.redo()"
+      />
+    </div>
+    <AppButton icon-left="plus" class="workspace__fab" @click="openFields">
       {{ builder.toolbar.openPalette }}
     </AppButton>
 
@@ -62,9 +85,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <BuilderProperties />
     </aside>
 
-    <AppDrawer v-model:open="paletteOpen" :title="builder.palette.title" width="panel">
-      <div class="workspace__drawer">
-        <BuilderPalette @added="paletteOpen = false" />
+    <AppDrawer v-model:open="menuOpen" :title="builder.rail.label" width="panel">
+      <div class="workspace__menu">
+        <AppButton
+          :to="{ name: 'forms' }"
+          variant="ghost"
+          size="sm"
+          icon-left="arrow-left"
+          class="workspace__back"
+        >
+          {{ builder.back }}
+        </AppButton>
+        <BuilderSidebar v-model:section="section" layout="drawer" @added="menuOpen = false" />
       </div>
     </AppDrawer>
     <AppDrawer
@@ -90,8 +122,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
   &__side {
     display: none;
-    padding: var(--space-4);
-    overflow-y: auto;
+    min-height: 0;
     background: var(--color-surface);
 
     &--start {
@@ -99,6 +130,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
 
     &--end {
+      padding: var(--space-4);
+      overflow-y: auto;
       border-inline-start: var(--border-width) solid var(--color-border);
     }
   }
@@ -118,8 +151,36 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     box-shadow: var(--shadow-lg);
   }
 
+  &__history {
+    position: fixed;
+    inset-block-end: calc(var(--space-4) + env(safe-area-inset-bottom));
+    inset-inline-start: var(--space-4);
+    z-index: var(--layer-raised);
+    display: flex;
+    padding: var(--space-1);
+    background: var(--color-surface-raised);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-lg);
+
+    @include up(md) {
+      display: none;
+    }
+  }
+
   &__drawer {
     padding: var(--space-4);
+  }
+
+  &__menu {
+    display: grid;
+    gap: var(--space-2);
+    padding-block-start: var(--space-2);
+  }
+
+  &__back {
+    justify-self: start;
+    margin-inline-start: var(--space-2);
   }
 
   &__announcer {
@@ -128,7 +189,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
   @include up(lg) {
     grid-template-columns:
-      var(--builder-palette-width) minmax(0, 1fr)
+      calc(var(--builder-rail-width) + var(--builder-palette-width)) minmax(0, 1fr)
       var(--builder-properties-width);
 
     &__side {

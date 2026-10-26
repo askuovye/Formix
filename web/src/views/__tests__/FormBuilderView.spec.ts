@@ -5,8 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Plugin } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
+import { ApiError } from '@/api/client'
 import * as formsApi from '@/api/forms'
 import { AUTOSAVE_DELAY_MS } from '@/features/builder/useAutosave'
+import { useToastStore } from '@/stores/useToastStore'
 import type { Form } from '@/types/api'
 
 import FormBuilderView from '../panel/FormBuilderView.vue'
@@ -29,7 +31,22 @@ const form: Form = {
   schema: {
     fields: [{ id: 'nome', kind: 'input', type: 'short_text', label: 'Nome', required: true }],
   },
-  settings: {},
+  settings: {
+    notification_emails: [],
+    success_message: null,
+    max_submissions: null,
+    opens_at: null,
+    closes_at: null,
+    send_copy_to_respondent: false,
+    respondent_email_field: null,
+    allow_respondent_edit: false,
+    retention_days: null,
+  },
+}
+
+function lastToast() {
+  const { toasts } = useToastStore()
+  return toasts[toasts.length - 1]
 }
 
 async function mountView() {
@@ -103,6 +120,8 @@ describe('FormBuilderView', () => {
     expect(formsApi.updateForm).toHaveBeenCalledOnce()
     const [, payload] = vi.mocked(formsApi.updateForm).mock.calls[0] ?? []
     expect(payload?.schema?.fields.map((item) => item.id)).toEqual(['nome', 'email_1'])
+    // Só o que mudou vai ao servidor.
+    expect(payload).not.toHaveProperty('settings')
     expect(wrapper.text()).toContain('Salvo')
     wrapper.unmount()
   })
@@ -130,6 +149,80 @@ describe('FormBuilderView', () => {
       'Nome removido. Use Desfazer para recuperar.',
     )
     expect(wrapper.text()).toContain('Comece adicionando um campo')
+    wrapper.unmount()
+  })
+
+  it('mudar uma configuração salva só os dados do formulário, sem o schema', async () => {
+    const { wrapper } = await mountView()
+
+    const settingsButton = wrapper
+      .findAll('.workspace__side--start .rail__item')
+      .find((button) => button.text() === 'Configurações')
+    await settingsButton?.trigger('click')
+
+    const limit = wrapper.findAll('.workspace__side--start input[type="number"]')[0]
+    await limit?.setValue('100')
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    await flushPromises()
+
+    const [, payload] = vi.mocked(formsApi.updateForm).mock.calls[0] ?? []
+    expect(payload).not.toHaveProperty('schema')
+    expect(payload?.settings?.max_submissions).toBe(100)
+    expect(payload?.title).toBe('Inscrição')
+    wrapper.unmount()
+  })
+
+  it('publicar salva o pendente antes e mostra a nova situação', async () => {
+    vi.mocked(formsApi.publishForm).mockResolvedValue({
+      ...form,
+      status: 'published',
+      published_version: 1,
+      has_unpublished_changes: false,
+    })
+    const { wrapper } = await mountView()
+
+    await wrapper.get('.canvas-item__select').trigger('click')
+    await wrapper.get('.workspace__side--end textarea').setValue('Nome completo')
+    await wrapper.get('.publish-control__button').trigger('click')
+    await flushPromises()
+
+    expect(formsApi.updateForm).toHaveBeenCalledOnce()
+    expect(formsApi.publishForm).toHaveBeenCalledWith(form.id)
+    expect(vi.mocked(formsApi.updateForm).mock.invocationCallOrder[0] ?? Infinity).toBeLessThan(
+      vi.mocked(formsApi.publishForm).mock.invocationCallOrder[0] ?? 0,
+    )
+    expect(wrapper.get('.publish-control__button').attributes('aria-label')).toBe('Publicado')
+    expect(lastToast()?.title).toBe('Formulário publicado')
+    wrapper.unmount()
+  })
+
+  it('rascunho com erro não é publicado', async () => {
+    const { wrapper } = await mountView()
+
+    await wrapper.get('.canvas-item__select').trigger('click')
+    await wrapper.get('.workspace__side--end textarea').setValue('')
+    await wrapper.get('.publish-control__button').trigger('click')
+    await flushPromises()
+
+    expect(formsApi.updateForm).not.toHaveBeenCalled()
+    expect(formsApi.publishForm).not.toHaveBeenCalled()
+    expect(lastToast()?.title).toBe('Corrija os itens marcados antes de publicar.')
+    wrapper.unmount()
+  })
+
+  it('e-mail não confirmado (403) mostra a mensagem do servidor', async () => {
+    vi.mocked(formsApi.publishForm).mockRejectedValue(
+      new ApiError('Confirme seu e-mail para publicar.', 403),
+    )
+    const { wrapper } = await mountView()
+
+    await wrapper.get('.publish-control__button').trigger('click')
+    await flushPromises()
+
+    expect(lastToast()).toMatchObject({
+      title: 'Confirme seu e-mail para publicar.',
+      tone: 'danger',
+    })
     wrapper.unmount()
   })
 })
