@@ -8,12 +8,14 @@ import type { SchemaItem } from '@/types/schema'
 
 import BuilderItemPreview from './BuilderItemPreview.vue'
 import { paletteEntryFor } from './catalog'
+import type { ItemErrors } from './schemaErrors'
 
 const props = defineProps<{
   item: SchemaItem
   selected: boolean
   isFirst: boolean
   isLast: boolean
+  errors: ItemErrors
 }>()
 
 const emit = defineEmits<{
@@ -30,6 +32,8 @@ const entry = computed(() => paletteEntryFor(props.item))
 const typeName = computed(() => builder.types[entry.value.key])
 
 /** Nome do item para leitores de tela e avisos: o rótulo, o texto ou o tipo. */
+const hasErrors = computed(() => Object.keys(props.errors).length > 0)
+
 const name = computed(() => {
   const { item } = props
   if (item.kind === 'input') return item.label
@@ -42,7 +46,7 @@ const name = computed(() => {
 <template>
   <article
     class="canvas-item"
-    :class="{ 'canvas-item--selected': props.selected }"
+    :class="{ 'canvas-item--selected': props.selected, 'canvas-item--invalid': hasErrors }"
     @click="emit('select')"
   >
     <header class="canvas-item__bar">
@@ -87,6 +91,10 @@ const name = computed(() => {
       </div>
     </header>
     <BuilderItemPreview :item="props.item" />
+    <p v-if="hasErrors" class="canvas-item__error">
+      <AppIcon name="circle-alert" />
+      {{ props.errors.item ?? t.hasErrors }}
+    </p>
   </article>
 </template>
 
@@ -109,6 +117,23 @@ const name = computed(() => {
   &--selected:hover {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 var(--border-width) var(--color-primary);
+  }
+
+  &--invalid,
+  &--invalid:hover {
+    border-color: var(--color-danger);
+  }
+
+  &--invalid#{&}--selected {
+    box-shadow: 0 0 0 var(--border-width) var(--color-danger);
+  }
+
+  &__error {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-danger);
   }
 
   &__bar {

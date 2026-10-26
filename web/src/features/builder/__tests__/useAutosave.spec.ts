@@ -3,7 +3,7 @@ import { effectScope, nextTick, ref } from 'vue'
 
 import { ApiError } from '@/api/client'
 
-import { AUTOSAVE_DELAY_MS, useAutosave } from '../useAutosave'
+import { AUTOSAVE_DELAY_MS, InvalidDraftError, useAutosave } from '../useAutosave'
 
 function setup(save: () => Promise<unknown>) {
   const revision = ref(0)
@@ -103,6 +103,19 @@ describe('useAutosave', () => {
 
     await autosave.flush()
     expect(autosave.status.value).toBe('saved')
+  })
+
+  it('rascunho inválido no próprio builder não vai ao servidor e fica como inválido', async () => {
+    const save = vi.fn().mockRejectedValue(new InvalidDraftError())
+    const { revision, autosave } = setup(save)
+
+    revision.value = 1
+    await nextTick()
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+
+    expect(autosave.status.value).toBe('invalid')
+    expect(autosave.fieldErrors.value).toEqual({})
+    expect(autosave.hasUnsaved()).toBe(true)
   })
 
   it('flush salva na hora o que estiver pendente', async () => {

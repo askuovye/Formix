@@ -4,6 +4,9 @@ import { ApiError } from '@/api/client'
 
 export type SaveStatus = 'saved' | 'pending' | 'saving' | 'error' | 'invalid'
 
+/** Lançado por `save` quando o rascunho tem erros locais: nem chega ao servidor. */
+export class InvalidDraftError extends Error {}
+
 /** Espera depois da última mudança antes de salvar. */
 export const AUTOSAVE_DELAY_MS = 1500
 
@@ -37,8 +40,9 @@ export function useAutosave(revision: WatchSource<number>, save: () => Promise<u
       fieldErrors.value = {}
       status.value = current === target ? 'saved' : 'pending'
     } catch (error) {
-      const invalid = error instanceof ApiError && error.status === 422
-      fieldErrors.value = invalid ? error.fieldErrors : {}
+      const invalid =
+        error instanceof InvalidDraftError || (error instanceof ApiError && error.status === 422)
+      fieldErrors.value = error instanceof ApiError && error.status === 422 ? error.fieldErrors : {}
       status.value = invalid ? 'invalid' : 'error'
     }
   }
