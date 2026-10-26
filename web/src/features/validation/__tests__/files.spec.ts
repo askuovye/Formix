@@ -71,3 +71,10 @@ describe('files', () => {
     expect(formatFileSize(1.25 * MB)).toBe('1,3 MB')
   })
 })
+
+describe('files na edição', () => {
+  it('obrigatório sem arquivo novo passa quando já há arquivos guardados', () => {
+    expect(filesError(field, [], 1)).toBeNull()
+    expect(filesError(field, [], 0)).toBe('Este campo é obrigatório.')
+  })
+})

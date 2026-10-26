@@ -50,6 +50,13 @@ const routes: RouteRecordRaw[] = [
         props: true,
         meta: { title: pageTitles.publicForm },
       },
+      {
+        path: 'respostas/:id/editar',
+        name: 'public-form-edit',
+        component: () => import('@/views/public/EditSubmissionView.vue'),
+        props: true,
+        meta: { title: pageTitles.editSubmission },
+      },
     ],
   },
   {

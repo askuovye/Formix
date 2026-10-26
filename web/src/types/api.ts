@@ -97,6 +97,27 @@ export interface PublicForm {
   privacy_policy_url: string
 }
 
+/** Anexo já guardado numa resposta (só nome e tamanho em bytes). */
+export interface StoredFile {
+  name: string
+  size: number
+}
+
+/** Resposta aberta pelo link de edição (`GET /forms/{slug}/submissions/{id}`). */
+export interface EditableSubmission {
+  id: string
+  version: number
+  title: string
+  description: string | null
+  /** Schema da versão com que a resposta foi enviada. */
+  schema: FormSchema
+  answers: Record<string, unknown>
+  /** Anexos atuais por campo, na ordem do schema. */
+  files: { field_id: string; files: StoredFile[] }[]
+  editable_until: string | null
+  edited_at: string | null
+}
+
 /** Comprovante de envio de uma resposta. */
 export interface Receipt {
   id: string

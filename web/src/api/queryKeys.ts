@@ -9,4 +9,5 @@ export const queryKeys = {
   formList: (status: FormStatus | 'all') => ['forms', 'list', status] as const,
   form: (id: string) => ['forms', 'detail', id] as const,
   publicForm: (slug: string) => ['public-form', slug] as const,
+  editableSubmission: (slug: string, id: string) => ['editable-submission', slug, id] as const,
 }

@@ -33,6 +33,27 @@ export function emptyAnswer(field: InputField): unknown {
   }
 }
 
+/**
+ * Resposta guardada no servidor → valor do componente do campo (edição).
+ * Números de campos de texto voltam como texto; o resto já vem no formato certo.
+ */
+export function storedAnswer(field: InputField, value: unknown): unknown {
+  if (value === null || value === undefined || field.type === 'file') return emptyAnswer(field)
+  if (field.type === 'multiple_choice') return Array.isArray(value) ? value : []
+  if (typeof value === 'number' && field.type !== 'rating' && field.type !== 'scale') {
+    return String(value)
+  }
+
+  return value
+}
+
+export interface RendererOptions {
+  /** Respostas já enviadas (edição). */
+  initial?: Record<string, unknown>
+  /** Quantos arquivos cada campo já tem guardados (edição). */
+  storedFiles?: Record<string, number>
+}
+
 /** Respostas e anexos prontos para enviar. */
 export interface RendererPayload {
   answers: Record<string, unknown>
@@ -52,14 +73,24 @@ interface Validation {
  * partir daí, acompanham o que a pessoa digita. O erro vindo do servidor some
  * quando o campo muda.
  */
-export function useFormRenderer(source: MaybeRefOrGetter<readonly SchemaItem[]>) {
+export function useFormRenderer(
+  source: MaybeRefOrGetter<readonly SchemaItem[]>,
+  options: RendererOptions = {},
+) {
   const items = computed(() => toValue(source))
   const inputs = computed(() =>
     items.value.filter((item): item is InputField => item.kind === 'input'),
   )
 
   const answers = reactive<Record<string, unknown>>(
-    Object.fromEntries(inputs.value.map((field) => [field.id, emptyAnswer(field)])),
+    Object.fromEntries(
+      inputs.value.map((field) => [
+        field.id,
+        options.initial && field.id in options.initial
+          ? storedAnswer(field, options.initial[field.id])
+          : emptyAnswer(field),
+      ]),
+    ),
   )
 
   const hidden = computed(() => new Set(hiddenFieldIds(items.value, answers)))
@@ -107,7 +138,7 @@ export function useFormRenderer(source: MaybeRefOrGetter<readonly SchemaItem[]>)
     for (const field of inputs.value) {
       if (field.type !== 'file' || hidden.value.has(field.id)) continue
       const list = filesOf(field)
-      const error = filesError(field, list)
+      const error = filesError(field, list, options.storedFiles?.[field.id] ?? 0)
       if (error) errors[field.id] = error
       else if (list.length > 0) files[field.id] = list
     }

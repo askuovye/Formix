@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { StoredFile } from '@/types/api'
 import type { SchemaItem } from '@/types/schema'
 
 import { fieldComponents } from './fields'
@@ -8,6 +9,8 @@ const props = defineProps<{
   item: SchemaItem
   value?: unknown
   error?: string
+  /** Anexos já guardados (só campos de arquivo, na edição). */
+  stored?: StoredFile[]
 }>()
 
 const emit = defineEmits<{
@@ -30,6 +33,7 @@ const emit = defineEmits<{
       :field="props.item"
       :error="props.error"
       :model-value="props.value"
+      v-bind="props.item.type === 'file' ? { stored: props.stored } : {}"
       @update:model-value="(value: unknown) => emit('update:value', value)"
     />
   </div>

@@ -4,13 +4,13 @@ import { AnimatePresence, motion } from 'motion-v'
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 
 import { toApiError } from '@/api/client'
-import { submitAnswers } from '@/api/publicForms'
+import { submitAnswers, updateSubmission } from '@/api/publicForms'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import { MAX_TOTAL_UPLOAD_MB, totalTooLarge } from '@/features/validation/files'
 import { fade, slideUp } from '@/motion'
 import { renderer, validation } from '@/strings'
-import type { Receipt } from '@/types/api'
+import type { EditableSubmission, Receipt, StoredFile } from '@/types/api'
 import type { FormTheme, SchemaItem } from '@/types/schema'
 
 import FormItem from './FormItem.vue'
@@ -29,17 +29,33 @@ const props = defineProps<{
   buttonStyle?: FormTheme['button_style']
   /** Pré-visualização: valida tudo, mas emite `previewed` em vez de enviar. */
   preview?: boolean
+  /** Edição pelo link secreto: salva a resposta existente em vez de criar outra. */
+  editing?: { submissionId: string; token: string }
+  /** Respostas já enviadas (edição). */
+  initial?: Record<string, unknown>
+  /** Anexos já guardados por campo (edição). */
+  storedFiles?: Record<string, StoredFile[]>
 }>()
 
 const emit = defineEmits<{
   submitted: [receipt: Receipt]
-  /** O servidor deixou de aceitar respostas (409): a página recarrega a situação. */
-  unavailable: []
+  /** Edição salva: a resposta como ficou. */
+  updated: [submission: EditableSubmission]
+  /**
+   * O servidor recusou por situação, não por dados (409; na edição também 404
+   * e 410): a página recarrega ou mostra o motivo.
+   */
+  unavailable: [status: number]
   /** Pré-visualização chegou ao fim com tudo válido. */
   previewed: []
 }>()
 
-const state = useFormRenderer(() => props.items)
+const state = useFormRenderer(() => props.items, {
+  initial: props.initial,
+  storedFiles: Object.fromEntries(
+    Object.entries(props.storedFiles ?? {}).map(([id, files]) => [id, files.length]),
+  ),
+})
 const formElement = useTemplateRef<HTMLFormElement>('formElement')
 
 const honeypot = ref('')
@@ -55,28 +71,38 @@ const primaryVariant = computed(() => (props.buttonStyle === 'outline' ? 'outlin
 /** Fração já enviada dos anexos (0 a 1); `null` sem anexos. */
 const progress = ref<number | null>(null)
 const submitLabel = computed(() => {
-  if (!mutation.isPending.value) return renderer.submit
+  if (!mutation.isPending.value) return props.editing ? renderer.edit.save : renderer.submit
   return progress.value === null
     ? renderer.submitting
     : renderer.submittingProgress(Math.round(progress.value * 100))
 })
 
 const mutation = useMutation({
-  mutationFn: ({ answers, files }: RendererPayload) => {
+  mutationFn: ({ answers, files }: RendererPayload): Promise<Receipt | EditableSubmission> => {
     progress.value = Object.keys(files).length > 0 ? 0 : null
+    const onProgress = (fraction: number) => (progress.value = fraction)
+
+    if (props.editing) {
+      const { submissionId, token } = props.editing
+      return updateSubmission(props.slug ?? '', submissionId, token, { answers, files }, onProgress)
+    }
     return submitAnswers(
       props.slug ?? '',
       { answers, files, website: honeypot.value },
       idempotencyKey,
-      (fraction) => (progress.value = fraction),
+      onProgress,
     )
   },
-  onSuccess: (receipt) => emit('submitted', receipt),
+  onSuccess: (result) => {
+    if ('success_message' in result) emit('submitted', result)
+    else emit('updated', result)
+  },
   onError: (error) => {
     const apiError = toApiError(error)
 
-    if (apiError.status === 409) {
-      emit('unavailable')
+    const situation = props.editing ? [404, 409, 410] : [409]
+    if (situation.includes(apiError.status)) {
+      emit('unavailable', apiError.status)
     } else if (apiError.status === 422) {
       const unmatched = state.setServerErrors(apiError.firstFieldErrors)
       formError.value = unmatched[0] ?? (errorCount.value > 0 ? undefined : renderer.genericError)
@@ -165,6 +191,7 @@ function onSubmit(): void {
                 :item="item"
                 :value="state.answers[item.id]"
                 :error="state.errors.value[item.id]"
+                :stored="item.kind === 'input' ? props.storedFiles?.[item.id] : undefined"
                 @update:value="(value) => state.update(item.id, value)"
               />
             </motion.div>
