@@ -8,4 +8,5 @@ export const queryKeys = {
   formLists: ['forms', 'list'] as const,
   formList: (status: FormStatus | 'all') => ['forms', 'list', status] as const,
   form: (id: string) => ['forms', 'detail', id] as const,
+  publicForm: (slug: string) => ['public-form', slug] as const,
 }

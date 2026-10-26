@@ -19,6 +19,7 @@ const props = withDefaults(
     autocomplete?: string
     iconLeft?: IconName
     maxlength?: number
+    inputmode?: 'text' | 'decimal' | 'numeric' | 'email' | 'tel'
   }>(),
   { type: 'text' },
 )
@@ -48,6 +49,7 @@ const { inputId, hintId, errorId, describedBy } = useFieldIds(props)
         :disabled="props.disabled"
         :autocomplete="props.autocomplete"
         :maxlength="props.maxlength"
+        :inputmode="props.inputmode"
         :aria-invalid="props.error ? 'true' : undefined"
         :aria-describedby="describedBy"
       />

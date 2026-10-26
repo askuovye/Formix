@@ -38,6 +38,20 @@ const routes: RouteRecordRaw[] = [
     props: true,
     meta: { title: pageTitles.formEditor, requiresAuth: true },
   },
+  // Página de quem responde: layout próprio, sem login.
+  {
+    path: '/f/:slug',
+    component: () => import('@/layouts/RespondentLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'public-form',
+        component: () => import('@/views/public/PublicFormView.vue'),
+        props: true,
+        meta: { title: pageTitles.publicForm },
+      },
+    ],
+  },
   {
     path: '/painel',
     component: () => import('@/layouts/AppShellLayout.vue'),

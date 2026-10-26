@@ -75,3 +75,33 @@ export interface CursorPage<T> {
   data: T[]
   meta: { per_page: number; next_cursor: string | null; prev_cursor: string | null }
 }
+
+/** Situação da página pública (FormAvailability no back-end). */
+export type FormAvailability = 'open' | 'closed' | 'not_open_yet' | 'ended' | 'limit_reached'
+
+/** Versão publicada vista pelo respondente (`GET /forms/{slug}`). */
+export interface PublicForm {
+  slug: string
+  version: number
+  title: string
+  description: string | null
+  accepts_submissions: boolean
+  availability: FormAvailability
+  /** Texto pronto para quem responde quando não aceita respostas. */
+  unavailable_message: string | null
+  /** `null` quando não aceita respostas. */
+  schema: FormSchema | null
+  opens_at: string | null
+  closes_at: string | null
+  allows_respondent_edit: boolean
+  privacy_policy_url: string
+}
+
+/** Comprovante de envio de uma resposta. */
+export interface Receipt {
+  id: string
+  success_message: string
+  /** Link secreto de edição (só com a edição ativa). */
+  edit_url: string | null
+  editable_until: string | null
+}
