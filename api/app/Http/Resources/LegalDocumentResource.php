@@ -24,6 +24,7 @@ final class LegalDocumentResource extends JsonResource
             'version' => $this->resource->version(),
             'updated_at' => $this->resource->updatedAt(),
             'content_markdown' => $this->resource->content(),
+            'content_html' => $this->resource->contentHtml(),
         ];
     }
 }

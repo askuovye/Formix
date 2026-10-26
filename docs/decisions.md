@@ -308,3 +308,9 @@ Decisões novas entram no fim; decisões revogadas são marcadas, não apagadas.
   - as respostas da API acrescentam `url` em `theme.cover`/`theme.logo`.
 - **Detecção de tipo real** extraída para `FileTypeDetector` (anexos e imagens usam a mesma).
 - **Listagem de formulários:** `submissions_count` (coluna já mantida no envio) e `last_submission_at` (`withMax`, sem N+1).
+
+## D34. Textos legais também em HTML (2026-10-26)
+
+- **Decisão:** `GET /legal/{terms|privacy}` passa a devolver `content_html` além de `content_markdown`. O HTML é gerado no servidor por `Str::markdown` (league/commonmark, já incluso no Laravel) com `html_input: escape` e `allow_unsafe_links: false`.
+- *Por quê:* a SPA só exibe o texto, sem incluir um conversor de Markdown no bundle nem escrever um próprio. O texto continua vindo da API, com os dados do operador e a versão ligada ao aceite (D20).
+- **Segurança:** HTML vindo do texto ou do `.env` é escapado (aparece como texto) e links `javascript:`/`data:` são descartados; por isso a SPA pode usar `v-html` **só neste campo**, que vem da própria API e não de usuários.
