@@ -1,6 +1,9 @@
 /* Inter hospedada localmente (@font-face em base/_fonts.scss). */
 :root {
   --font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Fontes do tema do formulário: só do sistema, sem CDN. */
+  --font-family-system: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-family-serif: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif;
 
   --font-size-2xs: 0.625rem;
   --font-size-xs: 0.75rem;

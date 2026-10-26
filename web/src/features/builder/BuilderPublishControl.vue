@@ -19,6 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   publish: []
+  preview: []
   /** Confirmado pelo dono; `done` fecha a confirmação quando terminar. */
   close: [done: (closed: boolean) => void]
 }>()
@@ -42,7 +43,7 @@ const button = computed<{ label: string; icon: IconName; disabled: boolean }>(()
 const hasLink = computed(() => props.form.published_version > 0)
 
 const menuItems = computed<DropdownMenuEntry[]>(() => [
-  { type: 'item', id: 'preview', label: t.previewSoon, icon: 'eye', disabled: true },
+  { type: 'item', id: 'preview', label: t.preview, icon: 'eye' },
   { type: 'separator' },
   { type: 'item', id: 'copy', label: t.copyLink, icon: 'link', disabled: !hasLink.value },
   {
@@ -64,7 +65,8 @@ const menuItems = computed<DropdownMenuEntry[]>(() => [
 ])
 
 function onSelect(id: string): void {
-  if (id === 'copy') void copyLink(props.form.public_url)
+  if (id === 'preview') emit('preview')
+  else if (id === 'copy') void copyLink(props.form.public_url)
   else if (id === 'open') window.open(props.form.public_url, '_blank', 'noopener')
   else if (id === 'close') confirmOpen.value = true
 }

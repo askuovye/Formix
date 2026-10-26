@@ -22,6 +22,8 @@ export const delay = {
   panelOpen: 80,
   /** Espera depois que o mouse sai antes de recolher um painel lateral. */
   panelClose: 320,
+  /** Dedo parado sobre um card antes de começar a arrastar (o toque rápido continua rolando a tela). */
+  dragTouch: 160,
 } as const
 
 /** Molas (motion-v) para movimentos com peso físico. Sem espelho em CSS. */
@@ -41,4 +43,20 @@ export const distance = {
   sm: 4,
   md: 8,
   lg: 16,
+} as const
+
+/**
+ * Card levantado ao arrastar no builder. Sem espelho em CSS.
+ * follow: tempo (s) para o card alcançar o cursor (o atraso gostoso);
+ * tilt: graus de inclinação por px/s de velocidade, até maxTilt;
+ * shadow: px de deslocamento da sombra por px/s (paralaxe), até maxShadow.
+ */
+export const drag = {
+  follow: 0.07,
+  liftScale: 1.03,
+  tilt: 0.012,
+  maxTilt: 7,
+  shadow: 0.012,
+  maxShadow: 14,
+  perspective: 900,
 } as const

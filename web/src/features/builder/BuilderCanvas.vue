@@ -10,11 +10,13 @@ import type { SchemaItem } from '@/types/schema'
 import BuilderCanvasItem from './BuilderCanvasItem.vue'
 import { GENERAL_ERRORS } from './schemaErrors'
 import { describeVisibility } from './visibility'
-import { BUILDER_DRAG_GROUP, sortableAnimationMs } from './dragAndDrop'
+import { BUILDER_DRAG_GROUP, SORTABLE_OPTIONS, sortableAnimationMs } from './dragAndDrop'
+import { useDragLift } from './dragLift'
 import { useBuilderStore } from './useBuilderStore'
 
 const store = useBuilderStore()
 const t = builder.canvas
+const lift = useDragLift({ themed: true, ghostClass: 'canvas__ghost' })
 
 /** Evento `change` do vuedraggable: o estado só muda pelo store (histórico de desfazer). */
 type DragChange =
@@ -29,6 +31,11 @@ function onChange(change: DragChange): void {
     store.move(change.moved.oldIndex, change.moved.newIndex)
   }
 }
+
+/** Capa e logo do tema, para o canvas lembrar a página publicada. */
+const cover = computed(() => store.schema.theme?.cover ?? null)
+const logo = computed(() => store.schema.theme?.logo?.url ?? null)
+const centered = computed(() => store.schema.theme?.alignment === 'center')
 
 const generalErrors = computed(() => Object.values(store.errorsFor(GENERAL_ERRORS)))
 
@@ -62,6 +69,21 @@ function remove(item: SchemaItem): void {
 
 <template>
   <section class="canvas" :aria-label="t.label">
+    <div
+      v-if="cover?.url || logo"
+      class="canvas__brand"
+      :class="{ 'canvas__brand--center': centered }"
+      aria-hidden="true"
+    >
+      <img
+        v-if="cover?.url"
+        :src="cover.url"
+        alt=""
+        class="canvas__cover"
+        :class="`canvas__cover--${cover.fit}`"
+      />
+      <img v-if="logo" :src="logo" alt="" class="canvas__logo" />
+    </div>
     <AppAlert v-if="generalErrors.length > 0" tone="danger">
       {{ builder.save.generalError }}
       <span v-for="message in generalErrors" :key="message"> {{ message }}</span>
@@ -71,12 +93,17 @@ function remove(item: SchemaItem): void {
     <draggable
       :model-value="store.items"
       :group="{ name: BUILDER_DRAG_GROUP, pull: false, put: true }"
+      v-bind="SORTABLE_OPTIONS"
       :animation="sortableAnimationMs()"
       item-key="id"
-      handle=".canvas-item__handle"
+      filter=".canvas-item__actions"
+      :prevent-on-filter="false"
       tag="ol"
       class="canvas__list"
       ghost-class="canvas__ghost"
+      fallback-class="canvas__fallback"
+      @start="lift.start"
+      @end="lift.end"
       @change="onChange"
     >
       <template #item="{ element, index }: { element: SchemaItem; index: number }">
@@ -119,6 +146,33 @@ function remove(item: SchemaItem): void {
   max-width: var(--builder-canvas-width);
   margin-inline: auto;
 
+  &__brand {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+
+    &--center {
+      justify-items: center;
+    }
+  }
+
+  &__cover {
+    inline-size: 100%;
+    block-size: calc(var(--form-cover-height) / 2);
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+
+    &--contain {
+      object-fit: contain;
+    }
+  }
+
+  &__logo {
+    max-inline-size: var(--form-logo-max-width);
+    max-block-size: var(--form-logo-height);
+    object-fit: contain;
+  }
+
   &__steps {
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
@@ -134,8 +188,20 @@ function remove(item: SchemaItem): void {
     list-style: none;
   }
 
+  // A vaga onde o card vai cair: contorno tracejado no lugar do conteúdo.
   &__ghost {
-    opacity: var(--opacity-disabled);
+    background: var(--color-surface-hover);
+    border: var(--border-width-strong) dashed var(--color-primary);
+    border-radius: var(--radius-lg);
+
+    > * {
+      visibility: hidden;
+    }
+  }
+
+  // Cópia do SortableJS: escondida, o card levantado é o BuilderDragLift.
+  &__fallback {
+    visibility: hidden;
   }
 
   &__empty {

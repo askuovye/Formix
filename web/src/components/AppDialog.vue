@@ -20,10 +20,15 @@ import AppIconButton from './AppIconButton.vue'
  * Janela modal. Abre pelo slot `trigger` ou por v-model:open.
  * O slot `footer` recebe `close` para os botões de ação.
  */
-const props = defineProps<{
-  title: string
-  description?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    title: string
+    description?: string
+    /** `full`: quase a tela toda, com o corpo rolando por dentro (pré-visualização). */
+    size?: 'md' | 'full'
+  }>(),
+  { size: 'md' },
+)
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -57,7 +62,7 @@ function close(): void {
           as-child
           v-bind="props.description ? {} : { 'aria-describedby': undefined }"
         >
-          <motion.div class="dialog" v-bind="scaleIn">
+          <motion.div class="dialog" :class="`dialog--${props.size}`" v-bind="scaleIn">
             <header class="dialog__header">
               <DialogTitle class="dialog__title">{{ props.title }}</DialogTitle>
               <DialogClose as-child>
@@ -97,6 +102,17 @@ function close(): void {
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+
+  &--full {
+    grid-template-rows: auto minmax(0, 1fr);
+    width: min(var(--dialog-width-full), calc(100% - 2 * var(--space-4)));
+    height: calc(100% - 2 * var(--space-4));
+    overflow: hidden;
+  }
+
+  &--full &__body {
+    min-height: 0;
+  }
 
   &__overlay {
     position: fixed;

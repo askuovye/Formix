@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_THEME } from '@/features/renderer/theme'
 import { SCHEMA_LIMITS, type SchemaItem } from '@/types/schema'
 
 import { PALETTE, nextId, paletteEntryFor } from '../catalog'
@@ -38,11 +39,11 @@ describe('useBuilderStore', () => {
     const store = useBuilderStore()
     store.load('f1', {
       fields: [{ id: 'nome', type: 'short_text', label: 'Nome' } as SchemaItem],
-      theme: { preset: 'classico' },
+      theme: DEFAULT_THEME,
     })
 
     expect(store.items[0]?.kind).toBe('input')
-    expect(store.schema.theme).toEqual({ preset: 'classico' })
+    expect(store.schema.theme).toEqual(DEFAULT_THEME)
     expect(store.revision).toBe(0)
     expect(store.canUndo).toBe(false)
   })
@@ -158,5 +159,27 @@ describe('useBuilderStore', () => {
     store.undo()
 
     expect(store.items[0]?.kind === 'input' && store.items[0].required).toBe(false)
+  })
+
+  it('tema: sem tema parte do Clássico, entra no histórico e desfaz junto', () => {
+    const store = useBuilderStore()
+    store.load('f1', { fields: [] })
+
+    store.updateTheme((draft) => {
+      draft.preset = 'dark'
+      draft.radius = 'large'
+    }, 'preset')
+    store.add('short_text')
+
+    expect(store.schema.theme).toMatchObject({ ...DEFAULT_THEME, preset: 'dark', radius: 'large' })
+    expect(store.revision).toBe(2)
+
+    store.undo()
+    store.undo()
+    expect(store.schema.theme).toBeUndefined()
+    expect(store.items).toEqual([])
+
+    store.redo()
+    expect(store.schema.theme?.preset).toBe('dark')
   })
 })

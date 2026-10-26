@@ -6,7 +6,8 @@ import AppIcon from '@/components/AppIcon.vue'
 import { builder } from '@/strings'
 
 import { PALETTE, type PaletteEntry, type PaletteGroup } from './catalog'
-import { BUILDER_DRAG_GROUP } from './dragAndDrop'
+import { BUILDER_DRAG_GROUP, SORTABLE_OPTIONS } from './dragAndDrop'
+import { useDragLift } from './dragLift'
 import { useBuilderStore } from './useBuilderStore'
 
 const props = defineProps<{
@@ -21,6 +22,7 @@ const emit = defineEmits<{
 
 const store = useBuilderStore()
 const t = builder.palette
+const lift = useDragLift({ themed: false, ghostClass: 'palette__ghost' })
 
 const GROUPS: Record<typeof props.section, PaletteGroup[]> = {
   fields: ['basic', 'advanced'],
@@ -57,9 +59,14 @@ function cloneEntry(entry: PaletteEntry) {
         :group="{ name: BUILDER_DRAG_GROUP, pull: 'clone', put: false }"
         :sort="false"
         :clone="cloneEntry"
+        v-bind="SORTABLE_OPTIONS"
+        ghost-class="palette__ghost"
+        fallback-class="palette__fallback"
         item-key="key"
         tag="ul"
         class="palette__list"
+        @start="lift.start"
+        @end="lift.end"
       >
         <template #item="{ element }: { element: PaletteEntry }">
           <li>
@@ -142,8 +149,26 @@ function cloneEntry(entry: PaletteEntry) {
     }
   }
 
+  &__fallback {
+    visibility: hidden;
+  }
+
   &__icon {
     color: var(--color-text-muted);
+  }
+}
+
+// A vaga do item: contorno tracejado. Sobre o canvas, o SortableJS troca a
+// classe pela do destino (canvas__ghost), que precisa valer aqui também.
+.palette__ghost,
+.canvas__ghost {
+  min-block-size: var(--control-height-md);
+  background: var(--color-surface-hover);
+  border: var(--border-width-strong) dashed var(--color-primary);
+  border-radius: var(--radius-md);
+
+  > * {
+    visibility: hidden;
   }
 }
 </style>

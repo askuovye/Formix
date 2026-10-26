@@ -14,7 +14,6 @@ export const BUILDER_SECTIONS: readonly BuilderSectionEntry[] = [
   { key: 'fields', icon: 'text-cursor-input' },
   { key: 'elements', icon: 'shapes' },
   { key: 'logic', icon: 'git-branch' },
-  // Design (tema, capa e logo): fase 4.
-  { key: 'design', icon: 'palette', soon: true },
+  { key: 'design', icon: 'palette' },
   { key: 'settings', icon: 'settings' },
 ]

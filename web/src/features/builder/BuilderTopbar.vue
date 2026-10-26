@@ -29,6 +29,7 @@ const emit = defineEmits<{
   openMenu: []
   openProperties: []
   publish: []
+  preview: []
   close: [done: (closed: boolean) => void]
 }>()
 
@@ -113,11 +114,18 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
         class="builder-topbar__mobile"
         @click="emit('openProperties')"
       />
+      <AppIconButton
+        icon="eye"
+        :label="t.publish.preview"
+        class="builder-topbar__preview"
+        @click="emit('preview')"
+      />
       <BuilderPublishControl
         :form="props.form"
         :publishing="props.publishing"
         :closing="props.closing"
         @publish="emit('publish')"
+        @preview="emit('preview')"
         @close="(done) => emit('close', done)"
       />
       <span class="builder-topbar__theme"><ThemeToggle /></span>
@@ -221,6 +229,15 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
     display: none;
 
     @include up(md) {
+      display: inline-flex;
+    }
+  }
+
+  // No celular, "Visualizar" fica no menu "⋯" da publicação.
+  &__preview {
+    display: none;
+
+    @include up(sm) {
       display: inline-flex;
     }
   }

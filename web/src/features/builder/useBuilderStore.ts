@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, toRaw } from 'vue'
 
-import type { FormSchema, SchemaItem } from '@/types/schema'
+import { resolveTheme } from '@/features/renderer/theme'
+import type { FormSchema, FormTheme, SchemaItem } from '@/types/schema'
 
 import { PALETTE, type PaletteKey, nextId, paletteEntryFor } from './catalog'
 import { isTextField } from './rules'
@@ -38,8 +39,8 @@ function clone<T>(value: T): T {
 export const useBuilderStore = defineStore('builder', () => {
   const formId = ref<string | null>(null)
   const items = ref<SchemaItem[]>([])
-  /** Tema (fase 4): preservado como veio, para não ser apagado ao salvar. */
-  const theme = shallowRef<unknown>(undefined)
+  /** Tema do formulário (ausente = Clássico). */
+  const theme = shallowRef<FormTheme | undefined>(undefined)
   const selectedId = ref<string | null>(null)
   /**
    * Sobe a cada seleção feita pelo dono no canvas (mesmo repetindo o item).
@@ -51,8 +52,14 @@ export const useBuilderStore = defineStore('builder', () => {
   /** Último aviso para leitores de tela (mover, remover). */
   const announcement = ref('')
 
-  const past = shallowRef<SchemaItem[][]>([])
-  const future = shallowRef<SchemaItem[][]>([])
+  /** Estado guardado no histórico: itens e tema desfazem juntos. */
+  interface HistoryEntry {
+    items: SchemaItem[]
+    theme: FormTheme | undefined
+  }
+
+  const past = shallowRef<HistoryEntry[]>([])
+  const future = shallowRef<HistoryEntry[]>([])
   let lastCommit: { key: string; at: number } | null = null
 
   /** Erros do último 422 do servidor, por id do item (somem quando o item muda). */
@@ -109,13 +116,18 @@ export const useBuilderStore = defineStore('builder', () => {
       now - lastCommit.at < COALESCE_MS
 
     if (!coalesce) {
-      past.value = [...past.value, clone(items.value)].slice(-HISTORY_LIMIT)
+      past.value = [...past.value, current()].slice(-HISTORY_LIMIT)
     }
 
     future.value = []
     lastCommit = coalesceKey === undefined ? null : { key: coalesceKey, at: now }
     change()
     revision.value++
+  }
+
+  /** O tema é trocado inteiro a cada mudança, então guardar a referência basta. */
+  function current(): HistoryEntry {
+    return { items: clone(items.value), theme: theme.value }
   }
 
   function takenIds(): Set<string> {
@@ -202,6 +214,18 @@ export const useBuilderStore = defineStore('builder', () => {
   }
 
   /**
+   * Altera o tema (ausente = Clássico). `key` junta a digitação de uma mesma
+   * opção num passo só de desfazer.
+   */
+  function updateTheme(change: (draft: FormTheme) => void, key = 'theme'): void {
+    commit(() => {
+      const draft = clone(resolveTheme(theme.value))
+      change(draft)
+      theme.value = draft
+    }, `theme:${key}`)
+  }
+
+  /**
    * Depois de salvar: o servidor trocou o nível de rigor pelas regras do nível.
    * Adota essas regras nos itens que não mudaram desde o envio. Não entra no
    * histórico nem dispara novo salvamento (o servidor já tem esse estado).
@@ -232,9 +256,10 @@ export const useBuilderStore = defineStore('builder', () => {
 
     if (!snapshot) return
 
-    to.value = [...to.value, clone(items.value)]
+    to.value = [...to.value, current()]
     from.value = from.value.slice(0, -1)
-    items.value = snapshot
+    items.value = snapshot.items
+    theme.value = snapshot.theme
     lastCommit = null
     revision.value++
 
@@ -290,6 +315,7 @@ export const useBuilderStore = defineStore('builder', () => {
     duplicate,
     remove,
     update,
+    updateTheme,
     undo,
     redo,
     select,

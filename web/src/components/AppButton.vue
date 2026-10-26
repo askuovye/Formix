@@ -10,7 +10,7 @@ import type { IconName } from './icons/iconNames'
 
 const props = withDefaults(
   defineProps<{
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+    variant?: 'primary' | 'outline' | 'secondary' | 'ghost' | 'danger'
     size?: 'sm' | 'md'
     type?: 'button' | 'submit' | 'reset'
     /** Com `to`, vira um link de rota com aparência de botão. */
@@ -135,6 +135,17 @@ const isInactive = computed(() => props.disabled || props.loading)
 
     &:hover:not(:disabled) {
       background: var(--color-primary-hover);
+    }
+  }
+
+  // Ação principal em contorno (estilo de botão do tema do formulário).
+  &--outline {
+    color: var(--color-primary);
+    background: transparent;
+    border-color: var(--color-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--color-selected);
     }
   }
 

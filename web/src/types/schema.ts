@@ -155,10 +155,30 @@ export type BlockItem = TextBlock | PlainBlock
 
 export type SchemaItem = InputField | BlockItem
 
+export type ThemePreset = 'classic' | 'minimal' | 'dark' | 'modern' | 'custom'
+
+/** Tema do formulário (docs/frontend-contract-requests.md §4). Cores em "#RRGGBB". */
+export interface FormTheme {
+  preset: ThemePreset
+  colors: { primary: string; background: string; surface: string; text: string }
+  radius: 'none' | 'small' | 'medium' | 'large'
+  font: 'inter' | 'system' | 'serif'
+  button_style: 'solid' | 'outline'
+  alignment: 'left' | 'center'
+  /** `url` vem nas respostas da API (pública); não precisa ser enviada. */
+  cover: {
+    asset_id: string
+    fit: 'cover' | 'contain'
+    overlay_opacity: number
+    url?: string
+  } | null
+  logo: { asset_id: string; url?: string } | null
+}
+
 export interface FormSchema {
   fields: SchemaItem[]
-  /** Tema do formulário (fase 4). O builder só preserva o que vier da API. */
-  theme?: unknown
+  /** Ausente = Clássico (o servidor completa ao salvar). */
+  theme?: FormTheme
 }
 
 /** Limites do contrato usados pelo builder. */
