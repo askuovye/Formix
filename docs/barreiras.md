@@ -10,7 +10,7 @@ Prioridade: **alta** (antes de abrir ao público), **média** (logo após), **ba
 | B2 | **Suspender formulário/conta** pelo operador | alta | Responder rápido a denúncias e ordens judiciais (Marco Civil, art. 19). | Status `suspended` (o dono não consegue reabrir) e um painel ou comando `artisan` para o operador. |
 | B3 | **Novo aceite** quando os Termos/Política mudarem de versão | média | Usuários antigos ficam com aceite de uma versão desatualizada. | Comparar `legal_acceptances` com `config/legal.php` no `/auth/me` e bloquear até aceitar. |
 | B4 | **Antivírus nos anexos** | média | Anexos não são verificados (D8 revogada). | Exige VPS (`clamd`). O desenho original está em D8. |
-| B5 | **Validar o ambiente Docker e os testes no MariaDB** | alta | Os testes rodam em SQLite; o `compose.yaml` nunca foi executado. | Depende de instalar o Docker Desktop (WSL2). |
+| B5 | ~~**Validar o ambiente Docker e os testes no MariaDB**~~ **resolvida (2026-10-23)** | alta | — | `compose.yaml` sobe (com `../fixtures` montado), migrations rodam e os 606 testes passam no MariaDB 11.4. |
 | B6 | **Link da Política na página pública do formulário** (front) | alta | Respondentes também têm dados tratados. | A API já entrega `privacy_policy_url` (D25); falta a página pública exibir o link perto do botão de enviar. |
 | B7 | **Excluir a própria conta** pelo painel | média | Hoje a exclusão (LGPD) é só por email ao operador. | Endpoint autenticado com confirmação de senha, apagando formulários, respostas e anexos. |
 | B8 | **Edição simultânea do mesmo formulário** | baixa | Duas abas salvando o builder: a última sobrescreve a outra sem aviso. | Controle otimista: o cliente envia `updated_at` e recebe `409` se mudou. |

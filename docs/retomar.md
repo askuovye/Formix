@@ -4,7 +4,7 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
 
 ## Onde paramos (2026-10-25)
 
-- **Back-end (`/api`): completo.** Fases 1 a 9 do briefing + ajustes de contrato pedidos pelo front (D32/D33): blocos, etapas, estrelas/escala, lógica condicional, tema versionado e imagens de capa/logo. 606 testes Pest, Larastan nível 8, `composer audit` limpo. **Testado só em SQLite**: nunca rodou em MariaDB/Docker (barreira B5).
+- **Back-end (`/api`): completo.** Fases 1 a 9 do briefing + ajustes de contrato pedidos pelo front (D32/D33): blocos, etapas, estrelas/escala, lógica condicional, tema versionado e imagens de capa/logo. 606 testes Pest, Larastan nível 8, `composer audit` limpo. **Docker validado (2026-10-23):** WSL2 + Docker Desktop instalados, `compose.yaml` sobe, migrations rodam e os **606 testes passam no MariaDB** (B5 resolvida). Falta só reconfirmar a suíte em SQLite dentro do container (a 1ª tentativa foi cortada pelo timeout de 300 s do Composer, sem falhas até ali).
 - **Front (`/web`): não começado.** Só o esqueleto (Vue 3, Vite, TS, Pinia, Router, Vitest, ESLint, Prettier, Reka, Iconify, Motion, GSAP). O briefing do front foi aprovado; o AGENTS.md (§2 e §7) já reflete a stack nova.
 - **Git:** github.com/askuovye/Formix, gitflow. `develop` tem tudo; `main` está no commit inicial.
 
@@ -19,7 +19,7 @@ Depois: fase 2 (app shell e autenticação), fase 3 (builder, a mais importante)
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 
-**Pendências antes de abrir ao público:** itens de prioridade alta em `barreiras.md` (B1, B2, B5, B6, B10, B13, B15).
+**Pendências antes de abrir ao público:** itens de prioridade alta em `barreiras.md` (B1, B2, B6, B10, B13, B15).
 
 ---
 
@@ -68,8 +68,10 @@ Os serviços `app`, `scheduler`, `database` e `mailpit` devem aparecer como `run
 | API no ar | abrir http://localhost:8000/api/v1/health | `{"data":{"status":"ok",…}}` |
 | Termos de uso | http://localhost:8000/api/v1/legal/terms | texto em Markdown |
 | Emails | http://localhost:8025 (Mailpit) | caixa de entrada local |
-| Testes (SQLite) | `docker compose exec app composer test` | 606 passando |
-| **Testes no MariaDB** (barreira B5) | comando abaixo | idealmente 606 passando; qualquer falha aqui é diferença real entre SQLite e MariaDB e deve ser corrigida |
+| Testes (SQLite) | `docker compose exec -e COMPOSER_PROCESS_TIMEOUT=0 app composer test` | 606 passando |
+| **Testes no MariaDB** (barreira B5) | comando abaixo | 606 passando (confirmado em 2026-10-23, ~6 min) |
+
+No Windows a suíte leva ~6 min no container (o volume montado é lento); por isso o `COMPOSER_PROCESS_TIMEOUT=0`, senão o Composer corta em 300 s. Pelo mesmo motivo, `composer install` dentro do container pode levar mais de 10 min em "Generating optimized autoload files": se o `vendor/` já existe, dá para pular.
 
 ```powershell
 docker compose exec -e DB_CONNECTION=mariadb -e DB_HOST=database -e DB_DATABASE=testing app php artisan test
