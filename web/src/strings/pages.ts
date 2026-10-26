@@ -13,13 +13,6 @@ export const notFound = {
   back: 'Voltar ao início',
 } as const
 
-export const formsPage = {
-  title: 'Meus formulários',
-  subtitle: 'Gerencie seus formulários, veja as respostas e acompanhe o desempenho.',
-  emptyTitle: 'Nada por aqui ainda',
-  emptyText: 'A lista de formulários e o botão para criar um novo chegam nas próximas fases.',
-} as const
-
 export const settingsPage = {
   title: 'Configurações',
   subtitle: 'Dados da sua conta.',

@@ -43,6 +43,13 @@ const routes: RouteRecordRaw[] = [
         meta: { title: pageTitles.forms },
       },
       {
+        path: 'formularios/:id',
+        name: 'form-builder',
+        component: () => import('@/views/panel/FormBuilderView.vue'),
+        props: true,
+        meta: { title: pageTitles.formEditor },
+      },
+      {
         path: 'configuracoes',
         name: 'settings',
         component: () => import('@/views/panel/SettingsView.vue'),

@@ -28,6 +28,7 @@ export const shell = {
 /** Títulos da aba do navegador, por rota. */
 export const pageTitles = {
   forms: 'Formulários',
+  formEditor: 'Editor',
   settings: 'Configurações',
   terms: 'Termos de Uso',
   privacy: 'Política de Privacidade',
