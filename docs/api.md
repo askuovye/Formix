@@ -255,10 +255,12 @@ A rota da SPA `/f/{slug}/respostas/{id}/editar` lê o token do **fragmento** (`l
 
 ```json
 { "id": "01JB…", "version": 1, "title": "…", "description": null, "schema": { "fields": [ … ] },
-  "answers": { "nome": "Maria Souza" }, "editable_until": "…", "edited_at": null }
+  "answers": { "nome": "Maria Souza" },
+  "files": [ { "field_id": "comprovante", "files": [ { "name": "recibo.pdf", "size": 196608 } ] } ],
+  "editable_until": "…", "edited_at": null }
 ```
 
-O `schema` é o da versão com que a resposta foi enviada (pode ser diferente da versão atual).
+O `schema` é o da versão com que a resposta foi enviada (pode ser diferente da versão atual). `files` lista os anexos atuais por campo, na ordem do schema, só com nome e tamanho em bytes (sem link de download); campos sem arquivo ficam de fora.
 
 ## Outros
 
