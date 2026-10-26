@@ -89,9 +89,4 @@ export const forms = {
     titleRequired: 'Dê um nome ao formulário.',
     titleMax: 'Use no máximo 200 caracteres.',
   },
-  builder: {
-    back: 'Voltar para meus formulários',
-    soon: 'O editor de perguntas chega na próxima etapa.',
-    loadError: 'Não foi possível abrir este formulário.',
-  },
 } as const
