@@ -15,6 +15,7 @@ import FileSettings from './properties/FileSettings.vue'
 import OptionsEditor from './properties/OptionsEditor.vue'
 import RangeSettings from './properties/RangeSettings.vue'
 import TextValidation from './properties/TextValidation.vue'
+import VisibilityEditor from './properties/VisibilityEditor.vue'
 import { isTextField } from './rules'
 import { useBuilderStore } from './useBuilderStore'
 
@@ -183,6 +184,11 @@ const text = field(
               <section v-else-if="isTextField(item)" class="properties__section">
                 <h3 class="properties__heading">{{ t.sections.validation }}</h3>
                 <TextValidation :item="item" :errors="errors" />
+              </section>
+
+              <section class="properties__section">
+                <h3 class="properties__heading">{{ t.sections.logic }}</h3>
+                <VisibilityEditor :item="item" :errors="errors" />
               </section>
             </template>
 

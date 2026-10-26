@@ -13,8 +13,8 @@ export interface BuilderSectionEntry {
 export const BUILDER_SECTIONS: readonly BuilderSectionEntry[] = [
   { key: 'fields', icon: 'text-cursor-input' },
   { key: 'elements', icon: 'shapes' },
-  // Lógica condicional: fase 3d-2. Design (tema, capa e logo): fase 4.
-  { key: 'logic', icon: 'git-branch', soon: true },
+  { key: 'logic', icon: 'git-branch' },
+  // Design (tema, capa e logo): fase 4.
   { key: 'design', icon: 'palette', soon: true },
   { key: 'settings', icon: 'settings' },
 ]

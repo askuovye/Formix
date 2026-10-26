@@ -2,6 +2,7 @@ import { builder } from '@/strings'
 import { SCHEMA_LIMITS, type InputField, type SchemaItem } from '@/types/schema'
 
 import { RULE_LIMITS, isTextField } from './rules'
+import { VISIBILITY_LIMITS, countConditions, visibilityError } from './visibility'
 
 /**
  * Erros de um item por caminho dentro dele: `label`, `options.0.label`,
@@ -165,6 +166,8 @@ export function validateItems(items: readonly SchemaItem[]): Map<string, ItemErr
 
     if (item.kind === 'input') {
       inputErrors(item, errors)
+      const visibility = visibilityError(items, index)
+      if (visibility) errors.visibility = visibility
     } else if (item.type === 'section_title' || item.type === 'text') {
       const max = item.type === 'text' ? SCHEMA_LIMITS.textBlockMax : SCHEMA_LIMITS.sectionTitleMax
       if (item.text.trim() === '') errors.text = e.required
@@ -180,6 +183,12 @@ export function validateItems(items: readonly SchemaItem[]): Map<string, ItemErr
       result.set(item.id, errors)
     }
   })
+
+  if (countConditions(items) > VISIBILITY_LIMITS.maxRules) {
+    result.set(GENERAL_ERRORS, {
+      conditions: builder.logic.errors.tooMany(VISIBILITY_LIMITS.maxRules),
+    })
+  }
 
   return result
 }

@@ -7,9 +7,9 @@ import type { SchemaItem } from '@/types/schema'
 import BuilderProperties from '../BuilderProperties.vue'
 import { useBuilderStore } from '../useBuilderStore'
 
-function setup(item: SchemaItem) {
+function setup(item: SchemaItem, before: SchemaItem[] = []) {
   const store = useBuilderStore()
-  store.load('f1', { fields: [item] })
+  store.load('f1', { fields: [...before, item] })
   store.select(item.id)
 
   const wrapper = mount(BuilderProperties, { attachTo: document.body })
@@ -96,6 +96,37 @@ describe('BuilderProperties', () => {
     const { wrapper } = setup({ id: 'nome', kind: 'input', type: 'short_text', label: '' })
 
     expect(wrapper.text()).toContain('Preencha este campo.')
+    wrapper.unmount()
+  })
+
+  it('lógica: ligar cria a condição com a primeira pergunta anterior e a opção dela', async () => {
+    const cor: SchemaItem = {
+      id: 'cor',
+      kind: 'input',
+      type: 'single_choice',
+      label: 'Cor',
+      options: [{ value: 'azul', label: 'Azul' }],
+    }
+    const { store, wrapper } = setup(
+      { id: 'motivo', kind: 'input', type: 'short_text', label: 'Motivo' },
+      [cor],
+    )
+
+    await wrapper.get('.visibility-editor [role="switch"]').trigger('click')
+
+    expect(store.items[1]).toMatchObject({
+      visibility: { action: 'show', when: { field: 'cor', operator: 'eq', value: 'azul' } },
+    })
+    expect(wrapper.text()).toContain('Campo oculto não é obrigatório')
+    wrapper.unmount()
+  })
+
+  it('lógica: o primeiro campo não tem pergunta anterior, então a opção fica desligada', () => {
+    const { wrapper } = setup({ id: 'nome', kind: 'input', type: 'short_text', label: 'Nome' })
+
+    const logicSwitch = wrapper.get('.visibility-editor [role="switch"]')
+    expect(logicSwitch.attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).toContain('coloque antes deste campo uma pergunta')
     wrapper.unmount()
   })
 })

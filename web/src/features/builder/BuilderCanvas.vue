@@ -9,6 +9,7 @@ import type { SchemaItem } from '@/types/schema'
 
 import BuilderCanvasItem from './BuilderCanvasItem.vue'
 import { GENERAL_ERRORS } from './schemaErrors'
+import { describeVisibility } from './visibility'
 import { BUILDER_DRAG_GROUP, sortableAnimationMs } from './dragAndDrop'
 import { useBuilderStore } from './useBuilderStore'
 
@@ -29,7 +30,7 @@ function onChange(change: DragChange): void {
   }
 }
 
-const generalErrors = computed(() => Object.values(store.serverErrors.get(GENERAL_ERRORS) ?? {}))
+const generalErrors = computed(() => Object.values(store.errorsFor(GENERAL_ERRORS)))
 
 const stepCount = computed(
   () => store.items.filter((item) => item.type === 'page_break').length + 1,
@@ -86,6 +87,11 @@ function remove(item: SchemaItem): void {
             :is-first="index === 0"
             :is-last="index === store.items.length - 1"
             :errors="store.errorsFor(element.id)"
+            :condition="
+              element.kind === 'input' && element.visibility
+                ? describeVisibility(element.visibility, store.items)
+                : undefined
+            "
             @select="store.select(element.id)"
             @move-up="moveBy(index, -1)"
             @move-down="moveBy(index, 1)"

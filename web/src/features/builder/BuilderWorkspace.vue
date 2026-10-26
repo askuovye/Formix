@@ -19,6 +19,12 @@ const propertiesOpen = defineModel<boolean>('propertiesOpen', { default: false }
 /** Seção aberta na coluna da esquerda (ou na gaveta do menu). */
 const section = defineModel<BuilderSection>('section', { default: 'fields' })
 
+/** Celular: da lista de condições direto para as propriedades do campo. */
+function openPropertiesDrawer(): void {
+  menuOpen.value = false
+  propertiesOpen.value = true
+}
+
 function openFields(): void {
   section.value = 'fields'
   menuOpen.value = true
@@ -113,7 +119,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         >
           {{ builder.back }}
         </AppButton>
-        <BuilderSidebar v-model:section="section" layout="drawer" @added="menuOpen = false" />
+        <BuilderSidebar
+          v-model:section="section"
+          layout="drawer"
+          @added="menuOpen = false"
+          @picked="openPropertiesDrawer"
+        />
       </div>
     </AppDrawer>
     <AppDrawer
