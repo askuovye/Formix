@@ -19,7 +19,10 @@ const scaleSteps = computed(() => {
   if (props.item.type !== 'scale') return []
   const { min, max } = props.item.scale
 
-  return Array.from({ length: max - min + 1 }, (_, i) => min + i)
+  // Enquanto a escala está inválida (campo vazio, fim antes do início), não desenha nada.
+  if (!Number.isInteger(min) || !Number.isInteger(max) || max < min) return []
+
+  return Array.from({ length: Math.min(max - min, 10) + 1 }, (_, i) => min + i)
 })
 </script>
 

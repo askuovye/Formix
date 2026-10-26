@@ -9,16 +9,23 @@ import {
   DialogTitle,
 } from 'reka-ui'
 
-import { fade, slideInStart } from '@/motion'
+import { fade, slideInEnd, slideInStart } from '@/motion'
 import { common } from '@/strings'
 
 import AppIconButton from './AppIconButton.vue'
 
-/** Painel lateral modal (menu do painel no celular). Abre por v-model:open. */
-const props = defineProps<{
-  /** Nome acessível do painel (fica visualmente oculto). */
-  title: string
-}>()
+/** Painel lateral modal (menu do painel e colunas do builder no celular). Abre por v-model:open. */
+const props = withDefaults(
+  defineProps<{
+    /** Nome acessível do painel (fica visualmente oculto). */
+    title: string
+    /** Borda de onde a gaveta entra. */
+    side?: 'start' | 'end'
+    /** `nav`: estreita, para menus; `panel`: larga, para formulários e listas. */
+    width?: 'nav' | 'panel'
+  }>(),
+  { side: 'start', width: 'nav' },
+)
 
 const open = defineModel<boolean>('open', { default: false })
 </script>
@@ -33,7 +40,11 @@ const open = defineModel<boolean>('open', { default: false })
       </AnimatePresence>
       <AnimatePresence>
         <DialogContent v-if="open" force-mount as-child :aria-describedby="undefined">
-          <motion.div class="drawer" v-bind="slideInStart">
+          <motion.div
+            class="drawer"
+            :class="[`drawer--${props.side}`, `drawer--${props.width}`]"
+            v-bind="props.side === 'end' ? slideInEnd : slideInStart"
+          >
             <DialogTitle class="drawer__title">{{ props.title }}</DialogTitle>
             <DialogClose as-child>
               <AppIconButton icon="x" :label="common.close" size="sm" class="drawer__close" />
@@ -50,15 +61,32 @@ const open = defineModel<boolean>('open', { default: false })
 .drawer {
   position: fixed;
   inset-block: 0;
-  inset-inline-start: 0;
   z-index: var(--layer-dialog);
   display: flex;
   flex-direction: column;
-  width: min(var(--sidebar-width), calc(100% - var(--space-12)));
+  width: min(var(--drawer-width), calc(100% - var(--space-12)));
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--color-surface);
-  border-inline-end: var(--border-width) solid var(--color-border);
   box-shadow: var(--shadow-lg);
+
+  &--nav {
+    --drawer-width: var(--sidebar-width);
+  }
+
+  &--panel {
+    --drawer-width: var(--drawer-panel-width);
+  }
+
+  &--start {
+    inset-inline-start: 0;
+    border-inline-end: var(--border-width) solid var(--color-border);
+  }
+
+  &--end {
+    inset-inline-end: 0;
+    border-inline-start: var(--border-width) solid var(--color-border);
+  }
 
   &__overlay {
     position: fixed;

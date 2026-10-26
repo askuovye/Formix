@@ -2,11 +2,13 @@
 import { computed } from 'vue'
 import draggable from 'vuedraggable'
 
+import AppAlert from '@/components/AppAlert.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { builder } from '@/strings'
 import type { SchemaItem } from '@/types/schema'
 
 import BuilderCanvasItem from './BuilderCanvasItem.vue'
+import { GENERAL_ERRORS } from './schemaErrors'
 import { BUILDER_DRAG_GROUP, sortableAnimationMs } from './dragAndDrop'
 import { useBuilderStore } from './useBuilderStore'
 
@@ -26,6 +28,8 @@ function onChange(change: DragChange): void {
     store.move(change.moved.oldIndex, change.moved.newIndex)
   }
 }
+
+const generalErrors = computed(() => Object.values(store.serverErrors.get(GENERAL_ERRORS) ?? {}))
 
 const stepCount = computed(
   () => store.items.filter((item) => item.type === 'page_break').length + 1,
@@ -57,6 +61,10 @@ function remove(item: SchemaItem): void {
 
 <template>
   <section class="canvas" :aria-label="t.label">
+    <AppAlert v-if="generalErrors.length > 0" tone="danger">
+      {{ builder.save.generalError }}
+      <span v-for="message in generalErrors" :key="message"> {{ message }}</span>
+    </AppAlert>
     <p v-if="stepCount > 1" class="canvas__steps">{{ t.step(1, stepCount) }}</p>
 
     <draggable
@@ -77,6 +85,7 @@ function remove(item: SchemaItem): void {
             :selected="store.selectedId === element.id"
             :is-first="index === 0"
             :is-last="index === store.items.length - 1"
+            :errors="store.errorsFor(element.id)"
             @select="store.select(element.id)"
             @move-up="moveBy(index, -1)"
             @move-down="moveBy(index, 1)"

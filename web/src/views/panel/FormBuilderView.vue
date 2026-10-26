@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
+import { ApiError } from '@/api/client'
 import { fetchForm, updateForm } from '@/api/forms'
 import { queryKeys } from '@/api/queryKeys'
 import AppAlert from '@/components/AppAlert.vue'
@@ -11,7 +12,8 @@ import AppSkipLink from '@/components/AppSkipLink.vue'
 import AppSpinner from '@/components/AppSpinner.vue'
 import BuilderTopbar from '@/features/builder/BuilderTopbar.vue'
 import BuilderWorkspace from '@/features/builder/BuilderWorkspace.vue'
-import { useAutosave } from '@/features/builder/useAutosave'
+import { mapServerErrors } from '@/features/builder/schemaErrors'
+import { InvalidDraftError, useAutosave } from '@/features/builder/useAutosave'
 import { useBuilderStore } from '@/features/builder/useBuilderStore'
 import { builder, common } from '@/strings'
 
@@ -29,15 +31,30 @@ const query = useQuery({
   staleTime: Infinity,
 })
 
-const autosave = useAutosave(
-  () => store.revision,
-  async () => {
-    const form = await updateForm(props.id, { schema: store.schema })
+async function save(): Promise<void> {
+  // Erro local (campo vazio, número fora do limite…): nem envia; o item já mostra o erro.
+  if (store.hasClientErrors) {
+    throw new InvalidDraftError()
+  }
+
+  const sent = store.snapshot()
+
+  try {
+    const form = await updateForm(props.id, { schema: { ...store.schema, fields: sent } })
+    store.setServerErrors(new Map())
+    store.adoptServerRules(sent, form.schema.fields)
     // Atualiza situação e "alterações não publicadas" sem trocar o rascunho em edição.
     queryClient.setQueryData(queryKeys.form(props.id), form)
     await queryClient.invalidateQueries({ queryKey: queryKeys.formLists })
-  },
-)
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 422) {
+      store.setServerErrors(mapServerErrors(error.fieldErrors, sent))
+    }
+    throw error
+  }
+}
+
+const autosave = useAutosave(() => store.revision, save)
 
 // Carrega no store quando o formulário chega (ou quando muda de formulário).
 watch(
@@ -96,7 +113,6 @@ onBeforeUnmount(() => {
         :status="query.data.value.status"
         :save-status="autosave.status.value"
         @retry-save="autosave.flush()"
-        @open-palette="paletteOpen = true"
         @open-properties="propertiesOpen = true"
       />
       <BuilderWorkspace

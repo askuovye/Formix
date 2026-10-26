@@ -59,11 +59,16 @@ defineSlots<Record<string, () => unknown>>()
 <style scoped lang="scss">
 .tabs {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 
+  // Em telas estreitas as abas rolam na horizontal em vez de alargar a página.
   &__list {
     position: relative;
     display: flex;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   &__trigger {
@@ -79,6 +84,7 @@ defineSlots<Record<string, () => unknown>>()
     font-weight: var(--font-weight-medium);
     color: var(--color-text-muted);
     background: transparent;
+    white-space: nowrap;
     border: 0;
     cursor: pointer;
     transition: color var(--duration-fast) var(--ease-out);
@@ -125,7 +131,7 @@ defineSlots<Record<string, () => unknown>>()
   }
 
   &--segmented &__trigger {
-    flex: 1;
+    flex: 1 0 auto;
   }
 
   &--segmented &__indicator {
