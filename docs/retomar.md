@@ -4,7 +4,7 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
 
 ## Onde paramos (2026-10-26)
 
-- **Back-end (`/api`): completo.** Fases 1 a 9 do briefing + ajustes de contrato pedidos pelo front (D32/D33): blocos, etapas, estrelas/escala, lógica condicional, tema versionado e imagens de capa/logo. 608 testes Pest, Larastan nível 8, `composer audit` limpo. **Docker validado (2026-10-23):** WSL2 + Docker Desktop instalados, `compose.yaml` sobe, migrations rodam e os testes passam no MariaDB (B5 resolvida) e em SQLite no container (608, ~3 min). Os textos legais também saem em HTML (`content_html`, D34).
+- **Back-end (`/api`): completo.** Fases 1 a 9 do briefing + ajustes de contrato pedidos pelo front (D32/D33): blocos, etapas, estrelas/escala, lógica condicional, tema versionado e imagens de capa/logo; a edição pelo respondente devolve os anexos atuais (nome e tamanho). 609 testes Pest, Larastan nível 8, `composer audit` limpo. **Docker validado (2026-10-23):** WSL2 + Docker Desktop instalados, `compose.yaml` sobe, migrations rodam e os testes passam no MariaDB (B5 resolvida) e em SQLite no container (609, ~3 min). Os textos legais também saem em HTML (`content_html`, D34).
 - **Front (`/web`): fase 1 (fundação) concluída** na `feature/web-fundacao`, já mergeada no `develop`. 51 testes Vitest; `vue-tsc`, ESLint e Prettier limpos.
   - **Tokens e temas** (`styles/tokens`, `styles/themes`): escuro é o padrão, claro projetado à parte, sem flash (script inline no `index.html` + `useThemeStore`). Um tema define só as cores-base; o resto é derivado pelo mixin `color-roles`, que o renderer vai reaplicar com as cores do dono do formulário (fase 4).
   - **Inter local**, **ícones Lucide offline** (só os listados em `components/icons/iconNames.ts`; ícone novo = adicionar o nome + `npm run icons`) e **`motion/`** (tokens espelhando o CSS, com teste de sincronia, e presets `fade`/`slideUp`/`scaleIn`).
@@ -18,14 +18,21 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
   - **3a, lista de formulários:** criar, duplicar, arquivar e excluir, com status e paginação.
   - **3b, núcleo do builder:** canvas com arrastar e soltar (vuedraggable), paleta, desfazer e refazer, e salvamento automático (`useAutosave`). Um único salvamento manda só o que mudou: o schema e/ou os dados do formulário.
   - **3c, propriedades completas:** todos os tipos de campo, regras anti-lixo e rigor, com a validação local espelhando o servidor (`schemaErrors.ts`). Os erros 422 vão para os campos.
-  - **3d-1:** rail de seções (Campos, Elementos, Lógica, Design "Em breve", Configurações), aba "Formulário" (título, descrição, slug e link público), configurações (emails, limites, datas, cópia ao respondente, edição, retenção), e publicar, fechar e reabrir. No desktop, os painéis ficam recolhidos e deslizam ao chegar perto da borda (`useEdgeReveal`); selecionar um campo abre as propriedades. No celular, gavetas com botão de menu e botão flutuante de adicionar.
+  - **3d-1:** rail de seções (Campos, Elementos, Lógica, Design, Configurações), aba "Formulário" (título, descrição, slug e link público), configurações (emails, limites, datas, cópia ao respondente, edição, retenção), e publicar, fechar e reabrir. No desktop, os painéis ficam recolhidos e deslizam ao chegar perto da borda (`useEdgeReveal`); selecionar um campo abre as propriedades. No celular, gavetas com botão de menu e botão flutuante de adicionar.
   - **3d-2, lógica condicional:** seção "Lógica" nas propriedades do campo, frase da condição no card e visão geral no rail. `visibility.ts` espelha as regras do back-end (origem anterior, operador por tipo, valor, limite de 50).
+  - **Arrastar no builder (ajuste pós-fase 3):** o card inteiro arrasta (os botões de ação não); `BuilderDragLift` mostra um card levantado que segue o ponteiro com leve atraso, inclina pela velocidade e tem sombra em paralaxe; vaga tracejada; no toque, segurar um instante antes de arrastar. Um rAF só durante o arrasto, só `transform`/`opacity`.
+- **Front: fase 4 (renderer público) concluída** em cinco partes (4a a 4e), todas mergeadas no `develop`. 462 testes Vitest; `vue-tsc`, ESLint, Prettier e build limpos.
+  - **4a, motor de validação em TS** (`features/validation`): normalização, catálogo de regras e avaliador de visibilidade, passando pelas mesmas fixtures do back-end.
+  - **4b, página pública** `/f/:slug`: etapas, lógica condicional, honeypot, chave de idempotência, erros 422 nos campos com foco no primeiro, situações 404/409/429 e comprovante.
+  - **4c, tema do dono:** `FormThemeScope` aplica cores, fonte, cantos, botão, alinhamento, capa e logo (página pública, canvas do builder e prévia). Seção **Design** no builder (presets Clássico/Minimalista/Escuro/Moderno/Personalizado, aviso de contraste, envio de capa e logo, tudo no desfazer). **Visualizar** abre a prévia do rascunho numa janela dentro do builder (desktop e celular). Sem tema = Clássico (branco).
+  - **4d, anexos:** núcleo do Uppy (`@uppy/core`, carregado sob demanda) com UI própria; regras espelhando o `FileAnswersValidator` (`files.ts`); miniatura das imagens; envio multipart com progresso no botão.
+  - **4e, edição pelo respondente** `/f/:slug/respostas/:id/editar#token=…`: formulário preenchido, anexos atuais como "Enviado" (escolher novos substitui), recusas 404/409/410 com motivo.
 - **Ambiente de dev mais rápido (2026-10-26):** o `vendor/` dos containers fica num volume do Docker e o servidor roda com 4 workers. As requisições à API caíram de 3 a 11 s para 0,15 a 0,3 s.
 - **Git:** github.com/askuovye/Formix, gitflow. `develop` tem tudo e está no GitHub; `main` está no commit inicial.
 
 ## Próximo passo
 
-**Fase 4 do front: renderer público.** Formulário montado a partir do schema, validação Valibot com as fixtures compartilhadas, avaliador de visibilidade em TS (casos `visibility` de `/fixtures/validation-cases.json`), tema do dono (cores e imagens; habilita a seção Design do builder) e "Visualizar" no builder. Depois: fase 5 (dashboard e resultados), fase 6 (landing), fase 7 (revisão).
+**Fase 5 do front: painel de respostas e resultados.** Lista de respostas por formulário (`GET /me/submissions`, filtros e cursor), detalhe com anexos por link assinado e histórico de edições, exclusão, exportação CSV e resultados (contadores e gráficos com GSAP). Confirmar o plano e a divisão com o usuário antes de codar. Depois: fase 6 (landing), fase 7 (revisão).
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 
@@ -79,8 +86,8 @@ Os serviços `app`, `scheduler`, `database` e `mailpit` devem aparecer como `run
 | Termos de uso | http://localhost:8000/api/v1/legal/terms | texto em Markdown e em HTML |
 | Front | `npm run dev` em `web/` e abrir http://localhost:5173 | tela de entrar |
 | Emails | http://localhost:8025 (Mailpit) | caixa de entrada local |
-| Testes (SQLite) | `docker compose exec -e COMPOSER_PROCESS_TIMEOUT=0 app composer test` | 608 passando |
-| **Testes no MariaDB** (barreira B5) | comando abaixo | 608 passando |
+| Testes (SQLite) | `docker compose exec -e COMPOSER_PROCESS_TIMEOUT=0 app composer test` | 609 passando |
+| **Testes no MariaDB** (barreira B5) | comando abaixo | 609 passando |
 
 No Windows a suíte leva ~3 min no container (o código ainda passa pela pasta compartilhada, que é lenta); por isso o `COMPOSER_PROCESS_TIMEOUT=0`, senão o Composer corta em 300 s. Mudou o front e algo sumiu da tela? Reinicie o `npm run dev` (depois de mover arquivos ou instalar pacotes o Vite pode ficar com cache velho).
 
