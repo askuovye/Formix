@@ -112,7 +112,9 @@ const name = computed(() => {
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-lg);
-  cursor: pointer;
+  // O card inteiro arrasta (sem selecionar texto); os botões de ação continuam só clicáveis.
+  cursor: grab;
+  user-select: none;
   transition: border-color var(--duration-fast) var(--ease-out);
 
   &:hover {
@@ -166,7 +168,6 @@ const name = computed(() => {
     display: grid;
     place-items: center;
     color: var(--color-text-subtle);
-    cursor: grab;
   }
 
   &__select {

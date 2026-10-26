@@ -10,11 +10,13 @@ import type { SchemaItem } from '@/types/schema'
 import BuilderCanvasItem from './BuilderCanvasItem.vue'
 import { GENERAL_ERRORS } from './schemaErrors'
 import { describeVisibility } from './visibility'
-import { BUILDER_DRAG_GROUP, sortableAnimationMs } from './dragAndDrop'
+import { BUILDER_DRAG_GROUP, SORTABLE_OPTIONS, sortableAnimationMs } from './dragAndDrop'
+import { useDragLift } from './dragLift'
 import { useBuilderStore } from './useBuilderStore'
 
 const store = useBuilderStore()
 const t = builder.canvas
+const lift = useDragLift({ themed: true, ghostClass: 'canvas__ghost' })
 
 /** Evento `change` do vuedraggable: o estado só muda pelo store (histórico de desfazer). */
 type DragChange =
@@ -91,12 +93,17 @@ function remove(item: SchemaItem): void {
     <draggable
       :model-value="store.items"
       :group="{ name: BUILDER_DRAG_GROUP, pull: false, put: true }"
+      v-bind="SORTABLE_OPTIONS"
       :animation="sortableAnimationMs()"
       item-key="id"
-      handle=".canvas-item__handle"
+      filter=".canvas-item__actions"
+      :prevent-on-filter="false"
       tag="ol"
       class="canvas__list"
       ghost-class="canvas__ghost"
+      fallback-class="canvas__fallback"
+      @start="lift.start"
+      @end="lift.end"
       @change="onChange"
     >
       <template #item="{ element, index }: { element: SchemaItem; index: number }">
@@ -181,8 +188,20 @@ function remove(item: SchemaItem): void {
     list-style: none;
   }
 
+  // A vaga onde o card vai cair: contorno tracejado no lugar do conteúdo.
   &__ghost {
-    opacity: var(--opacity-disabled);
+    background: var(--color-surface-hover);
+    border: var(--border-width-strong) dashed var(--color-primary);
+    border-radius: var(--radius-lg);
+
+    > * {
+      visibility: hidden;
+    }
+  }
+
+  // Cópia do SortableJS: escondida, o card levantado é o BuilderDragLift.
+  &__fallback {
+    visibility: hidden;
   }
 
   &__empty {

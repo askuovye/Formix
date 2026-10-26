@@ -8,6 +8,7 @@ import FormThemeScope from '@/features/renderer/FormThemeScope.vue'
 import { builder } from '@/strings'
 
 import BuilderCanvas from './BuilderCanvas.vue'
+import BuilderDragLift from './BuilderDragLift.vue'
 import BuilderEdgePanel from './BuilderEdgePanel.vue'
 import BuilderProperties from './BuilderProperties.vue'
 import BuilderSidebar from './BuilderSidebar.vue'
@@ -88,6 +89,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     >
       <BuilderCanvas />
     </FormThemeScope>
+    <BuilderDragLift />
 
     <!-- No celular: desfazer/refazer e "Adicionar campo" flutuam ao alcance do polegar. -->
     <div class="workspace__history">
