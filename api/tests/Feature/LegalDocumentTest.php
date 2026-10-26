@@ -51,6 +51,24 @@ it('sinaliza no texto o dado que o operador não configurou', function () {
         ->not->toContain('{{jurisdiction}}');
 });
 
+it('entrega o texto também em HTML pronto para exibir', function () {
+    $html = (string) $this->getJson('/api/v1/legal/privacy')->json('data.content_html');
+
+    expect($html)
+        ->toContain('<h1>Política de Privacidade</h1>', '<table>', '<li>', 'Fulana de Tal')
+        ->not->toContain('{{', '# ');
+});
+
+it('escapa HTML vindo dos dados do operador', function () {
+    config(['legal.operator.name' => '<script>alert(1)</script>']);
+
+    $html = (string) $this->getJson('/api/v1/legal/terms')->json('data.content_html');
+
+    expect($html)
+        ->not->toContain('<script>')
+        ->toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+});
+
 it('responde 404 para documento inexistente', function () {
     $this->getJson('/api/v1/legal/contrato-secreto')->assertNotFound();
 });

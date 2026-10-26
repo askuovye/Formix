@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use Illuminate\Support\Str;
+
 /**
  * Documentos aceitos no cadastro. Título, versão e arquivo em config/legal.php.
  */
@@ -38,6 +40,19 @@ enum LegalDocument: string
         $template = (string) file_get_contents((string) config("legal.documents.{$this->value}.path"));
 
         return strtr($template, self::operatorPlaceholders());
+    }
+
+    /**
+     * O mesmo texto em HTML, pronto para a SPA exibir sem converter Markdown.
+     * HTML vindo do texto ou do .env do operador é escapado (vira texto), e
+     * links com esquemas perigosos (javascript:, data:…) são descartados.
+     */
+    public function contentHtml(): string
+    {
+        return Str::markdown($this->content(), [
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false,
+        ]);
     }
 
     /**

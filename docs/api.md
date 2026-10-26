@@ -38,10 +38,10 @@ Base: `{APP_URL}/api/v1`. Todas as respostas são JSON. Atualizado a cada fase.
 
 | Método e rota | Resposta |
 |---|---|
-| `GET /legal/terms` | `{ data: { document, title, version, updated_at, content_markdown } }` |
+| `GET /legal/terms` | `{ data: { document, title, version, updated_at, content_markdown, content_html } }` |
 | `GET /legal/privacy` | idem |
 
-O texto vem em Markdown simples (títulos `#`/`##`, parágrafos, listas, negrito e uma tabela na política). Documento inexistente: `404`.
+O texto vem em Markdown simples (títulos `#`/`##`, parágrafos, listas, negrito e uma tabela na política) e também já convertido em `content_html`, que a SPA exibe direto (D34). Documento inexistente: `404`.
 
 ## Rotas que a SPA precisa ter (links enviados por email)
 
