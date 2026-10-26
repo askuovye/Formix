@@ -14,12 +14,18 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
   - **Páginas em `views/`** (uma por rota) e **layouts** em `layouts/`: painel com barra lateral (Formulários e Configurações, ainda vazias), menu do usuário e tema; área pública com Termos, Privacidade (HTML da API) e 404.
   - **Autenticação** (Sanctum SPA: cookie + CSRF): entrar, criar conta (com barra de força da senha), esqueci a senha, nova senha e confirmação de email. Rotas do painel exigem login e guardam o destino; validação Valibot espelha os Form Requests; erros 422 vão para os campos.
   - **Toasts** próprios (`useToastStore`) e aviso de sessão expirada.
+- **Front: fase 3 (builder) concluída** em quatro partes (3a a 3d), todas mergeadas no `develop`. 236 testes Vitest; `vue-tsc`, ESLint, Prettier e build limpos.
+  - **3a, lista de formulários:** criar, duplicar, arquivar e excluir, com status e paginação.
+  - **3b, núcleo do builder:** canvas com arrastar e soltar (vuedraggable), paleta, desfazer e refazer, e salvamento automático (`useAutosave`). Um único salvamento manda só o que mudou: o schema e/ou os dados do formulário.
+  - **3c, propriedades completas:** todos os tipos de campo, regras anti-lixo e rigor, com a validação local espelhando o servidor (`schemaErrors.ts`). Os erros 422 vão para os campos.
+  - **3d-1:** rail de seções (Campos, Elementos, Lógica, Design "Em breve", Configurações), aba "Formulário" (título, descrição, slug e link público), configurações (emails, limites, datas, cópia ao respondente, edição, retenção), e publicar, fechar e reabrir. No desktop, os painéis ficam recolhidos e deslizam ao chegar perto da borda (`useEdgeReveal`); selecionar um campo abre as propriedades. No celular, gavetas com botão de menu e botão flutuante de adicionar.
+  - **3d-2, lógica condicional:** seção "Lógica" nas propriedades do campo, frase da condição no card e visão geral no rail. `visibility.ts` espelha as regras do back-end (origem anterior, operador por tipo, valor, limite de 50).
 - **Ambiente de dev mais rápido (2026-10-26):** o `vendor/` dos containers fica num volume do Docker e o servidor roda com 4 workers. As requisições à API caíram de 3 a 11 s para 0,15 a 0,3 s.
 - **Git:** github.com/askuovye/Formix, gitflow. `develop` tem tudo e está no GitHub; `main` está no commit inicial.
 
 ## Próximo passo
 
-**Fase 3 do front: builder** (a mais importante). Depois: fase 4 (renderer, temas e imagem), fase 5 (dashboard e resultados), fase 6 (landing), fase 7 (revisão).
+**Fase 4 do front: renderer público.** Formulário montado a partir do schema, validação Valibot com as fixtures compartilhadas, avaliador de visibilidade em TS (casos `visibility` de `/fixtures/validation-cases.json`), tema do dono (cores e imagens; habilita a seção Design do builder) e "Visualizar" no builder. Depois: fase 5 (dashboard e resultados), fase 6 (landing), fase 7 (revisão).
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 
@@ -88,7 +94,7 @@ docker compose exec -e DB_CONNECTION=mariadb -e DB_HOST=database -e DB_DATABASE=
 curl.exe -X POST http://localhost:8000/api/v1/auth/register -H "Accept: application/json" -H "Content-Type: application/json" -d '{\"name\":\"Teste Local\",\"email\":\"teste@example.com\",\"password\":\"senhaForte123\",\"password_confirmation\":\"senhaForte123\",\"terms_accepted\":true}'
 ```
 
-Login, cadastro e confirmação de email já dá para testar pelo front; builder e envio de respostas vêm nas próximas fases.
+Login, cadastro, confirmação de email e o builder completo já dá para testar pelo front; o preenchimento público e o envio de respostas vêm na fase 4.
 
 ## Parar e retomar
 
