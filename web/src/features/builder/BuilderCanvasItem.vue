@@ -16,6 +16,8 @@ const props = defineProps<{
   isFirst: boolean
   isLast: boolean
   errors: ItemErrors
+  /** Frase da condição de mostrar/ocultar, quando houver. */
+  condition?: string
 }>()
 
 const emit = defineEmits<{
@@ -90,10 +92,14 @@ const name = computed(() => {
         <AppIconButton icon="trash-2" :label="t.actions.remove" size="sm" @click="emit('remove')" />
       </div>
     </header>
+    <p v-if="props.condition" class="canvas-item__condition">
+      <AppIcon name="git-branch" />
+      {{ props.condition }}
+    </p>
     <BuilderItemPreview :item="props.item" />
     <p v-if="hasErrors" class="canvas-item__error">
       <AppIcon name="circle-alert" />
-      {{ props.errors.item ?? t.hasErrors }}
+      {{ props.errors.item ?? props.errors.visibility ?? t.hasErrors }}
     </p>
   </article>
 </template>
@@ -126,6 +132,19 @@ const name = computed(() => {
 
   &--invalid#{&}--selected {
     box-shadow: 0 0 0 var(--border-width) var(--color-danger);
+  }
+
+  &__condition {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    justify-self: start;
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    background: var(--color-surface-raised);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
   }
 
   &__error {

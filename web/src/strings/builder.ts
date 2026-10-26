@@ -17,6 +17,7 @@ const PROPERTIES = {
     validation: 'Validação',
     antiJunk: 'Bloqueio de respostas inválidas',
     file: 'Arquivos',
+    logic: 'Lógica',
   },
   options: {
     label: (n: number) => `Opção ${n}`,
@@ -121,6 +122,54 @@ const RAIL = {
   hints: {
     fields: 'Clique para adicionar ou arraste para a posição desejada.',
     elements: 'Títulos, textos e divisões para organizar o formulário. Clique ou arraste.',
+  },
+} as const
+
+/** Lógica condicional: mostrar ou ocultar um campo conforme outra resposta. */
+const LOGIC = {
+  title: 'Lógica',
+  intro: 'Mostre ou oculte campos conforme as respostas anteriores.',
+  toggle: 'Mostrar ou ocultar conforme outra resposta',
+  toggleHint: 'O campo só usa respostas de perguntas que vêm antes dele.',
+  noSources:
+    'Para usar uma condição, coloque antes deste campo uma pergunta que não seja de arquivo.',
+  action: 'Este campo deve',
+  actionOptions: { show: 'Aparecer', hide: 'Sumir' },
+  source: 'Quando a pergunta',
+  operator: 'Condição',
+  value: 'Valor',
+  valuePlaceholder: 'Resposta esperada',
+  textHint: 'Sem diferenciar maiúsculas e acentos.',
+  hiddenNote: 'Campo oculto não é obrigatório e a resposta dele é descartada.',
+  operators: {
+    eq: 'for igual a',
+    neq: 'for diferente de',
+    lt: 'for menor que',
+    lte: 'for menor ou igual a',
+    gt: 'for maior que',
+    gte: 'for maior ou igual a',
+    includes: 'incluir',
+    excludes: 'não incluir',
+    answered: 'for respondida',
+    not_answered: 'não for respondida',
+  },
+  actions: { show: 'Aparece', hide: 'Some' },
+  sentence: (action: string, field: string, condition: string) =>
+    `${action} quando "${field}" ${condition}`,
+  unnamed: 'Pergunta sem título',
+  noValue: '…',
+  count: (n: number, max: number) => `${n} de ${max} condições usadas.`,
+  empty: 'Nenhuma condição ainda.',
+  emptyHint: 'Selecione um campo no canvas e ligue a condição na seção Lógica das propriedades.',
+  edit: (label: string) => `Editar a condição de "${label}"`,
+  errors: {
+    missingSource: 'A condição usa uma pergunta que não existe mais.',
+    sourceAfter: 'A pergunta da condição precisa vir antes deste campo.',
+    badSource: 'A condição não pode usar blocos nem campos de arquivo.',
+    badOperator: 'Essa condição não vale para a pergunta escolhida.',
+    valueRequired: 'Informe o valor da condição.',
+    badValue: 'O valor não combina com a pergunta escolhida.',
+    tooMany: (max: number) => `Use no máximo ${max} condições por formulário.`,
   },
 } as const
 
@@ -277,6 +326,7 @@ export const builder = {
   properties: PROPERTIES,
   errors: ERRORS,
   rail: RAIL,
+  logic: LOGIC,
   edge: EDGE,
   details: DETAILS,
   settings: SETTINGS,

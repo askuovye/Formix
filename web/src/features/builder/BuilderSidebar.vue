@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BuilderLogicPanel from './BuilderLogicPanel.vue'
 import BuilderPalette from './BuilderPalette.vue'
 import BuilderRail from './BuilderRail.vue'
 import BuilderSettings from './BuilderSettings.vue'
@@ -18,6 +19,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   /** Um item foi adicionado pelo clique (a gaveta do celular fecha). */
   added: []
+  /** Escolheu um campo na lista de condições (no celular, vai para as propriedades). */
+  picked: []
 }>()
 
 const section = defineModel<BuilderSection>('section', { required: true })
@@ -36,6 +39,7 @@ const section = defineModel<BuilderSection>('section', { required: true })
         :section="section"
         @added="emit('added')"
       />
+      <BuilderLogicPanel v-else-if="section === 'logic'" @picked="emit('picked')" />
       <BuilderSettings v-else-if="section === 'settings'" />
     </div>
   </div>
