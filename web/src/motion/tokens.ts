@@ -12,6 +12,12 @@ export const duration = {
   spin: 0.8,
 } as const
 
+/** Atrasos em ms (unidade do Reka UI). Sem espelho em CSS. */
+export const delay = {
+  /** Espera antes de abrir um tooltip ao passar o mouse. */
+  tooltip: 400,
+} as const
+
 /** Curvas cúbicas de Bézier `[x1, y1, x2, y2]`. */
 export const ease = {
   out: [0.22, 1, 0.36, 1],

@@ -61,3 +61,37 @@
     opacity: var(--opacity-disabled);
   }
 }
+
+// Superfície flutuante (menus, select, tooltip de conteúdo rico).
+@mixin popover-surface {
+  min-width: var(--popover-min-width);
+  padding: var(--space-1);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+// Item de menu/lista dentro de popover-surface (Reka marca [data-highlighted]).
+@mixin popover-item {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+
+  &[data-highlighted] {
+    background: var(--color-surface-hover);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+  }
+}

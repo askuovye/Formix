@@ -12,6 +12,11 @@ export const styleguide = {
     choices: 'Escolhas',
     badges: 'Badges',
     cards: 'Cards',
+    select: 'Select',
+    tabs: 'Abas',
+    menu: 'Menu e tooltip',
+    dialog: 'Dialog',
+    motion: 'Movimento',
   },
   theme: { system: 'Sistema', light: 'Claro', dark: 'Escuro', current: 'Tema aplicado:' },
   typography: {
@@ -60,5 +65,70 @@ export const styleguide = {
   cards: {
     title: 'Pesquisa de Satisfação',
     body: '12 respostas · última há 2 dias',
+  },
+  select: {
+    label: 'Tipo de campo',
+    hint: 'Muda o componente exibido no formulário.',
+    error: 'Escolha um tipo de campo.',
+    disabled: 'Período',
+    options: [
+      { value: 'text', label: 'Texto' },
+      { value: 'paragraph', label: 'Parágrafo' },
+      { value: 'email', label: 'E-mail' },
+      { value: 'rating', label: 'Avaliação por estrelas' },
+      { value: 'scale', label: 'Escala' },
+      { value: 'file', label: 'Upload de arquivo', disabled: true },
+    ],
+  },
+  tabs: {
+    label: 'Painel de propriedades',
+    underlineLabel: 'Filtro de formulários',
+    items: [
+      { value: 'field', label: 'Campo' },
+      { value: 'form', label: 'Formulário' },
+    ],
+    filters: [
+      { value: 'all', label: 'Todos' },
+      { value: 'active', label: 'Ativos' },
+      { value: 'draft', label: 'Rascunhos' },
+      { value: 'closed', label: 'Arquivados' },
+    ],
+    panels: {
+      field: 'Propriedades do campo selecionado.',
+      form: 'Configurações gerais do formulário.',
+      all: 'Todos os formulários.',
+      active: 'Formulários publicados.',
+      draft: 'Formulários em rascunho.',
+      closed: 'Formulários fechados.',
+    },
+  },
+  menu: {
+    trigger: 'Ações do formulário',
+    selected: 'Última ação:',
+    none: 'nenhuma',
+    items: {
+      edit: 'Editar',
+      preview: 'Visualizar',
+      duplicate: 'Duplicar',
+      archive: 'Arquivar',
+      delete: 'Excluir',
+    },
+  },
+  dialog: {
+    trigger: 'Excluir formulário',
+    title: 'Excluir “Pesquisa de Satisfação”?',
+    description: 'As 12 respostas e os anexos serão apagados. Essa ação não pode ser desfeita.',
+    cancel: 'Cancelar',
+    confirm: 'Excluir',
+  },
+  tooltip: {
+    content: 'Copiar link público',
+    side: 'Dica à direita',
+  },
+  motion: {
+    replay: 'Reproduzir',
+    sample: 'Exemplo',
+    presets: { fade: 'fade', slideUp: 'slideUp', scaleIn: 'scaleIn' },
+    durations: 'Durações',
   },
 } as const

@@ -4,6 +4,7 @@
  * Catálogo: https://lucide.dev/icons
  */
 export const ICON_NAMES = [
+  'archive',
   'check',
   'chevron-down',
   'chevron-right',
@@ -11,12 +12,16 @@ export const ICON_NAMES = [
   'circle-check',
   'copy',
   'ellipsis',
+  'eye',
   'info',
   'loader-circle',
   'monitor',
   'moon',
+  'pencil',
   'plus',
+  'rotate-ccw',
   'search',
+  'settings',
   'sun',
   'trash-2',
   'x',
