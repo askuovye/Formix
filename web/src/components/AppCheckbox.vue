@@ -8,10 +8,14 @@ const model = defineModel<boolean>({ default: false })
 const props = defineProps<{
   label: string
   hint?: string
+  error?: string
   disabled?: boolean
 }>()
 
-const { inputId, hintId, describedBy } = useFieldIds(props)
+/** O slot `label` substitui o texto do label (ex.: texto com links). */
+defineSlots<{ label?: () => unknown }>()
+
+const { inputId, hintId, errorId, describedBy } = useFieldIds(props)
 </script>
 
 <template>
@@ -23,13 +27,20 @@ const { inputId, hintId, describedBy } = useFieldIds(props)
         type="checkbox"
         class="checkbox__input"
         :disabled="props.disabled"
+        :aria-invalid="props.error ? 'true' : undefined"
         :aria-describedby="describedBy"
       />
       <AppIcon name="check" class="checkbox__mark" />
     </span>
     <span class="checkbox__text">
-      <label :for="inputId" class="checkbox__label">{{ props.label }}</label>
+      <label :for="inputId" class="checkbox__label">
+        <slot name="label">{{ props.label }}</slot>
+      </label>
       <span v-if="props.hint" :id="hintId" class="checkbox__hint">{{ props.hint }}</span>
+      <span v-if="props.error" :id="errorId" class="checkbox__error">
+        <AppIcon name="circle-alert" />
+        {{ props.error }}
+      </span>
     </span>
   </div>
 </template>
@@ -107,6 +118,18 @@ const { inputId, hintId, describedBy } = useFieldIds(props)
   &__hint {
     font-size: var(--font-size-xs);
     color: var(--color-text-muted);
+  }
+
+  &__input[aria-invalid='true'] {
+    border-color: var(--color-danger);
+  }
+
+  &__error {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-danger);
   }
 }
 </style>

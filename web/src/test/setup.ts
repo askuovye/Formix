@@ -23,6 +23,8 @@ if (!window.matchMedia) {
   }))
 }
 
+// O jsdom só avisa "Not implemented"; o scrollBehavior do router chama a cada navegação.
+window.scrollTo = () => {}
 Element.prototype.scrollIntoView ??= () => {}
 Element.prototype.hasPointerCapture ??= () => false
 Element.prototype.releasePointerCapture ??= () => {}

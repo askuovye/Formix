@@ -5,6 +5,7 @@
  */
 export const ICON_NAMES = [
   'archive',
+  'arrow-left',
   'check',
   'chevron-down',
   'chevron-right',
@@ -13,8 +14,12 @@ export const ICON_NAMES = [
   'copy',
   'ellipsis',
   'eye',
+  'file-text',
   'info',
   'loader-circle',
+  'log-out',
+  'mail',
+  'menu',
   'monitor',
   'moon',
   'pencil',

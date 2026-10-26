@@ -4,6 +4,8 @@ export const common = {
   loading: 'Carregando…',
   close: 'Fechar',
   selectPlaceholder: 'Selecione uma opção',
+  tooManyAttempts: (seconds: number) =>
+    `Muitas tentativas. Tente de novo em ${seconds} ${seconds === 1 ? 'segundo' : 'segundos'}.`,
 } as const
 
 /** Seletor de tema do app. */

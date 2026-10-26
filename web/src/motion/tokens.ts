@@ -16,6 +16,8 @@ export const duration = {
 export const delay = {
   /** Espera antes de abrir um tooltip ao passar o mouse. */
   tooltip: 400,
+  /** Tempo que um aviso (toast) fica na tela. */
+  toast: 5000,
 } as const
 
 /** Curvas cúbicas de Bézier `[x1, y1, x2, y2]`. */
