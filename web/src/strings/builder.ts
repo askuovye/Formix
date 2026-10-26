@@ -124,6 +124,20 @@ const RAIL = {
   },
 } as const
 
+/** Painéis laterais que abrem ao encostar o mouse na borda (desktop). */
+const EDGE = {
+  start: {
+    region: 'Campos e configurações',
+    pin: 'Manter o painel de campos aberto',
+    unpin: 'Recolher o painel de campos',
+  },
+  end: {
+    region: 'Propriedades',
+    pin: 'Manter as propriedades abertas',
+    unpin: 'Recolher as propriedades',
+  },
+} as const
+
 /** Aba "Formulário" das propriedades: dados gerais do formulário. */
 const DETAILS = {
   tabs: { label: 'O que editar', field: 'Campo', form: 'Formulário' },
@@ -263,6 +277,7 @@ export const builder = {
   properties: PROPERTIES,
   errors: ERRORS,
   rail: RAIL,
+  edge: EDGE,
   details: DETAILS,
   settings: SETTINGS,
   publish: PUBLISH,

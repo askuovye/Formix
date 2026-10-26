@@ -7,6 +7,7 @@ import AppIconButton from '@/components/AppIconButton.vue'
 import { builder } from '@/strings'
 
 import BuilderCanvas from './BuilderCanvas.vue'
+import BuilderEdgePanel from './BuilderEdgePanel.vue'
 import BuilderProperties from './BuilderProperties.vue'
 import BuilderSidebar from './BuilderSidebar.vue'
 import type { BuilderSection } from './sections'
@@ -54,9 +55,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <div class="workspace">
-    <aside class="workspace__side workspace__side--start">
-      <BuilderSidebar v-model:section="section" />
-    </aside>
+    <!-- Desktop: painéis recolhidos que deslizam ao encostar o mouse na borda. -->
+    <div class="workspace__edge">
+      <BuilderEdgePanel side="start">
+        <BuilderSidebar v-model:section="section" />
+      </BuilderEdgePanel>
+    </div>
 
     <main id="conteudo" class="workspace__canvas" tabindex="-1">
       <BuilderCanvas />
@@ -81,9 +85,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       {{ builder.toolbar.openPalette }}
     </AppButton>
 
-    <aside class="workspace__side workspace__side--end">
-      <BuilderProperties />
-    </aside>
+    <div class="workspace__edge">
+      <BuilderEdgePanel side="end">
+        <div class="workspace__properties">
+          <BuilderProperties />
+        </div>
+      </BuilderEdgePanel>
+    </div>
 
     <AppDrawer v-model:open="menuOpen" :title="builder.rail.label" width="panel">
       <div class="workspace__menu">
@@ -120,20 +128,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
 
-  &__side {
+  // Abaixo de lg os painéis são gavetas (menu e propriedades).
+  &__edge {
     display: none;
-    min-height: 0;
-    background: var(--color-surface);
 
-    &--start {
-      border-inline-end: var(--border-width) solid var(--color-border);
+    @include up(lg) {
+      display: contents;
     }
+  }
 
-    &--end {
-      padding: var(--space-4);
-      overflow-y: auto;
-      border-inline-start: var(--border-width) solid var(--color-border);
-    }
+  &__properties {
+    padding: var(--space-4);
   }
 
   &__canvas {
@@ -188,16 +193,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   }
 
   @include up(lg) {
-    grid-template-columns:
-      calc(var(--builder-rail-width) + var(--builder-palette-width)) minmax(0, 1fr)
-      var(--builder-properties-width);
-
-    &__side {
-      display: block;
-    }
+    position: relative;
+    overflow: hidden;
 
     &__canvas {
       padding: var(--space-6) var(--space-8);
+      // As bordas da tela abrem os painéis; a barra de rolagem ficaria embaixo
+      // da área da direita. Rola pela roda, trackpad e teclado.
+      scrollbar-width: none;
     }
 
     &__fab {

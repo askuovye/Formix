@@ -101,12 +101,12 @@ describe('FormBuilderView', () => {
     const { wrapper } = await mountView()
 
     const addEmail = wrapper
-      .findAll('.workspace__side--start .palette__item')
+      .findAll('.edge-panel--start .palette__item')
       .find((button) => button.text() === 'E-mail')
     await addEmail?.trigger('click')
 
     expect(wrapper.findAll('.canvas-item')).toHaveLength(2)
-    const label = wrapper.get('.workspace__side--end textarea')
+    const label = wrapper.get('.edge-panel--end textarea')
     expect((label.element as HTMLTextAreaElement).value).toBe('E-mail')
     await label.setValue('Seu e-mail de contato')
 
@@ -129,7 +129,7 @@ describe('FormBuilderView', () => {
   it('desfazer pelo teclado (fora de campos de texto) remove o que foi adicionado', async () => {
     const { wrapper } = await mountView()
 
-    await wrapper.findAll('.workspace__side--start .palette__item')[0]?.trigger('click')
+    await wrapper.findAll('.edge-panel--start .palette__item')[0]?.trigger('click')
     expect(wrapper.findAll('.canvas-item')).toHaveLength(2)
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true }))
@@ -156,11 +156,11 @@ describe('FormBuilderView', () => {
     const { wrapper } = await mountView()
 
     const settingsButton = wrapper
-      .findAll('.workspace__side--start .rail__item')
+      .findAll('.edge-panel--start .rail__item')
       .find((button) => button.text() === 'Configurações')
     await settingsButton?.trigger('click')
 
-    const limit = wrapper.findAll('.workspace__side--start input[type="number"]')[0]
+    const limit = wrapper.findAll('.edge-panel--start input[type="number"]')[0]
     await limit?.setValue('100')
     await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
     await flushPromises()
@@ -182,7 +182,7 @@ describe('FormBuilderView', () => {
     const { wrapper } = await mountView()
 
     await wrapper.get('.canvas-item__select').trigger('click')
-    await wrapper.get('.workspace__side--end textarea').setValue('Nome completo')
+    await wrapper.get('.edge-panel--end textarea').setValue('Nome completo')
     await wrapper.get('.publish-control__button').trigger('click')
     await flushPromises()
 
@@ -200,7 +200,7 @@ describe('FormBuilderView', () => {
     const { wrapper } = await mountView()
 
     await wrapper.get('.canvas-item__select').trigger('click')
-    await wrapper.get('.workspace__side--end textarea').setValue('')
+    await wrapper.get('.edge-panel--end textarea').setValue('')
     await wrapper.get('.publish-control__button').trigger('click')
     await flushPromises()
 
