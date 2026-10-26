@@ -153,6 +153,9 @@ function confirm(): void {
 
   &__items {
     display: grid;
+    padding: 0;
+    margin: 0;
+    list-style: none;
 
     > * + * {
       border-block-start: var(--border-width) solid var(--color-border);
