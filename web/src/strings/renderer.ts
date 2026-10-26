@@ -48,6 +48,30 @@ export const renderer = {
     added: (name: string) => `${name} adicionado.`,
     removed: (name: string) => `${name} removido.`,
     loading: 'Preparando o envio de arquivos…',
+    sent: 'Enviado',
+    keepHint:
+      'Estes arquivos continuam na resposta. Escolher novos substitui todos os deste campo.',
+    replaceHint: 'Os arquivos enviados antes neste campo serão substituídos pelos novos.',
+  },
+  edit: {
+    badge: 'Editando sua resposta',
+    until: (when: string) => `Você pode editar até ${when}.`,
+    save: 'Salvar alterações',
+    savedTitle: 'Resposta atualizada!',
+    savedText: 'Suas alterações foram salvas e o responsável pelo formulário foi avisado.',
+    editAgain: 'Editar de novo',
+    invalid: {
+      title: 'Link de edição inválido',
+      text: 'Confira se o link está completo, do jeito que você recebeu.',
+    },
+    expired: {
+      title: 'Prazo de edição encerrado',
+      text: 'A resposta só pode ser editada nas 4 horas seguintes ao envio.',
+    },
+    blocked: {
+      title: 'Edição indisponível',
+      text: 'O formulário foi fechado ou a edição de respostas foi desativada.',
+    },
   },
   receipt: {
     title: 'Tudo certo!',

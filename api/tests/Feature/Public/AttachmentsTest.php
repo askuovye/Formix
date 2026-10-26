@@ -278,6 +278,27 @@ it('na edição, troca os arquivos do campo e guarda os metadados dos anteriores
     Storage::disk('local')->assertMissing($oldPath);
 });
 
+it('na edição, mostra os arquivos atuais só com nome e tamanho, já trocados depois de editar', function () {
+    $form = formWithFileField(['file' => ['accept' => ['pdf', 'image'], 'max_files' => 2, 'max_size_mb' => 5]], ['allow_respondent_edit' => true]);
+    $receipt = submitWithFiles($form, [pdfFile('Original.pdf'), pngFile('Foto.png')])->assertCreated()->json('data');
+    $token = explode('#token=', $receipt['edit_url'])[1];
+    $url = "/api/v1/forms/{$form->slug}/submissions/{$receipt['id']}";
+
+    $files = $this->withHeaders(['X-Edit-Token' => $token])->getJson($url)->assertOk()->json('data.files');
+
+    expect($files)->toHaveCount(1)
+        ->and($files[0]['field_id'])->toBe('comprovante')
+        ->and(array_column($files[0]['files'], 'name'))->toBe(['Original.pdf', 'Foto.png'])
+        ->and($files[0]['files'][0])->toHaveKeys(['name', 'size'])
+        ->and($files[0]['files'][0])->not->toHaveKey('url');
+
+    $this->post(
+        $url,
+        ['_method' => 'PUT', 'answers' => json_encode(validSubmissionAnswers()), 'files' => ['comprovante' => [pngFile('Nova.png')]]],
+        ['Accept' => 'application/json', 'X-Edit-Token' => $token],
+    )->assertOk()->assertJsonPath('data.files.0.files.0.name', 'Nova.png')->assertJsonCount(1, 'data.files.0.files');
+});
+
 it('na edição, mantém os arquivos quando nenhum novo é enviado, inclusive em campo obrigatório', function () {
     $form = formWithFileField(['required' => true], ['allow_respondent_edit' => true]);
     $receipt = submitWithFiles($form, [pdfFile('Original.pdf')])->assertCreated()->json('data');

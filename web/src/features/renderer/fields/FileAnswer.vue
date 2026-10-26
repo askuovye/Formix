@@ -13,6 +13,7 @@ import {
   formatFileSize,
 } from '@/features/validation/files'
 import { renderer, validation } from '@/strings'
+import type { StoredFile } from '@/types/api'
 import type { FileField } from '@/types/schema'
 
 import AnswerGroup from './AnswerGroup.vue'
@@ -26,6 +27,8 @@ import AnswerGroup from './AnswerGroup.vue'
 const props = defineProps<{
   field: FileField
   error?: string
+  /** Anexos já guardados (edição): continuam, a menos que a pessoa escolha novos. */
+  stored?: StoredFile[]
 }>()
 
 const model = defineModel<File[]>({ default: () => [] })
@@ -57,6 +60,7 @@ const limits = computed(() =>
     props.field.file.max_files,
   ),
 )
+const stored = computed(() => props.stored ?? [])
 const full = computed(() => !single.value && entries.value.length >= props.field.file.max_files)
 
 function iconFor(file: File): IconName {
@@ -179,6 +183,22 @@ onBeforeUnmount(() => {
     :error="rejection ?? props.error"
     :required="props.field.required"
   >
+    <template v-if="stored.length > 0">
+      <ul v-if="entries.length === 0" class="file-answer__list">
+        <li v-for="file in stored" :key="file.name" class="file-answer__item">
+          <span class="file-answer__thumb file-answer__thumb--icon">
+            <AppIcon name="file" />
+          </span>
+          <span class="file-answer__meta">
+            <span class="file-answer__name">{{ file.name }}</span>
+            <span class="file-answer__size">{{ formatFileSize(file.size) }}</span>
+          </span>
+          <span class="file-answer__badge">{{ t.sent }}</span>
+        </li>
+      </ul>
+      <p class="file-answer__note">{{ entries.length === 0 ? t.keepHint : t.replaceHint }}</p>
+    </template>
+
     <label
       v-if="!full"
       :for="inputId"
@@ -355,6 +375,20 @@ onBeforeUnmount(() => {
   }
 
   &__size {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-subtle);
+  }
+
+  &__badge {
+    flex: none;
+    padding-inline: var(--space-2);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-full);
+  }
+
+  &__note {
     font-size: var(--font-size-xs);
     color: var(--color-text-subtle);
   }

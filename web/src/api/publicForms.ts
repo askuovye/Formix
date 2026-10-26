@@ -1,4 +1,4 @@
-import type { DataEnvelope, PublicForm, Receipt } from '@/types/api'
+import type { DataEnvelope, EditableSubmission, PublicForm, Receipt } from '@/types/api'
 
 import { http } from './client'
 
@@ -57,5 +57,64 @@ export async function submitAnswers(
     },
   )
 
+  return response.data.data
+}
+
+/** Cabeçalho que leva o token do link de edição (vem do fragmento `#token=`, nunca da URL). */
+const EDIT_TOKEN_HEADER = 'X-Edit-Token'
+
+function submissionUrl(slug: string, id: string): string {
+  return `/forms/${encodeURIComponent(slug)}/submissions/${encodeURIComponent(id)}`
+}
+
+/** Resposta aberta pelo link de edição. */
+export async function fetchEditableSubmission(
+  slug: string,
+  id: string,
+  token: string,
+): Promise<EditableSubmission> {
+  const response = await http.get<DataEnvelope<EditableSubmission>>(submissionUrl(slug, id), {
+    headers: { [EDIT_TOKEN_HEADER]: token },
+  })
+
+  return response.data.data
+}
+
+/**
+ * Salva a edição. Com anexos vai em multipart por POST com `_method=PUT` (o
+ * PHP só lê multipart em POST); arquivos de um campo substituem os anteriores
+ * dele, e campo sem arquivo novo mantém os atuais.
+ */
+export async function updateSubmission(
+  slug: string,
+  id: string,
+  token: string,
+  payload: Pick<SubmissionPayload, 'answers' | 'files'>,
+  onProgress?: (fraction: number) => void,
+): Promise<EditableSubmission> {
+  const body = submissionBody({ ...payload, website: '' })
+  const config = {
+    headers: { [EDIT_TOKEN_HEADER]: token },
+    onUploadProgress: (event: { loaded: number; total?: number }) => {
+      if (onProgress && event.total) onProgress(event.loaded / event.total)
+    },
+  }
+
+  if (body instanceof FormData) {
+    body.delete('website')
+    body.append('_method', 'PUT')
+    const response = await http.post<DataEnvelope<EditableSubmission>>(
+      submissionUrl(slug, id),
+      body,
+      config,
+    )
+    return response.data.data
+  }
+
+  const response = await http.put<DataEnvelope<EditableSubmission>>(
+    submissionUrl(slug, id),
+    { answers: body.answers },
+    config,
+  )
   return response.data.data
 }

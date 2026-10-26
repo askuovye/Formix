@@ -40,4 +40,5 @@ export const pageTitles = {
   verifyEmail: 'Confirmação de e-mail',
   styleguide: 'Styleguide',
   publicForm: 'Formulário',
+  editSubmission: 'Editar resposta',
 } as const

@@ -85,9 +85,12 @@ export function fileRejection(
   return null
 }
 
-/** Erro do campo inteiro ao avançar/enviar (obrigatório e limites), ou `null`. */
-export function filesError(field: FileField, files: readonly File[]): string | null {
-  if (files.length === 0) return field.required ? validation.required : null
+/**
+ * Erro do campo inteiro ao avançar/enviar (obrigatório e limites), ou `null`.
+ * `stored`: arquivos já guardados (edição); sem arquivo novo, eles continuam.
+ */
+export function filesError(field: FileField, files: readonly File[], stored = 0): string | null {
+  if (files.length === 0) return field.required && stored === 0 ? validation.required : null
   if (files.length > field.file.max_files) return validation.files.tooMany(field.file.max_files)
 
   for (const file of files) {

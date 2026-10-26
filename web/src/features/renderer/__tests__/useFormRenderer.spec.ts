@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import type { SchemaItem } from '@/types/schema'
+import type { InputField, SchemaItem } from '@/types/schema'
 
-import { splitSteps, useFormRenderer } from '../useFormRenderer'
+import { splitSteps, storedAnswer, useFormRenderer } from '../useFormRenderer'
 
 const items: SchemaItem[] = [
   { id: 'intro', kind: 'block', type: 'section_title', text: 'Sobre você' },
@@ -155,5 +155,30 @@ describe('useFormRenderer com anexos', () => {
 
     state.update('tem', 'nao')
     expect(state.payload()?.files).toEqual({})
+  })
+})
+
+describe('storedAnswer', () => {
+  it('números de campos de texto voltam como texto; nota e escala ficam número', () => {
+    const number: InputField = { id: 'n', kind: 'input', type: 'number', label: 'N' }
+    const rating = {
+      id: 'r',
+      kind: 'input',
+      type: 'rating',
+      label: 'R',
+      rating: { max: 5 },
+    } as const
+    const many: InputField = {
+      id: 'm',
+      kind: 'input',
+      type: 'multiple_choice',
+      label: 'M',
+      options: [{ value: 'a', label: 'A' }],
+    }
+
+    expect(storedAnswer(number, 3)).toBe('3')
+    expect(storedAnswer(rating, 4)).toBe(4)
+    expect(storedAnswer(many, ['a'])).toEqual(['a'])
+    expect(storedAnswer(many, null)).toEqual([])
   })
 })
