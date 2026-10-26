@@ -4,6 +4,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AppButton from '@/components/AppButton.vue'
 import AppDrawer from '@/components/AppDrawer.vue'
 import AppIconButton from '@/components/AppIconButton.vue'
+import FormThemeScope from '@/features/renderer/FormThemeScope.vue'
 import { builder } from '@/strings'
 
 import BuilderCanvas from './BuilderCanvas.vue'
@@ -77,9 +78,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       </BuilderEdgePanel>
     </div>
 
-    <main id="conteudo" class="workspace__canvas" tabindex="-1">
+    <!-- O canvas já mostra o tema do formulário (cores, fonte, cantos). -->
+    <FormThemeScope
+      id="conteudo"
+      tag="main"
+      class="workspace__canvas"
+      tabindex="-1"
+      :theme="store.schema.theme"
+    >
       <BuilderCanvas />
-    </main>
+    </FormThemeScope>
 
     <!-- No celular: desfazer/refazer e "Adicionar campo" flutuam ao alcance do polegar. -->
     <div class="workspace__history">

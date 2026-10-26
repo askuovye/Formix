@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BuilderDesignPanel from './BuilderDesignPanel.vue'
 import BuilderLogicPanel from './BuilderLogicPanel.vue'
 import BuilderPalette from './BuilderPalette.vue'
 import BuilderRail from './BuilderRail.vue'
@@ -40,6 +41,7 @@ const section = defineModel<BuilderSection>('section', { required: true })
         @added="emit('added')"
       />
       <BuilderLogicPanel v-else-if="section === 'logic'" @picked="emit('picked')" />
+      <BuilderDesignPanel v-else-if="section === 'design'" />
       <BuilderSettings v-else-if="section === 'settings'" />
     </div>
   </div>

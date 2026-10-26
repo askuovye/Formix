@@ -236,6 +236,56 @@ const SETTINGS = {
   retentionDaysHint: 'Vazio = até você excluir. Depois do prazo, as respostas são apagadas.',
 } as const
 
+/** Seção Design: tema, formato, capa e logo. */
+const DESIGN = {
+  title: 'Design',
+  intro: 'Cores, fonte, capa e logo do formulário. Quem responde vê depois de publicar.',
+  presets: 'Tema',
+  presetNames: {
+    classic: 'Clássico',
+    minimal: 'Minimalista',
+    dark: 'Escuro',
+    modern: 'Moderno',
+    custom: 'Personalizado',
+  },
+  colors: 'Cores',
+  colorNames: { primary: 'Cor principal', background: 'Fundo', surface: 'Cartão', text: 'Texto' },
+  lowTextContrast: 'Pouco contraste entre o texto e o cartão: pode ficar difícil de ler.',
+  lowPrimaryContrast: 'A cor principal quase some sobre o cartão.',
+  format: 'Formato',
+  radius: 'Cantos',
+  radii: {
+    none: 'Retos',
+    small: 'Pouco arredondados',
+    medium: 'Arredondados',
+    large: 'Bem arredondados',
+  },
+  font: 'Fonte',
+  fonts: { inter: 'Inter', system: 'Do sistema', serif: 'Serifada' },
+  button: 'Botões',
+  buttons: { solid: 'Cheio', outline: 'Contorno' },
+  alignment: 'Título e logo',
+  alignments: { left: 'À esquerda', center: 'Centralizados' },
+  images: 'Imagens',
+  cover: 'Capa',
+  coverHint: 'JPG, PNG ou WebP até 5 MB. Imagens largas ficam melhores (ex.: 1500 × 500).',
+  logo: 'Logo',
+  logoHint: 'JPG, PNG ou WebP até 5 MB. Fundo transparente combina com qualquer tema.',
+  upload: 'Enviar imagem',
+  replace: 'Trocar',
+  remove: 'Remover',
+  fit: 'Ajuste da capa',
+  fits: { cover: 'Preencher a faixa', contain: 'Mostrar inteira' },
+  overlay: 'Escurecer a capa',
+  overlayValue: (percent: number) => `${percent}%`,
+  errors: {
+    type: 'Use uma imagem JPG, PNG ou WebP.',
+    size: 'A imagem passa de 5 MB.',
+    limit: 'Este formulário já tem 20 imagens. Remova alguma antes de enviar outra.',
+    upload: 'Não foi possível enviar a imagem.',
+  },
+} as const
+
 /** Pré-visualização do rascunho (janela no builder). */
 const PREVIEW = {
   title: 'Pré-visualização',
@@ -343,6 +393,7 @@ export const builder = {
   settings: SETTINGS,
   publish: PUBLISH,
   preview: PREVIEW,
+  design: DESIGN,
   toolbar: {
     undo: 'Desfazer',
     redo: 'Refazer',

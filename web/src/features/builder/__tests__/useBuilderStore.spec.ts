@@ -160,4 +160,26 @@ describe('useBuilderStore', () => {
 
     expect(store.items[0]?.kind === 'input' && store.items[0].required).toBe(false)
   })
+
+  it('tema: sem tema parte do Clássico, entra no histórico e desfaz junto', () => {
+    const store = useBuilderStore()
+    store.load('f1', { fields: [] })
+
+    store.updateTheme((draft) => {
+      draft.preset = 'dark'
+      draft.radius = 'large'
+    }, 'preset')
+    store.add('short_text')
+
+    expect(store.schema.theme).toMatchObject({ ...DEFAULT_THEME, preset: 'dark', radius: 'large' })
+    expect(store.revision).toBe(2)
+
+    store.undo()
+    store.undo()
+    expect(store.schema.theme).toBeUndefined()
+    expect(store.items).toEqual([])
+
+    store.redo()
+    expect(store.schema.theme?.preset).toBe('dark')
+  })
 })

@@ -30,6 +30,11 @@ function onChange(change: DragChange): void {
   }
 }
 
+/** Capa e logo do tema, para o canvas lembrar a página publicada. */
+const cover = computed(() => store.schema.theme?.cover ?? null)
+const logo = computed(() => store.schema.theme?.logo?.url ?? null)
+const centered = computed(() => store.schema.theme?.alignment === 'center')
+
 const generalErrors = computed(() => Object.values(store.errorsFor(GENERAL_ERRORS)))
 
 const stepCount = computed(
@@ -62,6 +67,21 @@ function remove(item: SchemaItem): void {
 
 <template>
   <section class="canvas" :aria-label="t.label">
+    <div
+      v-if="cover?.url || logo"
+      class="canvas__brand"
+      :class="{ 'canvas__brand--center': centered }"
+      aria-hidden="true"
+    >
+      <img
+        v-if="cover?.url"
+        :src="cover.url"
+        alt=""
+        class="canvas__cover"
+        :class="`canvas__cover--${cover.fit}`"
+      />
+      <img v-if="logo" :src="logo" alt="" class="canvas__logo" />
+    </div>
     <AppAlert v-if="generalErrors.length > 0" tone="danger">
       {{ builder.save.generalError }}
       <span v-for="message in generalErrors" :key="message"> {{ message }}</span>
@@ -118,6 +138,33 @@ function remove(item: SchemaItem): void {
   width: 100%;
   max-width: var(--builder-canvas-width);
   margin-inline: auto;
+
+  &__brand {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+
+    &--center {
+      justify-items: center;
+    }
+  }
+
+  &__cover {
+    inline-size: 100%;
+    block-size: calc(var(--form-cover-height) / 2);
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+
+    &--contain {
+      object-fit: contain;
+    }
+  }
+
+  &__logo {
+    max-inline-size: var(--form-logo-max-width);
+    max-block-size: var(--form-logo-height);
+    object-fit: contain;
+  }
 
   &__steps {
     font-size: var(--font-size-xs);

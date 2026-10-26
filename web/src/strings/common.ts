@@ -5,6 +5,7 @@ export const common = {
   close: 'Fechar',
   cancel: 'Cancelar',
   selectPlaceholder: 'Selecione uma opção',
+  pickColor: (label: string) => `Escolher ${label.toLowerCase()} no seletor de cores`,
   tooManyAttempts: (seconds: number) =>
     `Muitas tentativas. Tente de novo em ${seconds} ${seconds === 1 ? 'segundo' : 'segundos'}.`,
 } as const

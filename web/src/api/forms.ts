@@ -71,3 +71,28 @@ export async function updateForm(id: string, payload: UpdateFormPayload): Promis
 
   return response.data.data
 }
+
+export type FormAssetKind = 'cover' | 'logo'
+
+/** Imagem enviada para o tema (imutável; trocar = enviar outra). */
+export interface FormAsset {
+  id: string
+  kind: FormAssetKind
+  url: string
+  mime_type: string
+  size: number
+}
+
+/** Envia capa ou logo (JPG, PNG ou WebP até 5 MB). O tema passa a usá-la pelo `id`. */
+export async function uploadFormAsset(
+  formId: string,
+  file: File,
+  kind: FormAssetKind,
+): Promise<FormAsset> {
+  const body = new FormData()
+  body.append('file', file)
+  body.append('kind', kind)
+  const response = await http.post<DataEnvelope<FormAsset>>(`/me/forms/${formId}/assets`, body)
+
+  return response.data.data
+}
