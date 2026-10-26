@@ -254,7 +254,8 @@ web/src/
 │   └── validation/   # motor de regras (espelho do backend) com Valibot
 ├── components/       # componentes base próprios (AppButton, AppIcon, AppDialog…), sobre Reka UI quando houver primitiva
 ├── composables/      # composables genéricos (useXxx), incl. useGsapContext
-├── config/           # constantes de configuração (nome da marca, flags como VITE_USE_MOCKS)
+├── config/           # constantes de configuração (nome da marca, URL da API, flags como VITE_USE_MOCKS)
+├── layouts/          # estruturas de página com <RouterView>: AppShellLayout (painel), PublicLayout
 ├── motion/           # tokens de movimento em TS (durações, easings, distâncias), espelho dos tokens CSS
 ├── strings/          # todos os textos da interface em pt-BR
 ├── stores/           # stores Pinia globais
@@ -264,10 +265,11 @@ web/src/
 │   ├── base/         # reset, tipografia, @font-face da Inter
 │   ├── mixins/       # SÓ mixins e funções (não emite CSS; injetado em todo <style lang="scss">)
 │   └── main.scss     # entrada global, importada em app/main.ts
-└── types/            # tipos compartilhados (schema, rule types, DTOs)
+├── types/            # tipos compartilhados (schema, rule types, DTOs)
+└── views/            # uma página por rota (XxxView.vue), fina: monta componentes e composables das features
 ```
 
-Organização **por feature**: código que muda junto fica junto.
+Organização **por feature**: código que muda junto fica junto. As **páginas** (o componente de cada rota) ficam em `views/`, separadas por área (`views/panel`, `views/legal`…), e só compõem o que vem das features e de `components/`; a lógica não mora na view.
 
 ### Regras
 

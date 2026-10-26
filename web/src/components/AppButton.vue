@@ -5,6 +5,7 @@ import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import { common } from '@/strings'
 
 import AppIcon from './AppIcon.vue'
+import AppSpinner from './AppSpinner.vue'
 import type { IconName } from './icons/iconNames'
 
 const props = withDefaults(
@@ -54,12 +55,7 @@ const isInactive = computed(() => props.disabled || props.loading)
     :disabled="isInactive"
     :aria-busy="props.loading || undefined"
   >
-    <AppIcon
-      v-if="props.loading"
-      name="loader-circle"
-      class="app-button__spinner"
-      :label="common.loading"
-    />
+    <AppSpinner v-if="props.loading" :label="common.loading" />
     <AppIcon v-else-if="props.iconLeft" :name="props.iconLeft" />
     <slot />
     <AppIcon v-if="props.iconRight && !props.loading" :name="props.iconRight" />
@@ -152,16 +148,6 @@ const isInactive = computed(() => props.disabled || props.loading)
     &:hover:not(:disabled) {
       border-color: var(--color-danger);
     }
-  }
-
-  &__spinner {
-    animation: app-button-spin var(--duration-spin) linear infinite;
-  }
-}
-
-@keyframes app-button-spin {
-  to {
-    transform: rotate(1turn);
   }
 }
 </style>
