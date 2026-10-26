@@ -113,7 +113,6 @@ onBeforeUnmount(() => {
         :status="query.data.value.status"
         :save-status="autosave.status.value"
         @retry-save="autosave.flush()"
-        @open-palette="paletteOpen = true"
         @open-properties="propertiesOpen = true"
       />
       <BuilderWorkspace

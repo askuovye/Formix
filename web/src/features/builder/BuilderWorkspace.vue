@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
 
+import AppButton from '@/components/AppButton.vue'
 import AppDrawer from '@/components/AppDrawer.vue'
 import { builder } from '@/strings'
 
@@ -52,15 +53,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <BuilderCanvas />
     </main>
 
+    <!-- No celular a paleta abre por um botão flutuante, ao alcance do polegar. -->
+    <AppButton icon-left="plus" class="workspace__fab" @click="paletteOpen = true">
+      {{ builder.toolbar.openPalette }}
+    </AppButton>
+
     <aside class="workspace__side workspace__side--end">
       <BuilderProperties />
     </aside>
 
-    <AppDrawer v-model:open="paletteOpen" :title="builder.palette.title">
-      <BuilderPalette @added="paletteOpen = false" />
+    <AppDrawer v-model:open="paletteOpen" :title="builder.palette.title" width="panel">
+      <div class="workspace__drawer">
+        <BuilderPalette @added="paletteOpen = false" />
+      </div>
     </AppDrawer>
-    <AppDrawer v-model:open="propertiesOpen" :title="builder.properties.title">
-      <BuilderProperties />
+    <AppDrawer
+      v-model:open="propertiesOpen"
+      :title="builder.properties.title"
+      side="end"
+      width="panel"
+    >
+      <div class="workspace__drawer">
+        <BuilderProperties />
+      </div>
     </AppDrawer>
 
     <p class="workspace__announcer" aria-live="polite">{{ store.announcement }}</p>
@@ -89,9 +104,22 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   }
 
   &__canvas {
-    padding: var(--space-6) var(--space-4);
+    // O fim da lista fica acima do botão flutuante.
+    padding: var(--space-6) var(--space-4) calc(var(--space-16) + var(--space-8));
     overflow-y: auto;
     outline: none;
+  }
+
+  &__fab {
+    position: fixed;
+    inset-block-end: calc(var(--space-4) + env(safe-area-inset-bottom));
+    inset-inline-end: var(--space-4);
+    z-index: var(--layer-raised);
+    box-shadow: var(--shadow-lg);
+  }
+
+  &__drawer {
+    padding: var(--space-4);
   }
 
   &__announcer {
@@ -108,7 +136,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
 
     &__canvas {
-      padding-inline: var(--space-8);
+      padding: var(--space-6) var(--space-8);
+    }
+
+    &__fab {
+      display: none;
     }
   }
 }

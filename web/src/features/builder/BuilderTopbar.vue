@@ -22,7 +22,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   retrySave: []
-  openPalette: []
   openProperties: []
 }>()
 
@@ -94,12 +93,6 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
         @click="store.redo()"
       />
       <AppIconButton
-        icon="plus"
-        :label="t.toolbar.openPalette"
-        class="builder-topbar__mobile"
-        @click="emit('openPalette')"
-      />
-      <AppIconButton
         icon="sliders-horizontal"
         :label="t.toolbar.openProperties"
         class="builder-topbar__mobile"
@@ -113,12 +106,17 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
 <style scoped lang="scss">
 .builder-topbar {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-items: center;
   height: var(--topbar-height);
-  padding-inline: var(--space-3);
+  padding-inline: var(--space-2);
   background: var(--color-surface);
   border-block-end: var(--border-width) solid var(--color-border);
+
+  @include up(sm) {
+    gap: var(--space-3);
+    padding-inline: var(--space-3);
+  }
 
   &__heading {
     display: flex;
@@ -183,7 +181,7 @@ const save = computed<{ icon: IconName; text: string; tone: 'muted' | 'danger' }
 
   &__actions {
     display: flex;
-    gap: var(--space-1);
+    gap: 0;
     align-items: center;
   }
 

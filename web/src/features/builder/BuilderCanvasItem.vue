@@ -179,22 +179,31 @@ const name = computed(() => {
   }
 
   // Ações aparecem no hover, na seleção e com o foco do teclado dentro do card.
+  // Celular e toque: as ações aparecem só no item selecionado (quatro botões
+  // por card espremem o cabeçalho). Com mouse, a partir de sm, aparecem no
+  // hover e no foco, sem deslocar o layout.
   &__actions {
-    display: flex;
+    display: none;
     gap: var(--space-1);
-    opacity: 0;
     transition: opacity var(--duration-fast) var(--ease-out);
   }
 
-  &:hover &__actions,
-  &--selected &__actions,
-  &:focus-within &__actions {
-    opacity: 1;
+  &--selected &__actions {
+    display: flex;
   }
 
-  @media (hover: none) {
-    &__actions {
-      opacity: 1;
+  @include up(sm) {
+    @media (hover: hover) {
+      &__actions {
+        display: flex;
+        opacity: 0;
+      }
+
+      &:hover &__actions,
+      &--selected &__actions,
+      &:focus-within &__actions {
+        opacity: 1;
+      }
     }
   }
 }

@@ -24,6 +24,13 @@ export const slideInStart = {
   exit: { x: '-100%', transition: { duration: duration.base, ease: ease.inOut } },
 }
 
+/** Painel lateral (gaveta) entrando pela borda final da tela. */
+export const slideInEnd = {
+  initial: { x: '100%' },
+  animate: { x: 0, transition: { duration: duration.slow, ease: ease.out } },
+  exit: { x: '100%', transition: { duration: duration.base, ease: ease.inOut } },
+}
+
 export const scaleIn = {
   initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1, transition: { duration: duration.base, ease: ease.out } },
