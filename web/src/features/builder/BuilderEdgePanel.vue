@@ -26,6 +26,8 @@ const t = computed(() => builder.edge[props.side])
 
 // Recolhido: fora da tela pela própria borda. O conteúdo entra um pouco
 // depois e com um leve deslocamento, dando profundidade ao movimento.
+defineExpose({ show: reveal.show })
+
 const hiddenX = props.side === 'start' ? '-100%' : '100%'
 const contentOffset = props.side === 'start' ? -distance.lg : distance.lg
 </script>

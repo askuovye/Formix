@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import AppButton from '@/components/AppButton.vue'
 import AppDrawer from '@/components/AppDrawer.vue'
@@ -25,6 +25,15 @@ function openFields(): void {
 }
 
 const store = useBuilderStore()
+
+// Selecionar um campo no canvas abre as propriedades (desktop): é quase sempre
+// o próximo passo. Adicionar pela paleta não abre (seriam dois painéis).
+const propertiesPanel = ref<InstanceType<typeof BuilderEdgePanel> | null>(null)
+
+watch(
+  () => store.selections,
+  () => propertiesPanel.value?.show(),
+)
 
 function isEditable(target: EventTarget | null): boolean {
   return (
@@ -86,7 +95,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     </AppButton>
 
     <div class="workspace__edge">
-      <BuilderEdgePanel side="end">
+      <BuilderEdgePanel ref="propertiesPanel" side="end">
         <div class="workspace__properties">
           <BuilderProperties />
         </div>

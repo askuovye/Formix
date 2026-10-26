@@ -225,4 +225,18 @@ describe('FormBuilderView', () => {
     })
     wrapper.unmount()
   })
+
+  it('selecionar um campo no canvas abre as propriedades; adicionar pela paleta não', async () => {
+    const { wrapper } = await mountView()
+    const propertiesOpen = () => wrapper.get('.edge-panel--end').classes('edge-panel--open')
+
+    await wrapper.findAll('.edge-panel--start .palette__item')[0]?.trigger('click')
+    await flushPromises()
+    expect(propertiesOpen()).toBe(false)
+
+    await wrapper.findAll('.canvas-item__select')[0]?.trigger('click')
+    await flushPromises()
+    expect(propertiesOpen()).toBe(true)
+    wrapper.unmount()
+  })
 })

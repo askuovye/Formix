@@ -52,6 +52,16 @@ export function useEdgeReveal(panel: Ref<HTMLElement | null>) {
     if (!busy()) open.value = false
   }
 
+  /**
+   * Abre sem o mouse (ex.: selecionou um campo no canvas). Fica até um clique
+   * fora; um clique que seleciona outro campo chama `show` de novo e cancela
+   * o recolher.
+   */
+  function show(): void {
+    clearTimeout(timer)
+    open.value = true
+  }
+
   /** Foco entrou (teclado): abre na hora. */
   function focusIn(): void {
     clearTimeout(timer)
@@ -99,5 +109,5 @@ export function useEdgeReveal(panel: Ref<HTMLElement | null>) {
     document.removeEventListener('pointerdown', pointerDownOutside)
   })
 
-  return { open, pinned, enter, leave, focusIn, focusOut, togglePin, dragStart }
+  return { open, pinned, enter, leave, show, focusIn, focusOut, togglePin, dragStart }
 }

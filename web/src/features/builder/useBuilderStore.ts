@@ -41,6 +41,11 @@ export const useBuilderStore = defineStore('builder', () => {
   /** Tema (fase 4): preservado como veio, para não ser apagado ao salvar. */
   const theme = shallowRef<unknown>(undefined)
   const selectedId = ref<string | null>(null)
+  /**
+   * Sobe a cada seleção feita pelo dono no canvas (mesmo repetindo o item).
+   * Itens recém-adicionados também ficam selecionados, mas não contam.
+   */
+  const selections = ref(0)
   /** Sobe a cada mudança no conteúdo: é o que o autosave observa. */
   const revision = ref(0)
   /** Último aviso para leitores de tela (mover, remover). */
@@ -253,6 +258,7 @@ export const useBuilderStore = defineStore('builder', () => {
 
   function select(id: string | null): void {
     selectedId.value = id
+    if (id) selections.value++
   }
 
   function announce(message: string): void {
@@ -263,6 +269,7 @@ export const useBuilderStore = defineStore('builder', () => {
     formId,
     items,
     selectedId,
+    selections,
     selected,
     revision,
     announcement,
