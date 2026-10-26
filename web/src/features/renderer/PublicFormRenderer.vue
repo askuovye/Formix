@@ -7,13 +7,14 @@ import { toApiError } from '@/api/client'
 import { submitAnswers } from '@/api/publicForms'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
+import { MAX_TOTAL_UPLOAD_MB, totalTooLarge } from '@/features/validation/files'
 import { fade, slideUp } from '@/motion'
-import { renderer } from '@/strings'
+import { renderer, validation } from '@/strings'
 import type { Receipt } from '@/types/api'
 import type { FormTheme, SchemaItem } from '@/types/schema'
 
 import FormItem from './FormItem.vue'
-import { useFormRenderer } from './useFormRenderer'
+import { useFormRenderer, type RendererPayload } from './useFormRenderer'
 
 /**
  * Formulário montado a partir do schema. Valida no cliente (espelho do
@@ -51,9 +52,25 @@ const currentItems = computed(() => state.steps.value[state.stepIndex.value] ?? 
 const errorCount = computed(() => Object.keys(state.errors.value).length)
 const primaryVariant = computed(() => (props.buttonStyle === 'outline' ? 'outline' : 'primary'))
 
+/** Fração já enviada dos anexos (0 a 1); `null` sem anexos. */
+const progress = ref<number | null>(null)
+const submitLabel = computed(() => {
+  if (!mutation.isPending.value) return renderer.submit
+  return progress.value === null
+    ? renderer.submitting
+    : renderer.submittingProgress(Math.round(progress.value * 100))
+})
+
 const mutation = useMutation({
-  mutationFn: (answers: Record<string, unknown>) =>
-    submitAnswers(props.slug ?? '', { answers, website: honeypot.value }, idempotencyKey),
+  mutationFn: ({ answers, files }: RendererPayload) => {
+    progress.value = Object.keys(files).length > 0 ? 0 : null
+    return submitAnswers(
+      props.slug ?? '',
+      { answers, files, website: honeypot.value },
+      idempotencyKey,
+      (fraction) => (progress.value = fraction),
+    )
+  },
   onSuccess: (receipt) => emit('submitted', receipt),
   onError: (error) => {
     const apiError = toApiError(error)
@@ -64,6 +81,8 @@ const mutation = useMutation({
       const unmatched = state.setServerErrors(apiError.firstFieldErrors)
       formError.value = unmatched[0] ?? (errorCount.value > 0 ? undefined : renderer.genericError)
       void focusFirstError()
+    } else if (apiError.status === 413) {
+      formError.value = validation.files.totalTooLarge(MAX_TOTAL_UPLOAD_MB)
     } else if (apiError.status === 429 && apiError.retryAfter !== undefined) {
       formError.value = renderer.tooManyAttempts(apiError.retryAfter)
     } else {
@@ -104,15 +123,20 @@ function onSubmit(): void {
   if (!state.isLastStep.value) return onNext()
 
   formError.value = undefined
-  const answers = state.payload()
+  const payload = state.payload()
 
-  if (answers === null) {
+  if (payload === null) {
     void focusFirstError()
+    return
+  }
+  // A soma vale para o envio inteiro: avisa antes de subir megabytes à toa.
+  if (totalTooLarge(Object.values(payload.files).flat())) {
+    formError.value = validation.files.totalTooLarge(MAX_TOTAL_UPLOAD_MB)
     return
   }
 
   if (props.preview) emit('previewed')
-  else mutation.mutate(answers)
+  else mutation.mutate(payload)
 }
 </script>
 
@@ -186,7 +210,7 @@ function onSubmit(): void {
         class="public-form__primary"
         :loading="mutation.isPending.value"
       >
-        {{ mutation.isPending.value ? renderer.submitting : renderer.submit }}
+        {{ submitLabel }}
       </AppButton>
     </div>
 

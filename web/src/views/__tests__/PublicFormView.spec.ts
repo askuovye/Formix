@@ -91,8 +91,9 @@ describe('PublicFormView', () => {
 
     expect(publicApi.submitAnswers).toHaveBeenCalledWith(
       'inscricao',
-      { answers: { nome: 'Maria Souza', site: null }, website: '' },
+      { answers: { nome: 'Maria Souza', site: null }, files: {}, website: '' },
       expect.stringMatching(/^[0-9a-f-]{36}$/),
+      expect.any(Function),
     )
     expect(wrapper.text()).toContain('Recebemos sua inscrição.')
     wrapper.unmount()
