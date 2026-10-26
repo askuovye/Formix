@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { fetchCurrentUser, logout as apiLogout } from '@/api/auth'
 import { ApiError, setUnauthorizedHandler } from '@/api/client'
+import { queryClient } from '@/app/providers/queryClient'
 import type { User } from '@/types/api'
 
 type SessionStatus = 'unknown' | 'authenticated' | 'guest'
@@ -16,16 +17,16 @@ export const useSessionStore = defineStore('session', () => {
   const isAuthenticated = computed(() => status.value === 'authenticated')
 
   function setUser(next: User | null): void {
+    // Trocar de usuário (ou sair) descarta os dados de servidor do anterior.
+    if (user.value && user.value.id !== next?.id) {
+      queryClient.clear()
+    }
+
     user.value = next
     status.value = next ? 'authenticated' : 'guest'
   }
 
-  /** Descobre se há sessão (GET /auth/me). Chamadas simultâneas compartilham a mesma requisição. */
-  function load(): Promise<void> {
-    if (status.value !== 'unknown') {
-      return Promise.resolve()
-    }
-
+  function fetchUser(): Promise<void> {
     pending ??= fetchCurrentUser()
       .then(setUser)
       .catch((error: unknown) => {
@@ -42,6 +43,16 @@ export const useSessionStore = defineStore('session', () => {
     return pending
   }
 
+  /** Descobre se há sessão (GET /auth/me) na primeira vez. Chamadas simultâneas compartilham a requisição. */
+  function load(): Promise<void> {
+    return status.value === 'unknown' ? fetchUser() : Promise.resolve()
+  }
+
+  /** Relê o usuário (ex.: depois de confirmar o email). */
+  function refresh(): Promise<void> {
+    return fetchUser()
+  }
+
   async function logout(): Promise<void> {
     try {
       await apiLogout()
@@ -53,5 +64,5 @@ export const useSessionStore = defineStore('session', () => {
   // Qualquer 401 da API encerra a sessão local.
   setUnauthorizedHandler(() => setUser(null))
 
-  return { user, status, isAuthenticated, setUser, load, logout }
+  return { user, status, isAuthenticated, setUser, load, refresh, logout }
 })

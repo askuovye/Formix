@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useMutation } from '@tanstack/vue-query'
-import { computed, onMounted, ref } from 'vue'
-import { RouterView, useRouter } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 
 import { resendEmailVerification } from '@/api/auth'
 import { toApiError } from '@/api/client'
@@ -19,12 +19,14 @@ import { shell } from '@/strings'
 
 import ShellNav from './ShellNav.vue'
 
-/** Estrutura do painel do dono: barra lateral, topo e conteúdo. */
+/** Estrutura do painel do dono: barra lateral, topo e conteúdo. O login é garantido pelo router. */
 const session = useSessionStore()
 const toasts = useToastStore()
+const route = useRoute()
 const router = useRouter()
 
 const drawerOpen = ref(false)
+let loggingOut = false
 
 const initials = computed(() =>
   (session.user?.name ?? '')
@@ -47,22 +49,29 @@ async function onAccountSelect(id: string): Promise<void> {
     return
   }
 
-  await session.logout()
+  loggingOut = true
+  // Mesmo se a API falhar, a sessão local já foi encerrada.
+  await session.logout().catch(() => undefined)
   toasts.show({ title: shell.loggedOut })
-  await router.push('/')
+  await router.push({ name: 'login' })
 }
+
+// Sessão expirada no meio do uso (401 em qualquer chamada): volta ao login e depois para cá.
+watch(
+  () => session.status,
+  async (status) => {
+    if (status === 'guest' && !loggingOut) {
+      toasts.show({ title: shell.sessionExpired })
+      await router.replace({ name: 'login', query: { redirect: route.fullPath } })
+    }
+  },
+)
 
 const resend = useMutation({
   mutationFn: resendEmailVerification,
   onSuccess: (message) =>
     toasts.show({ title: shell.verifyEmail.sent, description: message, tone: 'success' }),
   onError: (error) => toasts.show({ title: toApiError(error).message, tone: 'danger' }),
-})
-
-onMounted(() => {
-  session.load().catch((error: unknown) => {
-    toasts.show({ title: toApiError(error).message, tone: 'danger' })
-  })
 })
 </script>
 

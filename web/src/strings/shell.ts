@@ -10,6 +10,7 @@ export const shell = {
   accountMenu: 'Menu da conta',
   logout: 'Sair',
   loggedOut: 'Você saiu da sua conta.',
+  sessionExpired: 'Sua sessão expirou. Entre novamente.',
   verifyEmail: {
     text: 'Confirme seu e-mail para publicar formulários.',
     action: 'Reenviar e-mail',
@@ -31,5 +32,10 @@ export const pageTitles = {
   terms: 'Termos de Uso',
   privacy: 'Política de Privacidade',
   notFound: 'Página não encontrada',
+  login: 'Entrar',
+  register: 'Criar conta',
+  forgotPassword: 'Esqueci minha senha',
+  resetPassword: 'Nova senha',
+  verifyEmail: 'Confirmação de e-mail',
   styleguide: 'Styleguide',
 } as const

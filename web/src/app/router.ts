@@ -1,12 +1,17 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 import { BRAND_NAME } from '@/config/brand'
+import { useSessionStore } from '@/stores/useSessionStore'
 import { pageTitles } from '@/strings'
 
 declare module 'vue-router' {
   interface RouteMeta {
     /** Título da aba do navegador (sem o nome da marca). */
     title?: string
+    /** Exige login: sem sessão, vai para /entrar?redirect=… */
+    requiresAuth?: boolean
+    /** Só para visitantes (entrar, criar conta…): logado, vai para o painel. */
+    guestOnly?: boolean
   }
 }
 
@@ -28,6 +33,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/painel',
     component: () => import('@/layouts/AppShellLayout.vue'),
+    meta: { requiresAuth: true },
     children: [
       { path: '', redirect: { name: 'forms' } },
       {
@@ -48,6 +54,37 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('@/layouts/PublicLayout.vue'),
     children: [
+      {
+        path: 'entrar',
+        name: 'login',
+        component: () => import('@/views/auth/LoginView.vue'),
+        meta: { title: pageTitles.login, guestOnly: true },
+      },
+      {
+        path: 'criar-conta',
+        name: 'register',
+        component: () => import('@/views/auth/RegisterView.vue'),
+        meta: { title: pageTitles.register, guestOnly: true },
+      },
+      {
+        path: 'esqueci-a-senha',
+        name: 'forgot-password',
+        component: () => import('@/views/auth/ForgotPasswordView.vue'),
+        meta: { title: pageTitles.forgotPassword, guestOnly: true },
+      },
+      {
+        path: 'redefinir-senha',
+        name: 'reset-password',
+        component: () => import('@/views/auth/ResetPasswordView.vue'),
+        meta: { title: pageTitles.resetPassword, guestOnly: true },
+      },
+      {
+        // Aberta a todos: o link do email pode ser aberto logado ou não.
+        path: 'verificar-email',
+        name: 'verify-email',
+        component: () => import('@/views/auth/VerifyEmailView.vue'),
+        meta: { title: pageTitles.verifyEmail },
+      },
       {
         path: 'termos',
         name: 'terms',
@@ -77,6 +114,30 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior: (_to, _from, savedPosition) => savedPosition ?? { top: 0 },
+})
+
+router.beforeEach(async (to) => {
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const guestOnly = to.matched.some((record) => record.meta.guestOnly)
+
+  if (!requiresAuth && !guestOnly) {
+    return true
+  }
+
+  const session = useSessionStore()
+  // Sem resposta da API (rede, servidor fora), trata como visitante: a tela de
+  // login mostra o erro ao tentar entrar.
+  await session.load().catch(() => undefined)
+
+  if (requiresAuth && !session.isAuthenticated) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if (guestOnly && session.isAuthenticated) {
+    return { name: 'forms' }
+  }
+
+  return true
 })
 
 router.afterEach((to) => {
