@@ -1,4 +1,5 @@
 // Ponto de entrada do CSS global (importado em app/main.ts).
-@use './base/tokens';
+@use './tokens';
+@use './themes';
 @use './base/reset';
 @use './base/base';

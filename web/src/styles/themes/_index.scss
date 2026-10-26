@@ -1,0 +1,20 @@
+@use '../mixins' as *;
+@use './dark';
+@use './light';
+
+// O script inline do index.html define data-theme antes da primeira pintura.
+// Sem JavaScript, vale prefers-color-scheme; sem preferência, o escuro.
+:root {
+  @include dark.values;
+  @include color-roles;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    @include light.values;
+  }
+}
+
+:root[data-theme='light'] {
+  @include light.values;
+}
