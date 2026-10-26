@@ -1,0 +1,13 @@
+/* Medidas compartilhadas por botões e campos. */
+:root {
+  --control-height-sm: 2rem;
+  --control-height-md: 2.5rem;
+  --control-padding-x-sm: var(--space-3);
+  --control-padding-x-md: var(--space-4);
+  --control-check-size: 1.125rem;
+  --control-switch-width: 2.25rem;
+  --control-switch-height: 1.25rem;
+
+  --opacity-disabled: 0.5;
+  --scale-pressed: 0.98;
+}

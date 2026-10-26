@@ -8,6 +8,8 @@ export const duration = {
   fast: 0.12,
   base: 0.2,
   slow: 0.32,
+  /** Uma volta do indicador de carregamento. */
+  spin: 0.8,
 } as const
 
 /** Curvas cúbicas de Bézier `[x1, y1, x2, y2]`. */
