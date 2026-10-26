@@ -39,4 +39,5 @@ export const pageTitles = {
   resetPassword: 'Nova senha',
   verifyEmail: 'Confirmação de e-mail',
   styleguide: 'Styleguide',
+  publicForm: 'Formulário',
 } as const
