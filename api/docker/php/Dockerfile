@@ -12,7 +12,9 @@ RUN apt-get update \
 
 ARG UID=1000
 ARG GID=1000
-RUN groupadd --gid "${GID}" app && useradd --uid "${UID}" --gid app --create-home app
+RUN groupadd --gid "${GID}" app && useradd --uid "${UID}" --gid app --create-home app \
+    # Ponto de montagem do volume do vendor/: o Docker copia este dono para o volume novo.
+    && mkdir -p /var/www/api/vendor && chown app:app /var/www/api/vendor
 
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/zz-app.ini
 

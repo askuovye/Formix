@@ -9,10 +9,15 @@ Requisitos: Docker com Compose v2 (no Windows: Docker Desktop com WSL2).
 ```sh
 cp .env.example .env
 docker compose up -d --build
-docker compose exec app composer install
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
 ```
+
+O `vendor/` dos containers fica num volume do Docker (`formularios_vendor`), instalado sozinho na primeira subida: pela pasta compartilhada do Windows, cada requisição levava segundos. Por isso:
+
+- dependências novas: `docker compose exec app composer require …` (e `composer install` no host, se usar PHP local);
+- mudou o `.env`: `docker compose restart app` (o servidor roda com 4 workers e `--no-reload`);
+- `vendor/` corrompido: `docker compose down`, `docker volume rm formularios_vendor` e suba de novo.
 
 Gere também o sal do hash de IP (`IP_HASH_SALT` no `.env`):
 
