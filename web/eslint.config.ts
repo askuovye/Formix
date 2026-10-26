@@ -21,6 +21,15 @@ export default defineConfigWithVueTs(
   vueTsConfigs.strict,
 
   {
+    name: 'app/vue-ts-props',
+    rules: {
+      // Props opcionais tipadas (`hint?: string`) já são `undefined` por padrão;
+      // exigir default em withDefaults só gera ruído.
+      'vue/require-default-prop': 'off',
+    },
+  },
+
+  {
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
   },

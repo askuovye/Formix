@@ -1,0 +1,97 @@
+@use 'sass:map';
+@use './breakpoints' as *;
+
+@mixin up($name) {
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}
+
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Superfície de campos de digitação (input, textarea, select).
+@mixin control-surface {
+  width: 100%;
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+
+  &::placeholder {
+    color: var(--color-text-subtle);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-border-strong);
+  }
+
+  &:focus-visible {
+    border-color: var(--color-focus);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--color-danger);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+  }
+}
+
+// Superfície flutuante (menus, select, tooltip de conteúdo rico).
+@mixin popover-surface {
+  min-width: var(--popover-min-width);
+  padding: var(--space-1);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+// Item de menu/lista dentro de popover-surface (Reka marca [data-highlighted]).
+@mixin popover-item {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+
+  &[data-highlighted] {
+    background: var(--color-surface-hover);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+  }
+}

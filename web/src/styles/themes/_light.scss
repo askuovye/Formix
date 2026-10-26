@@ -1,0 +1,19 @@
+// Tema claro do app: projetado à parte (primária quase preta, superfícies
+// brancas com sombra suave), não é a inversão do escuro.
+@mixin values {
+  color-scheme: light;
+
+  --color-bg: var(--gray-50);
+  --color-surface: var(--gray-0);
+  --color-text: var(--gray-850);
+  --color-primary: var(--gray-850);
+  --color-primary-contrast: var(--gray-0);
+  --color-success: var(--green-600);
+  --color-warning: var(--amber-600);
+  --color-danger: var(--red-600);
+
+  --shadow-sm: 0 1px 2px rgb(17 19 22 / 6%);
+  --shadow-md: 0 4px 12px rgb(17 19 22 / 8%);
+  --shadow-lg: 0 16px 40px rgb(17 19 22 / 12%);
+  --color-overlay: rgb(17 19 22 / 40%);
+}

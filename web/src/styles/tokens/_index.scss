@@ -1,0 +1,8 @@
+// Tokens independentes de tema. Cores por tema ficam em themes/.
+@use './color';
+@use './space';
+@use './radius';
+@use './typography';
+@use './motion';
+@use './control';
+@use './layer';

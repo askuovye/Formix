@@ -14,7 +14,7 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         // Disponibiliza mixins e breakpoints em todo <style lang="scss">.
-        additionalData: `@use "@/styles/abstracts" as *;\n`,
+        additionalData: `@use "@/styles/mixins" as *;\n`,
       },
     },
   },

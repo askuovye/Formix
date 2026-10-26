@@ -1,0 +1,22 @@
+// Papéis de cor derivados das cores-base de um tema.
+//
+// Um tema (do app ou do formulário de um cliente) só precisa definir as
+// cores-base: --color-bg, --color-surface, --color-text, --color-primary,
+// --color-primary-contrast, --color-success, --color-warning e --color-danger.
+// O resto é derivado aqui. Como var() é resolvida no elemento que declara a
+// propriedade, este mixin deve ser incluído no MESMO seletor que define as
+// cores-base (o :root no app; a raiz do formulário no renderer).
+@mixin color-roles {
+  --color-surface-raised: color-mix(in oklab, var(--color-text) 4%, var(--color-surface));
+  --color-surface-hover: color-mix(in oklab, var(--color-text) 7%, var(--color-surface));
+  --color-border: color-mix(in oklab, var(--color-text) 12%, var(--color-surface));
+  --color-border-strong: color-mix(in oklab, var(--color-text) 22%, var(--color-surface));
+  --color-text-muted: color-mix(in oklab, var(--color-text) 62%, var(--color-surface));
+  --color-text-subtle: color-mix(in oklab, var(--color-text) 45%, var(--color-surface));
+  --color-primary-hover: color-mix(in oklab, var(--color-primary) 88%, var(--color-bg));
+  --color-selected: color-mix(in oklab, var(--color-primary) 8%, var(--color-surface));
+  --color-focus: var(--color-primary);
+  --color-success-soft: color-mix(in oklab, var(--color-success) 16%, var(--color-surface));
+  --color-warning-soft: color-mix(in oklab, var(--color-warning) 16%, var(--color-surface));
+  --color-danger-soft: color-mix(in oklab, var(--color-danger) 16%, var(--color-surface));
+}

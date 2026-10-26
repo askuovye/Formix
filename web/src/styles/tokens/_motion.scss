@@ -1,0 +1,23 @@
+@use '../mixins' as *;
+
+/* Espelhados em TS em src/motion/ (manter os dois iguais). */
+:root {
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-spin: 800ms;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --distance-sm: 4px;
+  --distance-md: 8px;
+  --distance-lg: 16px;
+
+  @include reduced-motion {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-spin: 0ms;
+  }
+}

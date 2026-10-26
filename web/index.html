@@ -4,7 +4,23 @@
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>Formulários</title>
+    <!-- Aplica o tema antes da primeira pintura (sem flash). Mesma chave e
+         mesma regra de src/stores/useThemeStore.ts: escolha salva, senão o
+         sistema, senão o escuro. -->
+    <script>
+      (function () {
+        var theme = null
+        try {
+          theme = localStorage.getItem('formix:theme')
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        }
+        document.documentElement.dataset.theme = theme
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

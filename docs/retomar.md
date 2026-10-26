@@ -2,20 +2,19 @@
 
 Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arquivo ao fim de cada fase.**
 
-## Onde paramos (2026-10-25)
+## Onde paramos (2026-10-26)
 
 - **Back-end (`/api`): completo.** Fases 1 a 9 do briefing + ajustes de contrato pedidos pelo front (D32/D33): blocos, etapas, estrelas/escala, lógica condicional, tema versionado e imagens de capa/logo. 606 testes Pest, Larastan nível 8, `composer audit` limpo. **Docker validado (2026-10-23):** WSL2 + Docker Desktop instalados, `compose.yaml` sobe, migrations rodam e os **606 testes passam no MariaDB** (B5 resolvida). Falta só reconfirmar a suíte em SQLite dentro do container (a 1ª tentativa foi cortada pelo timeout de 300 s do Composer, sem falhas até ali).
-- **Front (`/web`): não começado.** Só o esqueleto (Vue 3, Vite, TS, Pinia, Router, Vitest, ESLint, Prettier, Reka, Iconify, Motion, GSAP). O briefing do front foi aprovado; o AGENTS.md (§2 e §7) já reflete a stack nova.
+- **Front (`/web`): fase 1 (fundação) concluída** na `feature/web-fundacao`, já mergeada no `develop`. 51 testes Vitest; `vue-tsc`, ESLint e Prettier limpos.
+  - **Tokens e temas** (`styles/tokens`, `styles/themes`): escuro é o padrão, claro projetado à parte, sem flash (script inline no `index.html` + `useThemeStore`). Um tema define só as cores-base; o resto é derivado pelo mixin `color-roles`, que o renderer vai reaplicar com as cores do dono do formulário (fase 4).
+  - **Inter local**, **ícones Lucide offline** (só os listados em `components/icons/iconNames.ts`; ícone novo = adicionar o nome + `npm run icons`) e **`motion/`** (tokens espelhando o CSS, com teste de sincronia, e presets `fade`/`slideUp`/`scaleIn`).
+  - **Componentes base:** botões, campos, checkbox, radio, switch, badge, card, select, abas, menu, dialog, tooltip e seletor de tema. Os overlays animam entrada e saída com Motion.
+  - **`/styleguide`** (só em desenvolvimento): todos os componentes e estados, cores, tipografia, ícones e os presets de movimento. Rodar com `npm run dev` em `web/`.
 - **Git:** github.com/askuovye/Formix, gitflow. `develop` tem tudo; `main` está no commit inicial.
 
 ## Próximo passo
 
-**Fase 1 do front** na branch `feature/web-fundacao`:
-1. tokens (cores extraídas da referência), temas claro e escuro sem flash;
-2. Inter local, `AppIcon` com Lucide offline e o módulo de movimento;
-3. componentes base sobre Reka UI e a rota `/styleguide`.
-
-Depois: fase 2 (app shell e autenticação), fase 3 (builder, a mais importante), fase 4 (renderer, temas e imagem), fase 5 (dashboard e resultados), fase 6 (landing), fase 7 (revisão).
+**Fase 2 do front: app shell e autenticação.** Depois: fase 3 (builder, a mais importante), fase 4 (renderer, temas e imagem), fase 5 (dashboard e resultados), fase 6 (landing), fase 7 (revisão).
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 

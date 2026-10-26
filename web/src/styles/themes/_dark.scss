@@ -1,0 +1,19 @@
+// Tema escuro do app (padrão). Só cores-base e sombras; os demais papéis
+// vêm do mixin color-roles.
+@mixin values {
+  color-scheme: dark;
+
+  --color-bg: var(--gray-900);
+  --color-surface: var(--gray-850);
+  --color-text: #f2f3f5;
+  --color-primary: var(--gray-0);
+  --color-primary-contrast: var(--gray-900);
+  --color-success: var(--green-400);
+  --color-warning: var(--amber-400);
+  --color-danger: var(--red-400);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 55%);
+  --color-overlay: rgb(0 0 0 / 60%);
+}
