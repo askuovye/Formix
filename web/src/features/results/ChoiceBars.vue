@@ -53,9 +53,9 @@ const rows = computed(() =>
 .choice-bars {
   display: grid;
   gap: var(--space-3);
-    padding: 0;
-    margin: 0;
-    list-style: none;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 
   &__row {
     display: grid;
