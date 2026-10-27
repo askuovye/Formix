@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ExportFormat;
 use App\Enums\ExportStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -17,8 +18,10 @@ use Illuminate\Support\Carbon;
  * @property string $user_id
  * @property string $form_id
  * @property ExportStatus $status
+ * @property ExportFormat $format
  * @property Carbon|null $from
  * @property Carbon|null $to
+ * @property string|null $search
  * @property string|null $disk
  * @property string|null $path
  * @property int|null $rows_count
@@ -41,6 +44,7 @@ class Export extends Model
     {
         return [
             'status' => ExportStatus::class,
+            'format' => ExportFormat::class,
             'from' => 'datetime',
             'to' => 'datetime',
             'rows_count' => 'integer',

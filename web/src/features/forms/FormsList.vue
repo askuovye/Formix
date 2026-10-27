@@ -11,6 +11,7 @@ import AppCard from '@/components/AppCard.vue'
 import AppConfirmDialog from '@/components/AppConfirmDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import AppSpinner from '@/components/AppSpinner.vue'
+import ExportDialog from '@/features/submissions/ExportDialog.vue'
 import { forms } from '@/strings'
 import type { FormStatus, FormSummary } from '@/types/api'
 
@@ -64,6 +65,15 @@ const confirmText = computed(() => {
 
 const mutations = { archive, reopen, delete: remove }
 
+/** Formulário cujas respostas estão sendo exportadas (janela aberta). */
+const exportingForm = ref<FormSummary | null>(null)
+const exportOpen = computed({
+  get: () => exportingForm.value !== null,
+  set: (open) => {
+    if (!open) exportingForm.value = null
+  },
+})
+
 const confirming = computed(() =>
   pending.value ? mutations[pending.value.kind].isPending.value : false,
 )
@@ -75,6 +85,9 @@ function onAction(form: FormSummary, action: FormAction): void {
       break
     case 'submissions':
       void router.push({ name: 'submissions', query: { form: form.id } })
+      break
+    case 'export':
+      exportingForm.value = form
       break
     case 'copy-link':
       void copyLink(form.public_url)
@@ -160,6 +173,11 @@ function confirm(): void {
     :tone="pending?.kind === 'delete' ? 'danger' : 'primary'"
     :loading="confirming"
     @confirm="confirm"
+  />
+
+  <ExportDialog
+    v-model:open="exportOpen"
+    :forms="exportingForm ? [{ value: exportingForm.id, label: exportingForm.title }] : []"
   />
 </template>
 

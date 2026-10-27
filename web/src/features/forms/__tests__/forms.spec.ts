@@ -245,9 +245,12 @@ describe('FormsList', () => {
 
 describe('FormListItem', () => {
   it.each([
-    ['draft', ['Editar', 'Ver respostas', 'Excluir']],
-    ['published', ['Editar', 'Ver respostas', 'Copiar link', 'Arquivar', 'Excluir']],
-    ['closed', ['Editar', 'Ver respostas', 'Reabrir', 'Excluir']],
+    ['draft', ['Editar', 'Ver respostas', 'Exportar respostas', 'Excluir']],
+    [
+      'published',
+      ['Editar', 'Ver respostas', 'Exportar respostas', 'Copiar link', 'Arquivar', 'Excluir'],
+    ],
+    ['closed', ['Editar', 'Ver respostas', 'Exportar respostas', 'Reabrir', 'Excluir']],
   ] as const)('menu de um formulário %s', async (status, labels) => {
     const { plugins } = setup()
     const wrapper = mount(FormListItem, {

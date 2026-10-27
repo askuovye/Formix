@@ -22,7 +22,7 @@ final class ExportController extends Controller
 {
     public function store(StoreExportRequest $request, Form $form, #[CurrentUser] User $user, RequestSubmissionsExport $requestExport): JsonResponse
     {
-        $export = $requestExport($user, $form, $request->from(), $request->to());
+        $export = $requestExport($user, $form, $request->from(), $request->to(), $request->search(), $request->exportFormat());
 
         return (new ExportResource($export))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
@@ -41,10 +41,10 @@ final class ExportController extends Controller
             throw new GoneHttpException;
         }
 
-        $filename = 'respostas-'.$export->form_id.'-'.$export->created_at?->format('Y-m-d').'.csv';
+        $filename = 'respostas-'.$export->form_id.'-'.$export->created_at?->format('Y-m-d').'.'.$export->format->value;
 
         return Storage::disk((string) $export->disk)->download((string) $export->path, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type' => $export->format->contentType(),
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'private, no-store, max-age=0',
         ]);

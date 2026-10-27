@@ -34,7 +34,8 @@ return [
         'X-Edit-Token',
     ],
 
-    'exposed_headers' => ['Retry-After'],
+    // Content-Disposition: o painel lê o nome do PDF baixado pelo Axios (D35).
+    'exposed_headers' => ['Retry-After', 'Content-Disposition'],
 
     'max_age' => 3600,
 

@@ -145,6 +145,25 @@ export interface Submission {
   editable_until: string | null
 }
 
+export type ExportFormat = 'csv' | 'pdf'
+
+/** Exportação de respostas gerada na fila (`GET /me/exports/{id}`). */
+export interface ExportJob {
+  id: string
+  form_id: string
+  status: 'pending' | 'processing' | 'ready' | 'failed'
+  format: ExportFormat
+  from: string | null
+  to: string | null
+  search: string | null
+  rows_count: number | null
+  /** Só quando pronta; link assinado curto, regerado a cada consulta. */
+  download_url: string | null
+  created_at: string
+  completed_at: string | null
+  expires_at: string | null
+}
+
 /** Anexo já guardado numa resposta (só nome e tamanho em bytes). */
 export interface StoredFile {
   name: string

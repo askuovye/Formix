@@ -34,6 +34,7 @@ Não adicione, troque ou remova tecnologias sem aprovação explícita do respon
 | Fila, cache e sessão | Driver **database**; fila processada por **cron** (`schedule:run` a cada minuto) |
 | Autenticação | **Laravel Sanctum** (modo SPA: cookies + CSRF) |
 | Anexos | **Spatie Laravel MediaLibrary** |
+| PDF das respostas | **barryvdh/laravel-dompdf** (D35) |
 | Validação BR | **LaravelLegends/pt-br-validator** |
 | Email | **SMTP** de qualquer provedor (ex.: Brevo, plano grátis), sempre via fila; Mailpit no ambiente local |
 | Armazenamento | Disco local **privado** no servidor; `league/flysystem-aws-s3-v3` para migrar a S3-compatível |

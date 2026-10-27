@@ -5,7 +5,8 @@ import { RouterLink } from 'vue-router'
 
 import { toApiError } from '@/api/client'
 import { queryKeys } from '@/api/queryKeys'
-import { deleteSubmission, fetchSubmission } from '@/api/submissions'
+import { deleteSubmission, fetchSubmission, fetchSubmissionPdf } from '@/api/submissions'
+import { saveBlob } from '@/composables/saveBlob'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppConfirmDialog from '@/components/AppConfirmDialog.vue'
@@ -47,6 +48,13 @@ const viewerOpen = computed({
   set: (open) => {
     if (!open) viewing.value = null
   },
+})
+
+/** PDF gerado na hora pelo servidor; baixado como arquivo. */
+const pdf = useMutation({
+  mutationFn: () => fetchSubmissionPdf(props.id),
+  onSuccess: ({ blob, filename }) => saveBlob(blob, filename),
+  onError: () => toasts.show({ title: t.detail.pdfError, tone: 'danger' }),
 })
 
 const confirmOpen = ref(false)
@@ -217,6 +225,15 @@ const removal = useMutation({
       </details>
 
       <footer class="submission-detail__footer">
+        <AppButton
+          variant="secondary"
+          icon-left="file-text"
+          size="sm"
+          :loading="pdf.isPending.value"
+          @click="pdf.mutate()"
+        >
+          {{ t.detail.pdf }}
+        </AppButton>
         <AppButton variant="danger" icon-left="trash-2" size="sm" @click="confirmOpen = true">
           {{ t.detail.remove }}
         </AppButton>
@@ -515,6 +532,7 @@ const removal = useMutation({
 
   &__footer {
     display: flex;
+    gap: var(--space-2);
     justify-content: flex-end;
     padding-block-start: var(--space-4);
     border-block-start: var(--border-width) solid var(--color-border);

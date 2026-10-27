@@ -12,6 +12,7 @@ use App\Models\Export;
 use App\Models\Form;
 use App\Models\User;
 use App\Services\Submissions\SubmissionsCsvWriter;
+use App\Services\Submissions\SubmissionsPdfRenderer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
@@ -152,6 +153,24 @@ it('respeita o período pedido', function () {
     expect($export->rows_count)->toBe(1);
 });
 
+it('respeita a busca pedida, igual à lista do painel', function () {
+    $form = publishedForm();
+    answerForm($form, ['nome' => 'João Conceição']);
+    answerForm($form, ['nome' => 'Maria Lima']);
+
+    $response = requestExport($form, ['q' => 'joao'])->assertAccepted()->assertJsonPath('data.search', 'joao');
+    $export = Export::query()->findOrFail($response->json('data.id'));
+
+    expect($export->rows_count)->toBe(1)
+        ->and(implode(';', csvRows($export)[1]))->toContain('João Conceição');
+});
+
+it('valida o tamanho da busca da exportação', function () {
+    requestExport(publishedForm(), ['q' => str_repeat('a', 101)])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('q');
+});
+
 it('entrega o CSV pelo link assinado enquanto não expira', function () {
     $form = publishedForm();
     answerForm($form);
@@ -214,7 +233,7 @@ it('marca como falha a exportação de formulário excluído no meio do caminho'
     $id = requestExport($form)->json('data.id');
     $form->delete();
 
-    (new GenerateSubmissionsExport($id))->handle(app(ListOwnerSubmissions::class), app(SubmissionsCsvWriter::class));
+    (new GenerateSubmissionsExport($id))->handle(app(ListOwnerSubmissions::class), app(SubmissionsCsvWriter::class), app(SubmissionsPdfRenderer::class));
 
     expect(Export::query()->findOrFail($id)->status)->toBe(ExportStatus::Failed);
 });

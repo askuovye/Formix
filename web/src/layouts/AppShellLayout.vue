@@ -17,6 +17,8 @@ import { useSessionStore } from '@/stores/useSessionStore'
 import { useToastStore } from '@/stores/useToastStore'
 import { shell } from '@/strings'
 
+import ExportTracker from '@/features/submissions/ExportTracker.vue'
+
 import ShellNav from './ShellNav.vue'
 
 /** Estrutura do painel do dono: barra lateral, topo e conteúdo. O login é garantido pelo router. */
@@ -125,6 +127,7 @@ const resend = useMutation({
       <main id="conteudo" class="shell__main" tabindex="-1">
         <RouterView />
       </main>
+      <ExportTracker />
     </div>
   </div>
 </template>

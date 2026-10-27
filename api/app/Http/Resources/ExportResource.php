@@ -27,8 +27,10 @@ final class ExportResource extends JsonResource
             'id' => $export->id,
             'form_id' => $export->form_id,
             'status' => $export->status->value,
+            'format' => $export->format->value,
             'from' => $export->from?->toIso8601String(),
             'to' => $export->to?->toIso8601String(),
+            'search' => $export->search,
             'rows_count' => $export->rows_count,
             // Link novo a cada consulta, curto (o arquivo em si expira em `expires_at`).
             'download_url' => $export->isDownloadable()

@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 
 import { listForms } from '@/api/forms'
 import { queryKeys } from '@/api/queryKeys'
+import AppButton from '@/components/AppButton.vue'
 import AppCard from '@/components/AppCard.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import AppPageHeader from '@/components/AppPageHeader.vue'
 import AppSelect from '@/components/AppSelect.vue'
 import AppTextField from '@/components/AppTextField.vue'
 import { useUrlSearch } from '@/composables/useUrlSearch'
+import ExportDialog from '@/features/submissions/ExportDialog.vue'
 import SubmissionDetail from '@/features/submissions/SubmissionDetail.vue'
 import SubmissionsList from '@/features/submissions/SubmissionsList.vue'
 import {
@@ -68,12 +70,21 @@ const formOptions = computed(() => [
   { value: ALL, label: t.filters.allForms },
   ...(formsQuery.data.value?.data ?? []).map((form) => ({ value: form.id, label: form.title })),
 ])
+const formChoices = computed(() => formOptions.value.filter((option) => option.value !== ALL))
+const exporting = ref(false)
+
 const periodOptions = PERIODS.map((value) => ({ value, label: t.filters.periods[value] }))
 const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value] }))
 </script>
 
 <template>
-  <AppPageHeader :title="t.title" :subtitle="t.subtitle" />
+  <AppPageHeader :title="t.title" :subtitle="t.subtitle">
+    <template #actions>
+      <AppButton variant="secondary" icon-left="download" @click="exporting = true">
+        {{ t.export.open }}
+      </AppButton>
+    </template>
+  </AppPageHeader>
 
   <div
     class="submissions-page__filters"
@@ -135,6 +146,15 @@ const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value]
       </p>
     </AppCard>
   </div>
+
+  <ExportDialog
+    v-model:open="exporting"
+    :forms="formChoices"
+    :initial-form-id="formId"
+    :from="filters.from"
+    :period-label="t.filters.periods[period]"
+    :search="search || undefined"
+  />
 </template>
 
 <style scoped lang="scss">

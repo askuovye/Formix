@@ -22,6 +22,8 @@ return [
     'export_ttl_hours' => (int) env('EXPORT_TTL_HOURS', 24),
     // Validade de cada link de download gerado para uma exportação pronta.
     'export_link_ttl_minutes' => 60,
+    // PDF é montado em memória pelo dompdf: teto de respostas por exportação (D35).
+    'pdf_export_max_rows' => 300,
 
     // Imagens de capa/logo dos formulários: públicas, servidas pela rota /assets/{id}.
     'asset_disk' => env('FORM_ASSET_DISK', 'local'),
