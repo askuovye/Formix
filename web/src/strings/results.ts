@@ -5,6 +5,7 @@ export const results = {
   tabs: { label: 'Visualização', submissions: 'Respostas', results: 'Resultados' },
   needsForm: 'Escolha um formulário no filtro para ver os resultados.',
   loading: 'Calculando resultados…',
+  live: (time: string) => `Atualiza sozinho · última às ${time}`,
   loadError: 'Não foi possível calcular os resultados.',
   retry: 'Tentar de novo',
   empty: {

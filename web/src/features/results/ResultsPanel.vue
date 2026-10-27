@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
 import { queryKeys } from '@/api/queryKeys'
-import { fetchResults, type ResultsFilters } from '@/api/results'
+import { fetchResults, RESULTS_POLL_MS, type ResultsFilters } from '@/api/results'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -27,7 +27,11 @@ const t = results
 const query = useQuery({
   queryKey: computed(() => queryKeys.formResults(props.formId, props.filters)),
   queryFn: () => fetchResults(props.formId, props.filters),
+  refetchInterval: RESULTS_POLL_MS,
 })
+
+const time = new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' })
+const updatedAt = computed(() => time.format(query.dataUpdatedAt.value))
 </script>
 
 <template>
@@ -48,17 +52,35 @@ const query = useQuery({
       <p>{{ t.empty.text }}</p>
     </div>
 
-    <ResultsContent
-      v-else-if="query.data.value"
-      :key="query.dataUpdatedAt.value"
-      :data="query.data.value"
-      @open="(id) => emit('open', id)"
-    />
+    <template v-else-if="query.data.value">
+      <p class="results-panel__live">
+        <span class="results-panel__dot" aria-hidden="true" />
+        {{ t.live(updatedAt) }}
+      </p>
+      <!-- Montado uma vez por filtro: rebuscas só trocam os números, sem repetir a entrada. -->
+      <ResultsContent :data="query.data.value" @open="(id) => emit('open', id)" />
+    </template>
   </div>
 </template>
 
 <style scoped lang="scss">
 .results-panel {
+  &__live {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin-block-end: var(--space-3);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  &__dot {
+    inline-size: var(--space-2);
+    block-size: var(--space-2);
+    background: var(--color-success);
+    border-radius: var(--radius-full);
+  }
+
   &__state {
     display: grid;
     gap: var(--space-3);

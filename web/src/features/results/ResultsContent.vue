@@ -14,9 +14,9 @@ import ResultFieldCard from './ResultFieldCard.vue'
 import ResultsTimeline from './ResultsTimeline.vue'
 
 /**
- * Resultados já carregados. Montado de novo a cada resultado novo (key no pai),
- * para a entrada animar outra vez: barras crescem da base e os números sobem
- * até o valor. Só transform e o texto do número; sem movimento reduzido, nada roda.
+ * Resultados já carregados. A entrada anima uma vez (barras crescem da base e os
+ * números sobem até o valor); as rebuscas seguintes só trocam os valores pelo Vue.
+ * Só transform e o texto do número; com movimento reduzido, nada roda.
  */
 const props = defineProps<{
   data: FormResults
@@ -38,6 +38,10 @@ useGsapContext(root, () => {
   for (const element of gsap.utils.toArray<HTMLElement>('[data-count]')) {
     const target = Number(element.dataset.count)
     const decimals = element.hasAttribute('data-decimals')
+    // Mexe no nó de texto que o Vue controla (não troca o nó), para as
+    // atualizações seguintes continuarem aparecendo.
+    const text = element.firstChild
+    if (!(text instanceof Text)) continue
     const counter = { value: 0 }
 
     gsap.to(counter, {
@@ -45,7 +49,7 @@ useGsapContext(root, () => {
       duration: chart.grow,
       ease: gsapEase.out,
       onUpdate: () => {
-        element.textContent = decimals
+        text.nodeValue = decimals
           ? formatDecimal(counter.value)
           : formatCount(Math.round(counter.value))
       },

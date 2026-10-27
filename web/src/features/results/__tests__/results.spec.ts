@@ -1,11 +1,21 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
+import { flushPromises, mount } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import * as resultsApi from '@/api/results'
+import { RESULTS_POLL_MS } from '@/api/results'
 import type { FormResults, ResultField } from '@/types/api'
 
 import { formatDate, formatDecimal, formatShortDate, percentOf } from '../format'
 import ResultFieldCard from '../ResultFieldCard.vue'
+import ResultsPanel from '../ResultsPanel.vue'
 import ResultsTimeline from '../ResultsTimeline.vue'
+
+// Só a busca é falsa; o intervalo das rebuscas é o de verdade.
+vi.mock('@/api/results', async (original) => ({
+  ...(await original<typeof resultsApi>()),
+  fetchResults: vi.fn(),
+}))
 
 describe('formatação dos resultados', () => {
   it('formata média, porcentagem e datas em pt-BR', () => {
@@ -170,5 +180,47 @@ describe('ResultsTimeline', () => {
 
     expect(wrapper.text()).toContain('Respostas por semana')
     expect(wrapper.get('.timeline__slot').attributes('title')).toBe('semana de 01/10: 2 respostas')
+  })
+})
+
+describe('ResultsPanel', () => {
+  const data = (total: number): FormResults => ({
+    total,
+    last_7_days: total,
+    edited: 0,
+    timeline: { unit: 'day', points: [{ date: '2026-10-27', count: total }] },
+    fields: [],
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it('rebusca sozinho e troca os números sem montar de novo', async () => {
+    vi.useFakeTimers()
+    // Sem animação: o teste olha só os valores.
+    vi.spyOn(window, 'matchMedia').mockReturnValue({
+      matches: true,
+    } as MediaQueryList)
+    vi.mocked(resultsApi.fetchResults).mockResolvedValueOnce(data(2)).mockResolvedValueOnce(data(5))
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const wrapper = mount(ResultsPanel, {
+      props: { formId: 'f1', filters: {} },
+      global: { plugins: [[VueQueryPlugin, { queryClient }]] },
+    })
+    await flushPromises()
+
+    const content = wrapper.get('.results').element
+    expect(wrapper.get('.results__stat-value').text()).toBe('2')
+    expect(wrapper.text()).toContain('Atualiza sozinho')
+
+    await vi.advanceTimersByTimeAsync(RESULTS_POLL_MS)
+    await flushPromises()
+
+    expect(resultsApi.fetchResults).toHaveBeenCalledTimes(2)
+    expect(wrapper.get('.results__stat-value').text()).toBe('5')
+    expect(wrapper.get('.results').element).toBe(content)
+    wrapper.unmount()
   })
 })
