@@ -15,6 +15,7 @@ export const queryKeys = {
   submissions: ['submissions'] as const,
   submissionLists: ['submissions', 'list'] as const,
   submissionList: (filters: SubmissionFilters) => ['submissions', 'list', filters] as const,
+  exportJob: (id: string) => ['exports', id] as const,
   submission: (id: string) => ['submissions', 'detail', id] as const,
   publicForm: (slug: string) => ['public-form', slug] as const,
   editableSubmission: (slug: string, id: string) => ['editable-submission', slug, id] as const,

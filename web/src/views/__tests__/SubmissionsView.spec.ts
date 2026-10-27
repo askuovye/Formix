@@ -201,6 +201,41 @@ describe('SubmissionsView', () => {
     wrapper.unmount()
   })
 
+  it('baixa o PDF da resposta aberta como arquivo', async () => {
+    vi.mocked(submissionsApi.listSubmissions).mockResolvedValue({
+      data: [summary('s1', 'Maria Lima')],
+      meta: { per_page: 20, next_cursor: null, prev_cursor: null },
+    })
+    vi.mocked(submissionsApi.fetchSubmission).mockResolvedValue(detail)
+    const blob = new Blob(['%PDF-'], { type: 'application/pdf' })
+    vi.mocked(submissionsApi.fetchSubmissionPdf).mockResolvedValue({
+      blob,
+      filename: 'inscricao-s1.pdf',
+    })
+    // jsdom não implementa URLs de Blob nem navegação por link.
+    const createUrl = vi.fn(() => 'blob:pdf')
+    Object.assign(URL, { createObjectURL: createUrl, revokeObjectURL: vi.fn() })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      expect(this.download).toBe('inscricao-s1.pdf')
+      expect(this.href).toBe('blob:pdf')
+    })
+    const { wrapper } = await mountView('/painel/respostas?resposta=s1')
+
+    await wrapper
+      .findAll('button')
+      .find((b) => b.text() === 'Baixar PDF')
+      ?.trigger('click')
+    await flushPromises()
+
+    expect(submissionsApi.fetchSubmissionPdf).toHaveBeenCalledWith('s1')
+    expect(createUrl).toHaveBeenCalledWith(blob)
+    expect(click).toHaveBeenCalledOnce()
+    click.mockRestore()
+    wrapper.unmount()
+  })
+
   it('excluir pede confirmação, apaga e fecha o detalhe', async () => {
     vi.mocked(submissionsApi.listSubmissions).mockResolvedValue({
       data: [summary('s1', 'Maria Lima')],

@@ -60,6 +60,16 @@ onBeforeUnmount(() => clearTimeout(timer))
       <p v-if="props.toast.description" class="toast__description">
         {{ props.toast.description }}
       </p>
+      <a
+        v-if="props.toast.action"
+        :href="props.toast.action.href"
+        class="toast__action"
+        target="_blank"
+        rel="noopener"
+      >
+        <AppIcon name="download" />
+        {{ props.toast.action.label }}
+      </a>
     </div>
     <button type="button" class="toast__close" :aria-label="common.close" @click="emit('dismiss')">
       <AppIcon name="x" />
@@ -108,6 +118,23 @@ onBeforeUnmount(() => clearTimeout(timer))
   &__description {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
+  }
+
+  &__action {
+    display: inline-flex;
+    gap: var(--space-1);
+    align-items: center;
+    justify-self: start;
+    margin-block-start: var(--space-1);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+
+    &:focus-visible {
+      @include focus-ring;
+    }
   }
 
   &__close {

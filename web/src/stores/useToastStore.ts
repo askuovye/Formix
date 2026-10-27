@@ -8,6 +8,8 @@ export interface Toast {
   title: string
   description?: string
   tone: ToastTone
+  /** Link de ação (ex.: baixar o arquivo pronto). */
+  action?: { label: string; href: string }
 }
 
 /** Fila de avisos exibidos pelo AppToaster (montado uma vez no App.vue). */
