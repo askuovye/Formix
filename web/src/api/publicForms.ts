@@ -16,19 +16,35 @@ export interface SubmissionPayload {
   website: string
   /** Anexos por id de campo; com algum, o envio vira multipart. */
   files?: Record<string, File[]>
+  /** Segundos entre abrir a página e enviar (só o tempo médio dos resultados). */
+  durationSeconds?: number
+}
+
+/** Corpo JSON do envio (`duration_seconds` só quando medido). */
+type SubmissionJson = Pick<SubmissionPayload, 'answers' | 'website'> & {
+  duration_seconds?: number
 }
 
 /**
  * Com anexos: multipart com `answers` em texto JSON e `files[<id>][]` por
  * arquivo (docs/api.md); sem anexos, JSON puro.
  */
-export function submissionBody(payload: SubmissionPayload): SubmissionPayload | FormData {
+export function submissionBody(payload: SubmissionPayload): SubmissionJson | FormData {
   const files = Object.entries(payload.files ?? {}).filter(([, list]) => list.length > 0)
-  if (files.length === 0) return { answers: payload.answers, website: payload.website }
+  const duration = payload.durationSeconds
+
+  if (files.length === 0) {
+    return {
+      answers: payload.answers,
+      website: payload.website,
+      ...(duration === undefined ? {} : { duration_seconds: duration }),
+    }
+  }
 
   const body = new FormData()
   body.append('answers', JSON.stringify(payload.answers))
   body.append('website', payload.website)
+  if (duration !== undefined) body.append('duration_seconds', String(duration))
   for (const [fieldId, list] of files) {
     for (const file of list) body.append(`files[${fieldId}][]`, file, file.name)
   }

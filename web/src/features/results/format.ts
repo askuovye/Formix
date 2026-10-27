@@ -28,3 +28,28 @@ export function formatShortDate(iso: string): string {
 
   return `${day}/${month}`
 }
+
+/** Segundos em texto curto: 45s, 2m 14s, 1h 05m. Sem medição = —. */
+export function formatDuration(seconds: number | null): string {
+  if (seconds === null) return '—'
+  if (seconds < 60) return `${seconds}s`
+
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  if (hours > 0) return `${hours}h ${String(minutes).padStart(2, '0')}m`
+
+  return `${minutes}m ${String(seconds % 60).padStart(2, '0')}s`
+}
+
+/**
+ * Variação em % contra o período anterior, sem casas. Sem período anterior,
+ * ou com ele vazio (nada com o que comparar), `null`.
+ */
+export function changeOf(
+  current: number | null,
+  previous: number | null | undefined,
+): number | null {
+  if (current === null || previous === null || previous === undefined || previous === 0) return null
+
+  return Math.round(((current - previous) / previous) * 100)
+}

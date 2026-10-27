@@ -73,6 +73,7 @@ export const ICON_NAMES = [
   'text',
   'text-cursor-input',
   'trash-2',
+  'trending-down',
   'trending-up',
   'type',
   'undo-2',
