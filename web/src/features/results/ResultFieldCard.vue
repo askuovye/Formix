@@ -183,6 +183,9 @@ const texts = computed(() => {
   &__latest {
     display: grid;
     gap: var(--space-1);
+    padding: 0;
+    margin: 0;
+    list-style: none;
   }
 
   &__text {

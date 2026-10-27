@@ -112,6 +112,9 @@ const bars = computed(() =>
 
   &__plot {
     align-items: end;
+    padding: 0;
+    margin: 0;
+    list-style: none;
     block-size: var(--chart-timeline-height);
     border-block-end: var(--border-width) solid var(--color-border);
   }

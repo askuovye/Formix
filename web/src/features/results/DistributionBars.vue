@@ -57,6 +57,9 @@ const columns = computed(() =>
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
   gap: var(--space-1);
+    padding: 0;
+    margin: 0;
+    list-style: none;
 
   &__column {
     display: grid;
