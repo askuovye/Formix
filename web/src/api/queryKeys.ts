@@ -7,7 +7,7 @@ export const queryKeys = {
   /** Prefixo de tudo que é formulário: invalidar isto atualiza listas e detalhes. */
   forms: ['forms'] as const,
   formLists: ['forms', 'list'] as const,
-  formList: (status: FormStatus | 'all') => ['forms', 'list', status] as const,
+  formList: (status: FormStatus | 'all', search = '') => ['forms', 'list', status, search] as const,
   form: (id: string) => ['forms', 'detail', id] as const,
   /** Primeira página de formulários para filtros (sob o prefixo: invalida junto). */
   formOptions: ['forms', 'options'] as const,

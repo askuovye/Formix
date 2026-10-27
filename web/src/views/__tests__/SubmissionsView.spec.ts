@@ -6,6 +6,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import * as formsApi from '@/api/forms'
 import * as submissionsApi from '@/api/submissions'
+import { SEARCH_DEBOUNCE_MS } from '@/composables/useUrlSearch'
 import type { Submission, SubmissionSummary } from '@/types/api'
 
 import SubmissionsView from '../panel/SubmissionsView.vue'
@@ -43,7 +44,10 @@ const detail: Submission = {
     {
       field_id: 'doc',
       label: 'Documento',
-      files: [{ name: 'rg.pdf', size: '120 KB', url: 'https://api.test/files/1?signature=x' }],
+      files: [
+        { name: 'rg.pdf', size: '120 KB', url: 'https://api.test/files/1?signature=x' },
+        { name: 'foto.png', size: '80 KB', url: 'https://api.test/files/2?signature=y' },
+      ],
     },
   ],
   revisions: [
@@ -140,9 +144,60 @@ describe('SubmissionsView', () => {
     const panel = wrapper.get('.submission-detail')
     expect(panel.text()).toContain('Maria Lima')
     expect(panel.text()).toContain('(não respondido)')
-    expect(panel.get('a[download]').attributes('href')).toBe('https://api.test/files/1?signature=x')
+    expect(panel.find('a[download]').attributes('href')).toBe(
+      'https://api.test/files/1?signature=x',
+    )
     expect(panel.text()).toContain('Histórico (1 edição)')
     expect(panel.text()).toContain('antigo.pdf')
+    wrapper.unmount()
+  })
+
+  it('imagem anexada tem prévia que amplia numa janela', async () => {
+    vi.mocked(submissionsApi.listSubmissions).mockResolvedValue({
+      data: [summary('s1', 'Maria Lima')],
+      meta: { per_page: 20, next_cursor: null, prev_cursor: null },
+    })
+    vi.mocked(submissionsApi.fetchSubmission).mockResolvedValue(detail)
+    const { wrapper } = await mountView('/painel/respostas?resposta=s1')
+
+    // Só a imagem ganha prévia; o PDF fica com o ícone.
+    const previews = wrapper.findAll('.submission-detail__preview')
+    expect(previews).toHaveLength(1)
+    expect(previews[0]?.get('img').attributes('src')).toBe('https://api.test/files/2?signature=y')
+
+    await previews[0]?.trigger('click')
+    await flushPromises()
+    const dialog = document.querySelector('[role="dialog"]')
+    expect(dialog?.textContent).toContain('foto.png')
+    expect(dialog?.querySelector('img')?.getAttribute('src')).toBe(
+      'https://api.test/files/2?signature=y',
+    )
+    wrapper.unmount()
+  })
+
+  it('busca pela URL e atualiza a URL depois de uma pausa na digitação', async () => {
+    vi.mocked(submissionsApi.listSubmissions).mockResolvedValue({
+      data: [],
+      meta: { per_page: 20, next_cursor: null, prev_cursor: null },
+    })
+    const { wrapper, router } = await mountView('/painel/respostas?busca=joao')
+
+    expect(submissionsApi.listSubmissions).toHaveBeenCalledWith({ sort: 'newest', q: 'joao' }, null)
+    expect(wrapper.text()).toContain('Nada encontrado para "joao".')
+
+    const input = wrapper.get('input[type="search"]')
+    expect((input.element as HTMLInputElement).value).toBe('joao')
+    await input.setValue('  maria ')
+    expect(router.currentRoute.value.query.busca).toBe('joao')
+
+    await new Promise((resolve) => setTimeout(resolve, SEARCH_DEBOUNCE_MS + 50))
+    await flushPromises()
+
+    expect(router.currentRoute.value.query.busca).toBe('maria')
+    expect(submissionsApi.listSubmissions).toHaveBeenLastCalledWith(
+      { sort: 'newest', q: 'maria' },
+      null,
+    )
     wrapper.unmount()
   })
 

@@ -9,6 +9,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+// Troca de tema (circleReveal): a foto antiga fica parada embaixo e a nova
+// cresce em círculo por cima; sem o esmaecer padrão do navegador.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 :focus-visible {
   @include focus-ring;
 }

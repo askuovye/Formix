@@ -18,6 +18,8 @@ const props = defineProps<{
   selectedId?: string
   /** Há filtro além da ordem: muda o texto da lista vazia. */
   filtered: boolean
+  /** Termo buscado, para a mensagem de lista vazia. */
+  search?: string
 }>()
 
 const emit = defineEmits<{
@@ -53,7 +55,13 @@ const items = computed(() => query.data.value?.pages.flatMap((page) => page.data
     <AppIcon name="inbox" class="submissions-list__empty-icon" />
     <h2 class="submissions-list__empty-title">{{ t.empty.title }}</h2>
     <p class="submissions-list__empty-text">
-      {{ props.filtered ? t.empty.filtered : t.empty.text }}
+      {{
+        props.search
+          ? t.empty.search(props.search)
+          : props.filtered
+            ? t.empty.filtered
+            : t.empty.text
+      }}
     </p>
   </div>
 

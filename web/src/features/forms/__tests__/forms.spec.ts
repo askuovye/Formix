@@ -114,6 +114,25 @@ describe('FormsList', () => {
     expect(wrapper.text()).toContain('Nenhum formulário ainda')
   })
 
+  it('com busca, manda o termo e mostra o vazio da busca', async () => {
+    vi.mocked(formsApi.listForms).mockResolvedValue(page([]))
+    const { plugins } = setup()
+    const wrapper = mount(FormsList, {
+      props: { status: 'all', search: 'inscrição' },
+      global: { plugins },
+    })
+    await flushPromises()
+
+    expect(formsApi.listForms).toHaveBeenCalledWith({
+      status: undefined,
+      search: 'inscrição',
+      cursor: null,
+    })
+    expect(wrapper.text()).toContain('Nenhum formulário encontrado')
+    expect(wrapper.text()).toContain('Nada com "inscrição" no título.')
+    expect(wrapper.text()).not.toContain('Nenhum formulário ainda')
+  })
+
   it('carrega a próxima página pelo cursor', async () => {
     vi.mocked(formsApi.listForms)
       .mockResolvedValueOnce(page([summary()], 'abc'))

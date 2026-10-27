@@ -20,15 +20,21 @@ import { useFormActions } from './useFormActions'
 const props = defineProps<{
   /** Situação filtrada; `all` = todas. */
   status: FormStatus | 'all'
+  /** Busca no título (vazia = sem busca). */
+  search?: string
 }>()
 
 const t = forms
 const router = useRouter()
 
 const query = useInfiniteQuery({
-  queryKey: computed(() => queryKeys.formList(props.status)),
+  queryKey: computed(() => queryKeys.formList(props.status, props.search ?? '')),
   queryFn: ({ pageParam }) =>
-    listForms({ status: props.status === 'all' ? undefined : props.status, cursor: pageParam }),
+    listForms({
+      status: props.status === 'all' ? undefined : props.status,
+      search: props.search,
+      cursor: pageParam,
+    }),
   initialPageParam: null as string | null,
   getNextPageParam: (page) => page.meta.next_cursor,
 })
@@ -109,10 +115,17 @@ function confirm(): void {
   </div>
 
   <AppCard v-else-if="items.length === 0" padding="lg" class="forms-list__empty">
-    <AppIcon name="file-text" class="forms-list__empty-icon" />
-    <h2 class="forms-list__empty-title">{{ t.empty[props.status].title }}</h2>
-    <p class="forms-list__empty-text">{{ t.empty[props.status].text }}</p>
-    <slot name="empty-action" />
+    <template v-if="props.search">
+      <AppIcon name="search" class="forms-list__empty-icon" />
+      <h2 class="forms-list__empty-title">{{ t.noResults.title }}</h2>
+      <p class="forms-list__empty-text">{{ t.noResults.text(props.search) }}</p>
+    </template>
+    <template v-else>
+      <AppIcon name="file-text" class="forms-list__empty-icon" />
+      <h2 class="forms-list__empty-title">{{ t.empty[props.status].title }}</h2>
+      <p class="forms-list__empty-text">{{ t.empty[props.status].text }}</p>
+      <slot name="empty-action" />
+    </template>
   </AppCard>
 
   <template v-else>

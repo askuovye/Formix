@@ -9,6 +9,8 @@ import AppCard from '@/components/AppCard.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import AppPageHeader from '@/components/AppPageHeader.vue'
 import AppSelect from '@/components/AppSelect.vue'
+import AppTextField from '@/components/AppTextField.vue'
+import { useUrlSearch } from '@/composables/useUrlSearch'
 import SubmissionDetail from '@/features/submissions/SubmissionDetail.vue'
 import SubmissionsList from '@/features/submissions/SubmissionsList.vue'
 import {
@@ -37,7 +39,9 @@ const selectedId = computed(() =>
   typeof route.query.resposta === 'string' ? route.query.resposta : undefined,
 )
 
-const filters = computed(() => toFilters(formId.value, period.value, sort.value))
+const { input: searchInput, term: search } = useUrlSearch()
+
+const filters = computed(() => toFilters(formId.value, period.value, sort.value, search.value))
 
 function setQuery(changes: LocationQueryRaw): void {
   void router.replace({ query: { ...route.query, ...changes } })
@@ -77,6 +81,15 @@ const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value]
     role="group"
     :aria-label="t.filters.label"
   >
+    <AppTextField
+      v-model="searchInput"
+      type="search"
+      :label="t.filters.search"
+      :placeholder="t.filters.searchPlaceholder"
+      icon-left="search"
+      :maxlength="100"
+      class="submissions-page__search"
+    />
     <AppSelect
       :model-value="formId ?? ALL"
       :label="t.filters.form"
@@ -103,6 +116,7 @@ const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value]
         :filters="filters"
         :selected-id="selectedId"
         :filtered="formId !== undefined || period !== 'all'"
+        :search="search"
         @select="open"
       />
     </AppCard>
@@ -146,6 +160,11 @@ const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value]
         display: grid;
       }
     }
+  }
+
+  // Busca numa linha só, acima dos três filtros.
+  &__search {
+    grid-column: 1 / -1;
   }
 
   &__list {

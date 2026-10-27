@@ -9,10 +9,13 @@ import { deleteSubmission, fetchSubmission } from '@/api/submissions'
 import AppAlert from '@/components/AppAlert.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppConfirmDialog from '@/components/AppConfirmDialog.vue'
+import AppDialog from '@/components/AppDialog.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import AppSpinner from '@/components/AppSpinner.vue'
 import { useToastStore } from '@/stores/useToastStore'
 import { submissions } from '@/strings'
+
+import { fileKind, iconForKind } from './fileKind'
 
 /** Resposta completa: respostas, anexos (links assinados), histórico de edições e excluir. */
 const props = defineProps<{
@@ -36,6 +39,15 @@ const submission = computed(() => query.data.value)
 
 const formatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 const format = (iso: string) => formatter.format(new Date(iso))
+
+/** Imagem ampliada na janela (nome e link assinado). */
+const viewing = ref<{ name: string; url: string } | null>(null)
+const viewerOpen = computed({
+  get: () => viewing.value !== null,
+  set: (open) => {
+    if (!open) viewing.value = null
+  },
+})
 
 const confirmOpen = ref(false)
 const removal = useMutation({
@@ -123,8 +135,35 @@ const removal = useMutation({
         >
           <p class="submission-detail__label">{{ group.label }}</p>
           <ul class="submission-detail__files">
-            <li v-for="file in group.files" :key="file.name" class="submission-detail__file">
-              <AppIcon name="file" class="submission-detail__file-icon" />
+            <li
+              v-for="file in group.files"
+              :key="file.name"
+              class="submission-detail__file"
+              :class="{
+                'submission-detail__file--image': fileKind(file.name) === 'image' && file.url,
+              }"
+            >
+              <!-- Imagem: prévia clicável que amplia; o resto, ícone do tipo. -->
+              <button
+                v-if="fileKind(file.name) === 'image' && file.url"
+                type="button"
+                class="submission-detail__preview"
+                :aria-label="t.detail.view(file.name)"
+                @click="viewing = { name: file.name, url: file.url }"
+              >
+                <img
+                  :src="file.url"
+                  alt=""
+                  class="submission-detail__preview-image"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
+              <AppIcon
+                v-else
+                :name="iconForKind(fileKind(file.name))"
+                class="submission-detail__file-icon"
+              />
               <span class="submission-detail__file-name">{{ file.name }}</span>
               <span class="submission-detail__file-size">{{ file.size }}</span>
               <a
@@ -183,6 +222,17 @@ const removal = useMutation({
         </AppButton>
       </footer>
     </template>
+
+    <AppDialog v-model:open="viewerOpen" :title="viewing?.name ?? ''" size="full">
+      <div class="submission-detail__viewer">
+        <img v-if="viewing" :src="viewing.url" alt="" class="submission-detail__viewer-image" />
+      </div>
+      <template #footer>
+        <AppButton v-if="viewing" variant="secondary" icon-left="download" :href="viewing.url">
+          {{ t.detail.downloadFile }}
+        </AppButton>
+      </template>
+    </AppDialog>
 
     <AppConfirmDialog
       v-model:open="confirmOpen"
@@ -321,6 +371,55 @@ const removal = useMutation({
   &__file-icon {
     flex: none;
     color: var(--color-text-muted);
+  }
+
+  // Imagem: prévia em cima ocupando a largura, nome e download embaixo.
+  &__file--image {
+    flex-wrap: wrap;
+    padding-block-start: var(--space-3);
+  }
+
+  &__preview {
+    display: grid;
+    flex-basis: 100%;
+    place-items: center;
+    block-size: var(--attachment-preview-height);
+    padding: 0;
+    overflow: hidden;
+    cursor: zoom-in;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__preview-image {
+    max-inline-size: 100%;
+    max-block-size: 100%;
+    object-fit: contain;
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  &__preview:hover &__preview-image {
+    transform: scale(1.03);
+  }
+
+  &__viewer {
+    display: grid;
+    // Sem minmax a coluna cresce até a largura natural da imagem e vaza no celular.
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+    min-block-size: 100%;
+  }
+
+  &__viewer-image {
+    max-inline-size: 100%;
+    max-block-size: 70dvh;
+    object-fit: contain;
+    border-radius: var(--radius-md);
   }
 
   &__file-name {

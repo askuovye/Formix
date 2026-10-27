@@ -29,8 +29,18 @@ export function isSort(value: unknown): value is Sort {
 }
 
 /** Filtros da API a partir das escolhas da tela. */
-export function toFilters(form: string | undefined, period: Period, sort: Sort): SubmissionFilters {
+export function toFilters(
+  form: string | undefined,
+  period: Period,
+  sort: Sort,
+  search = '',
+): SubmissionFilters {
   const from = periodStart(period)
 
-  return { sort, ...(form ? { form } : {}), ...(from ? { from } : {}) }
+  return {
+    sort,
+    ...(form ? { form } : {}),
+    ...(from ? { from } : {}),
+    ...(search ? { q: search } : {}),
+  }
 }

@@ -7,6 +7,8 @@ export interface SubmissionFilters {
   form?: string
   from?: string
   sort: 'newest' | 'oldest'
+  /** Busca no texto das respostas. */
+  q?: string
 }
 
 export async function listSubmissions(

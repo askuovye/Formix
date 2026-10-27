@@ -5,6 +5,7 @@
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 320ms;
+  --duration-reveal: 600ms;
   --duration-spin: 800ms;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -18,6 +19,15 @@
     --duration-fast: 0ms;
     --duration-base: 0ms;
     --duration-slow: 0ms;
+    --duration-reveal: 0ms;
     --duration-spin: 0ms;
+  }
+
+  // Troca de tema (circleReveal): as cores mudam de uma vez dentro do círculo,
+  // sem as transições dos componentes desbotando do tema antigo.
+  &[data-theme-switching] {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
   }
 }

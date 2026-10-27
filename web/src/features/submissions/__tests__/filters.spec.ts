@@ -15,5 +15,6 @@ describe('filtros de respostas', () => {
   it('só manda o que foi escolhido', () => {
     expect(toFilters(undefined, 'all', 'newest')).toEqual({ sort: 'newest' })
     expect(toFilters('f1', 'all', 'oldest')).toEqual({ sort: 'oldest', form: 'f1' })
+    expect(toFilters(undefined, 'all', 'newest', 'joão')).toEqual({ sort: 'newest', q: 'joão' })
   })
 })
