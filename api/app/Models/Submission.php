@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\DeviceType;
 use App\Support\SearchText;
 use Database\Factories\SubmissionFactory;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -28,6 +29,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string|null $respondent_email
  * @property string|null $ip_hash
  * @property string|null $user_agent
+ * @property int|null $duration_seconds
+ * @property DeviceType|null $device
  * @property string|null $idempotency_key
  * @property string|null $edit_token_hash
  * @property Carbon|null $editable_until
@@ -74,6 +77,8 @@ class Submission extends Model implements HasMedia
         return [
             'schema_version' => 'integer',
             'data' => 'array',
+            'duration_seconds' => 'integer',
+            'device' => DeviceType::class,
             'editable_until' => 'datetime',
             'edited_at' => 'datetime',
             'owner_notified_at' => 'datetime',

@@ -6,6 +6,7 @@ namespace App\Actions\Submissions;
 
 use App\Data\SubmissionAttempt;
 use App\Data\SubmissionReceipt;
+use App\Enums\DeviceType;
 use App\Enums\FormAvailability;
 use App\Events\SubmissionReceived;
 use App\Exceptions\ApiException;
@@ -109,6 +110,8 @@ final class SubmitFormResponse
                     'respondent_email' => RespondentEmail::from($version['schema'], $answers),
                     'ip_hash' => $this->ipHasher->hash($attempt->ip),
                     'user_agent' => $attempt->userAgent !== null ? mb_substr($attempt->userAgent, 0, self::USER_AGENT_MAX_LENGTH) : null,
+                    'duration_seconds' => $attempt->durationSeconds,
+                    'device' => DeviceType::fromUserAgent($attempt->userAgent),
                     'idempotency_key' => $keyHash,
                     'edit_token_hash' => $editToken !== null ? $this->editTokens->hash($editToken) : null,
                     'editable_until' => $editToken !== null ? now()->addHours(self::EDIT_WINDOW_HOURS) : null,

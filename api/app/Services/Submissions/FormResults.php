@@ -6,6 +6,7 @@ namespace App\Services\Submissions;
 
 use App\Actions\Submissions\ListOwnerSubmissions;
 use App\Data\SubmissionFilters;
+use App\Enums\DeviceType;
 use App\Enums\FieldType;
 use App\Models\Form;
 use App\Models\Submission;
@@ -25,6 +26,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * - Anexos contados pela coleção do MediaLibrary (`field_{id}`), sem ler o JSON.
  * - Linha do tempo no fuso de Brasília: últimos 30 dias, ou o período filtrado
  *   (por semana acima de 90 dias).
+ * - Tempo médio (medido no navegador, informativo) e aparelhos de quem respondeu.
+ * - Com período filtrado, `previous` traz total e tempo médio do período anterior
+ *   de mesmo tamanho (para a variação); sem período, não há com o que comparar.
  */
 final class FormResults
 {
@@ -62,14 +66,27 @@ final class FormResults
         $edited = 0;
         $lastWeek = 0;
         $weekAgo = $now->subDays(7);
+        $durationSum = 0;
+        $durationCount = 0;
+        $devices = array_fill_keys(array_map(fn (DeviceType $device): string => $device->value, DeviceType::cases()), 0);
 
-        $query = $this->listSubmissions->query($owner, $filters)->select(['id', 'form_id', 'data', 'created_at', 'edited_at']);
+        $query = $this->listSubmissions->query($owner, $filters)
+            ->select(['id', 'form_id', 'data', 'duration_seconds', 'device', 'created_at', 'edited_at']);
 
         foreach ($query->lazyById(self::CHUNK_SIZE) as $submission) {
             $total++;
             $createdAt = CarbonImmutable::instance($submission->created_at ?? $now)->setTimezone(self::TIMEZONE);
             $edited += $submission->edited_at !== null ? 1 : 0;
             $lastWeek += $createdAt->greaterThanOrEqualTo($weekAgo) ? 1 : 0;
+
+            if ($submission->duration_seconds !== null) {
+                $durationSum += $submission->duration_seconds;
+                $durationCount++;
+            }
+
+            if ($submission->device !== null) {
+                $devices[$submission->device->value]++;
+            }
 
             $bucket = $this->bucketKey($createdAt, $unit);
             if (array_key_exists($bucket, $buckets)) {
@@ -87,6 +104,13 @@ final class FormResults
             'total' => $total,
             'last_7_days' => $lastWeek,
             'edited' => $edited,
+            'average_duration_seconds' => $durationCount > 0 ? (int) round($durationSum / $durationCount) : null,
+            'devices' => array_map(
+                fn (string $device, int $count): array => ['device' => $device, 'count' => $count],
+                array_keys($devices),
+                array_values($devices),
+            ),
+            'previous' => $this->previousPeriod($owner, $filters, $now),
             'timeline' => [
                 'unit' => $unit,
                 'points' => array_map(
@@ -100,6 +124,39 @@ final class FormResults
                 $fields,
                 $stats,
             ),
+        ];
+    }
+
+    /**
+     * Total e tempo médio do período anterior de mesmo tamanho (agregado no banco).
+     *
+     * @return array{total: int, average_duration_seconds: int|null}|null
+     */
+    private function previousPeriod(User $owner, SubmissionFilters $filters, CarbonImmutable $now): ?array
+    {
+        if ($filters->from === null) {
+            return null;
+        }
+
+        $end = $filters->to ?? $now;
+        $length = (int) $filters->from->diffInSeconds($end, absolute: true);
+        $previous = new SubmissionFilters(
+            formId: $filters->formId,
+            from: $filters->from->subSeconds($length + 1),
+            to: $filters->from->subSecond(),
+            search: $filters->search,
+            respondentEmail: $filters->respondentEmail,
+        );
+
+        $row = $this->listSubmissions->query($owner, $previous)->toBase()
+            ->selectRaw('count(*) as total, avg(duration_seconds) as average')
+            ->first();
+
+        $average = $row->average ?? null;
+
+        return [
+            'total' => (int) ($row->total ?? 0),
+            'average_duration_seconds' => is_numeric($average) ? (int) round((float) $average) : null,
         ];
     }
 
