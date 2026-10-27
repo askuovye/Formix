@@ -82,11 +82,11 @@ describe('LandingView', () => {
     expect(wrapper.find('.landing-header').text()).not.toContain('Criar conta')
   })
 
-  it('a ilustração é decorativa e o gráfico tem descrição', async () => {
+  it('o gráfico ilustrativo tem descrição e o selo de leads é decorativo', async () => {
     vi.mocked(authApi.fetchCurrentUser).mockRejectedValue(new ApiError('Não autenticado.', 401, {}))
     const wrapper = await mountLanding()
 
-    expect(wrapper.get('.form-mock').attributes('aria-hidden')).toBe('true')
+    expect(wrapper.get('.form-mock__leads').attributes('aria-hidden')).toBe('true')
     expect(wrapper.get('.showcase__chart').attributes('aria-label')).toContain('ilustração')
   })
 })

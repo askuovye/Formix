@@ -15,14 +15,31 @@ export const landing = {
     howItWorks: 'Ver como funciona',
   },
   /** Cartão ilustrativo do hero: um formulário de exemplo, sem interação. */
+  /** Cartão do hero: um formulário de exemplo que dá para responder (com um agradecimento). */
   mock: {
-    label: 'Exemplo de formulário',
+    label: 'Experimente: um formulário de exemplo',
     question: 'Qual é o seu principal objetivo com este formulário?',
-    options: ['Aumentar vendas', 'Coletar feedback', 'Cadastrar-se', 'Outro'],
-    next: 'Próximo',
-    leadsValue: '+12',
+    options: [
+      {
+        label: 'Aumentar vendas',
+        reply: 'Anotado. Agora imagine os seus clientes respondendo assim.',
+      },
+      {
+        label: 'Coletar feedback',
+        reply: 'Feedback recebido, e sem nenhum “asdf” no meio.',
+      },
+      {
+        label: 'Cadastrar-se',
+        reply: 'Cadastro de mentirinha feito. O de verdade leva um minuto.',
+      },
+      { label: 'Outro', reply: 'Gostamos de quem foge do roteiro.' },
+    ],
+    send: 'Enviar resposta',
+    thanks: 'Obrigado!',
+    again: 'Responder de novo',
     leads: 'Novos leads',
     leadsPeriod: 'esta semana',
+    leadsYou: 'contando com você',
   },
   features: {
     title: 'Recursos',
