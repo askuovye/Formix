@@ -123,6 +123,16 @@ it('salva a edição guardando a versão anterior', function () {
     Event::assertDispatched(SubmissionEdited::class);
 });
 
+it('atualiza o email de quem respondeu quando a edição o muda', function () {
+    Event::fake([SubmissionEdited::class]);
+    $form = publishedForm(['allow_respondent_edit' => true]);
+    [$id, $token] = submitEditable($form);
+
+    saveEdit($form, $id, $token, [...validSubmissionAnswers(), 'email' => 'Nova@Example.com'])->assertOk();
+
+    expect(Submission::query()->findOrFail($id)->respondent_email)->toBe('nova@example.com');
+});
+
 it('valida a edição com as mesmas regras e não altera nada se houver erro', function () {
     $form = publishedForm(['allow_respondent_edit' => true]);
     [$id, $token] = submitEditable($form);

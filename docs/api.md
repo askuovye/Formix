@@ -160,12 +160,13 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 
 | Método e rota | Corpo / query | Sucesso | Erros |
 |---|---|---|---|
-| `GET /me/submissions` | `form?` (id de formulário seu), `q?` (busca nas respostas, sem diferenciar maiúsculas nem acentos, ≤ 100), `from?`, `to?` (`AAAA-MM-DD` = dia inteiro em Brasília, ou ISO 8601), `sort?` (`newest`/`oldest`), `per_page?` (≤ 50), `cursor?` | `200` lista de `SubmissionSummary` + `meta.next_cursor` | `422` |
+| `GET /me/submissions` | `form?` (id de formulário seu), `q?` (busca nas respostas, sem diferenciar maiúsculas nem acentos, ≤ 100), `email?` (respostas de uma pessoa: email do primeiro campo de email, exato, sem diferenciar maiúsculas), `from?`, `to?` (`AAAA-MM-DD` = dia inteiro em Brasília, ou ISO 8601), `sort?` (`newest`/`oldest`), `per_page?` (≤ 50), `cursor?` | `200` lista de `SubmissionSummary` + `meta.next_cursor` | `422` |
 | `GET /me/submissions/{id}` | — | `200` `{ data: Submission }` | `404` |
 | `GET /me/submissions/{id}/pdf` | — | `200` PDF da resposta (`attachment`, `nosniff`, sem cache) | `404`, `429` (20/min) |
 | `DELETE /me/submissions/{id}` | — | `204` (definitivo, apaga anexos) | `404` |
-| `POST /me/forms/{formId}/exports` | `from?`, `to?`, `q?` (mesma busca da lista, ≤ 100), `format?` (`csv` padrão, ou `pdf`: até 300 respostas, uma por página) | `202` `{ data: Export }` | `404`, `409` (3 em andamento), `422` (inclusive PDF acima do teto, em `format`), `429` (10/h) |
+| `POST /me/forms/{formId}/exports` | `from?`, `to?`, `q?` (mesma busca da lista, ≤ 100), `email?`, `format?` (`csv` padrão, ou `pdf`: até 300 respostas, uma por página) | `202` `{ data: Export }` | `404`, `409` (3 em andamento), `422` (inclusive PDF acima do teto, em `format`), `429` (10/h) |
 | `GET /me/exports/{id}` | — | `200` `{ data: Export }` | `404` |
+| `GET /me/forms/{formId}/results` | `from?`, `to?`, `q?`, `email?` (mesmos filtros da lista) | `200` `{ data: FormResults }` | `404`, `422` |
 
 ### `SubmissionSummary`
 
@@ -180,6 +181,7 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 ```json
 {
   "id": "01JB…", "form": { "id": "…", "title": "…", "slug": "…" }, "schema_version": 1,
+  "respondent_email": "maria@example.com",
   "answers": [{ "field_id": "nome", "label": "Nome completo", "value": "Maria Souza", "multiline": false, "answered": true }],
   "files": [{ "field_id": "comprovante", "label": "Comprovante",
               "files": [{ "name": "Recibo.pdf", "size": "120 KB", "url": "https://api…/files/…?signature=…" }] }],
@@ -190,10 +192,37 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 
 `answers` vem na ordem e com os rótulos da versão de envio; não respondido = `answered: false` e `value: "(não respondido)"`. Os links de `files` valem 7 dias.
 
+### `FormResults`
+
+```json
+{
+  "total": 42, "last_7_days": 9, "edited": 3,
+  "timeline": { "unit": "day|week", "points": [{ "date": "2026-10-01", "count": 4 }] },
+  "fields": [
+    { "id": "nome", "label": "Nome", "type": "short_text", "answered": 40,
+      "latest": [{ "submission_id": "01JB…", "value": "Maria Souza", "created_at": "…" }] },
+    { "id": "nota", "label": "Nota", "type": "single_choice", "answered": 42,
+      "options": [{ "value": "boa", "label": "Boa", "count": 30 }] },
+    { "id": "estrelas", "type": "rating", "answered": 41, "average": 4.2,
+      "distribution": [{ "value": 1, "count": 0 }, { "value": 5, "count": 20 }] },
+    { "id": "idade", "type": "number", "answered": 39, "min": 18, "max": 70, "average": 34.5 },
+    { "id": "quando", "type": "date", "answered": 12, "earliest": "2026-01-10", "latest": "2026-03-02" },
+    { "id": "rg", "type": "file", "answered": 15 }
+  ]
+}
+```
+
+- Campos da versão publicada mais recente, na ordem do formulário (sem blocos). Rascunho nunca publicado: `fields: []`.
+- `answered`: respostas com valor no campo (oculto pela lógica ou em branco não conta). Arquivo: respostas com pelo menos um anexo.
+- Escolhas: opções na ordem do formulário, inclusive as com zero; valores que só existiam em versões antigas vêm no fim, com o próprio valor como rótulo. Múltipla escolha conta cada opção marcada.
+- Estrelas/escala: `distribution` cobre todos os valores possíveis.
+- Texto, texto longo e email: as 5 respostas mais recentes (até 200 caracteres), da mais nova para a mais antiga.
+- `timeline` no fuso de Brasília: últimos 30 dias, ou o período filtrado; acima de 90 dias, por semana (`date` = segunda-feira).
+
 ### `Export`
 
 ```json
-{ "id": "01JB…", "form_id": "…", "status": "pending|processing|ready|failed", "format": "csv|pdf", "from": null, "to": null, "search": null,
+{ "id": "01JB…", "form_id": "…", "status": "pending|processing|ready|failed", "format": "csv|pdf", "from": null, "to": null, "search": null, "email": null,
   "rows_count": 120, "download_url": "https://api…/exports/…/download?signature=…",
   "created_at": "…", "completed_at": "…", "expires_at": "…" }
 ```
