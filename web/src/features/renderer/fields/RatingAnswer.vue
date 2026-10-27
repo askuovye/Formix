@@ -73,7 +73,7 @@ const lit = computed(() => hovered.value ?? model.value ?? 0)
     width: var(--control-height-md);
     height: var(--control-height-md);
     font-size: var(--font-size-2xl);
-    color: var(--color-border-strong);
+    color: var(--color-border-control);
     cursor: pointer;
     border-radius: var(--radius-md);
     transition:

@@ -69,7 +69,7 @@ const { inputId, hintId, errorId, describedBy } = useFieldIds(props)
     height: 100%;
     margin: 0;
     background: var(--color-surface-raised);
-    border: var(--border-width) solid var(--color-border-strong);
+    border: var(--border-width) solid var(--color-border-control);
     border-radius: var(--radius-sm);
     cursor: pointer;
     appearance: none;

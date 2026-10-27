@@ -4,7 +4,7 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
 
 ## Onde paramos (2026-10-27)
 
-- **Back-end (`/api`): completo.** Fases 1 a 9 do briefing + ajustes de contrato pedidos pelo front (D32/D33): blocos, etapas, estrelas/escala, lógica condicional, tema versionado e imagens de capa/logo; a edição pelo respondente devolve os anexos atuais (nome e tamanho); busca `q` em `/me/forms` (título) e `/me/submissions` (coluna `search_text`, sem acentos); **PDF das respostas** com dompdf (D35: uma resposta na hora e exportação `format=pdf` até 300) e exportação com busca `q`; **resultados** `GET /me/forms/{id}/results` (agregados por campo, linha do tempo por dia/semana) e filtro **`email`** (respostas de uma pessoa, coluna `submissions.respondent_email`) na lista, nos resultados e na exportação. 630 testes Pest, Larastan nível 8. `composer audit` acusa um aviso de 2026-10-27 no **PHPUnit** (só desenvolvimento): atualizar `phpunit/phpunit` para ≥ 13.4.4. **Docker validado (2026-10-23):** WSL2 + Docker Desktop instalados, `compose.yaml` sobe, migrations rodam e os testes passam no MariaDB (B5 resolvida) e em SQLite no container (622, ~3,5 min). Os textos legais também saem em HTML (`content_html`, D34).
+- **Back-end (`/api`): completo.** Fases 1 a 9 do briefing + ajustes de contrato pedidos pelo front (D32/D33): blocos, etapas, estrelas/escala, lógica condicional, tema versionado e imagens de capa/logo; a edição pelo respondente devolve os anexos atuais (nome e tamanho); busca `q` em `/me/forms` (título) e `/me/submissions` (coluna `search_text`, sem acentos); **PDF das respostas** com dompdf (D35: uma resposta na hora e exportação `format=pdf` até 300) e exportação com busca `q`; **resultados** `GET /me/forms/{id}/results` (agregados por campo, linha do tempo por dia/semana) e filtro **`email`** (respostas de uma pessoa, coluna `submissions.respondent_email`) na lista, nos resultados e na exportação. 630 testes Pest, Larastan nível 8, `composer audit` limpo (PHPUnit 13.4.5). **Docker validado (2026-10-23):** WSL2 + Docker Desktop instalados, `compose.yaml` sobe, migrations rodam e os testes passam no MariaDB (B5 resolvida) e em SQLite no container (622, ~3,5 min). Os textos legais também saem em HTML (`content_html`, D34).
 - **Front (`/web`): fase 1 (fundação) concluída** na `feature/web-fundacao`, já mergeada no `develop`. 51 testes Vitest; `vue-tsc`, ESLint e Prettier limpos.
   - **Tokens e temas** (`styles/tokens`, `styles/themes`): escuro é o padrão, claro projetado à parte, sem flash (script inline no `index.html` + `useThemeStore`). Um tema define só as cores-base; o resto é derivado pelo mixin `color-roles`, que o renderer vai reaplicar com as cores do dono do formulário (fase 4).
   - **Inter local**, **ícones Lucide offline** (só os listados em `components/icons/iconNames.ts`; ícone novo = adicionar o nome + `npm run icons`) e **`motion/`** (tokens espelhando o CSS, com teste de sincronia, e presets `fade`/`slideUp`/`scaleIn`).
@@ -37,7 +37,31 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
 
 ## Próximo passo
 
-**Fase 6: landing.** **6a** (estrutura, conteúdo, temas, celular e o formulário do hero respondível, com agradecimento e selo de leads que soma) validada e mergeada no `develop`: `/` é a landing para todos (logado, o topo mostra "Ir para o painel"); cinco recursos (os quatro da referência + "Respostas de verdade"); faixa "Tudo o que você precisa" com o tema oposto ao do app; rodapé mínimo. **6b** (animações GSAP) na `feature/landing-motion`, com push, aguardando validação: entrada do hero em sequência (título, texto, camadas, cartão, selo) e, ao rolar até o destaque (IntersectionObserver, uma vez), passos, número subindo até 1.248 e a linha do gráfico se desenhando. Tokens em `motion/tokens.ts` (`landing`). Depois: fase 7 (revisão). Confirmar o plano de cada parte antes de codar.
+**Fase 6 (landing) concluída:** 6a (estrutura, conteúdo, temas, formulário do hero respondível) e 6b (animações GSAP) mergeadas no `develop`.
+
+**Fase 7: revisão final**, em três partes, com validação do usuário ao fim de cada uma:
+
+- **7a, auditoria técnica** (`feature/review-a11y`, com push, aguardando validação):
+  - contraste AA medido e corrigido nos tokens (textos secundários e cores de status);
+  - `--color-border-control` (3:1, WCAG 1.4.11) nos contornos de campos de texto, checkbox, rádio, switch e estrelas;
+  - axe-core sem violações em todas as telas, nos dois temas (rodado só no navegador de teste, fora do projeto);
+  - movimento reduzido conferido; preload da Inter 400/700 no build;
+  - breakpoints em TS (`config/breakpoints.ts`); Pest/PHPUnit atualizados.
+- **7b:** comparação visual com `design/reference.png` (claro e escuro); divergências de conteúdo vão para decisão do usuário.
+- **7c:** documentação (B6/B10 em `barreiras.md`, `decisions.md`) e merge.
+
+**Fase 8: pré-lançamento** (plano aprovado em 2026-10-27):
+
+- B1: denunciar formulário.
+- B2: suspender formulário ou conta (comando artisan).
+- B13: confirmar os emails extras de notificação.
+- B15: SMTP (Brevo; conta e DNS ficam com o usuário).
+- Guia de deploy na Hostinger (`docs/deploy.md`).
+- Merge `develop` → `main` com a tag `v1.0.0`.
+
+**Deixado para depois (decisão do usuário, 2026-10-27):** reduzir o peso do Motion no bundle principal (~134 KB sem gzip de `motion-v` + `motion-dom`) com `LazyMotion` + componentes `m`, carregando só os recursos usados. Mexe em todos os componentes animados; fazer numa branch própria, depois do lançamento.
+
+Confirmar o plano de cada parte antes de codar.
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 
