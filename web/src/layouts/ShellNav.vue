@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const links: { to: string; label: string; icon: IconName }[] = [
   { to: '/painel/formularios', label: shell.nav.forms, icon: 'file-text' },
+  { to: '/painel/respostas', label: shell.nav.submissions, icon: 'inbox' },
   { to: '/painel/configuracoes', label: shell.nav.settings, icon: 'settings' },
 ]
 </script>

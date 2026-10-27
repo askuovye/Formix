@@ -28,7 +28,7 @@ final class FormController extends Controller
 {
     public function index(ListFormsRequest $request, #[CurrentUser] User $user, ListUserForms $listUserForms): AnonymousResourceCollection
     {
-        return FormSummaryResource::collection($listUserForms($user, $request->status(), $request->perPage()));
+        return FormSummaryResource::collection($listUserForms($user, $request->status(), $request->perPage(), $request->search()));
     }
 
     public function store(StoreFormRequest $request, #[CurrentUser] User $user, CreateForm $createForm): JsonResponse

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watchEffect } from 'vue'
 
+import { circleReveal } from '@/composables/circleReveal'
+
 export type ThemePreference = 'system' | 'light' | 'dark'
 export type ResolvedTheme = Exclude<ThemePreference, 'system'>
 
@@ -54,9 +56,21 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.dataset.theme = resolved.value
   })
 
+  /** Mudou claro/escuro de verdade: o tema novo entra num círculo que cresce do centro. */
   function setPreference(next: ThemePreference): void {
-    preference.value = next
+    const before = resolved.value
+    const apply = () => {
+      preference.value = next
+      // Aplicado já aqui (o watchEffect roda depois): a foto "depois" precisa do tema novo.
+      document.documentElement.dataset.theme = resolved.value
+    }
+
     writeStoredPreference(next)
+    if (before === (next === 'system' ? (systemPrefersLight.value ? 'light' : 'dark') : next)) {
+      apply()
+    } else {
+      circleReveal(apply)
+    }
   }
 
   return { preference, resolved, setPreference }

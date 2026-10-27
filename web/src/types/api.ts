@@ -97,6 +97,54 @@ export interface PublicForm {
   privacy_policy_url: string
 }
 
+/** Resposta na lista do painel (`GET /me/submissions`). */
+export interface SubmissionSummary {
+  id: string
+  form: { id: string; title: string }
+  schema_version: number
+  /** Primeiras respostas, para identificar a linha. */
+  preview: { label: string; value: string }[]
+  files_count: number
+  created_at: string
+  edited_at: string | null
+}
+
+/** Uma resposta já formatada para leitura (na ordem e com os rótulos da versão de envio). */
+export interface SubmissionAnswer {
+  field_id: string
+  label: string
+  value: string
+  multiline: boolean
+  answered: boolean
+}
+
+/** Anexos de um campo; `size` já vem legível ("120 KB") e `url` é um link assinado (7 dias). */
+export interface SubmissionFileGroup {
+  field_id: string
+  label: string
+  files: { name: string; size: string; url: string | null }[]
+}
+
+export interface SubmissionRevision {
+  replaced_at: string
+  answers: SubmissionAnswer[]
+  replaced_files: { field_id: string; name: string; size: number; mime_type: string }[]
+}
+
+/** Resposta completa no painel (`GET /me/submissions/{id}`). */
+export interface Submission {
+  id: string
+  form: { id: string; title: string; slug: string }
+  schema_version: number
+  answers: SubmissionAnswer[]
+  files: SubmissionFileGroup[]
+  /** Versões anteriores, da mais recente para a mais antiga. */
+  revisions: SubmissionRevision[]
+  created_at: string
+  edited_at: string | null
+  editable_until: string | null
+}
+
 /** Anexo já guardado numa resposta (só nome e tamanho em bytes). */
 export interface StoredFile {
   name: string

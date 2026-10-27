@@ -93,6 +93,22 @@ it('filtra a listagem por status', function () {
         ->assertJsonPath('data.0.status', 'closed');
 });
 
+it('busca pelo título', function () {
+    $user = User::factory()->create();
+    $match = Form::factory()->for($user)->create(['title' => 'Inscrição 100% gratuita']);
+    Form::factory()->for($user)->create(['title' => 'Pesquisa de satisfação']);
+    Form::factory()->create(['title' => 'Inscrição de outra pessoa']);
+
+    $this->actingAs($user)
+        ->getJson('/api/v1/me/forms?q=inscri')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $match->id);
+
+    $this->getJson('/api/v1/me/forms?q='.urlencode('100%'))->assertJsonCount(1, 'data');
+    $this->getJson('/api/v1/me/forms?q='.urlencode('0%g'))->assertJsonCount(0, 'data');
+});
+
 it('limita o tamanho da página', function () {
     $this->actingAs(User::factory()->create())
         ->getJson('/api/v1/me/forms?per_page=500')

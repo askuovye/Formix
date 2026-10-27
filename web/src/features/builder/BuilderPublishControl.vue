@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import AppButton from '@/components/AppButton.vue'
 import AppConfirmDialog from '@/components/AppConfirmDialog.vue'
@@ -40,10 +41,13 @@ const button = computed<{ label: string; icon: IconName; disabled: boolean }>(()
   return { label: t.publish, icon: 'send', disabled: false }
 })
 
+const router = useRouter()
+
 const hasLink = computed(() => props.form.published_version > 0)
 
 const menuItems = computed<DropdownMenuEntry[]>(() => [
   { type: 'item', id: 'preview', label: t.preview, icon: 'eye' },
+  { type: 'item', id: 'submissions', label: t.submissions, icon: 'inbox' },
   { type: 'separator' },
   { type: 'item', id: 'copy', label: t.copyLink, icon: 'link', disabled: !hasLink.value },
   {
@@ -66,6 +70,8 @@ const menuItems = computed<DropdownMenuEntry[]>(() => [
 
 function onSelect(id: string): void {
   if (id === 'preview') emit('preview')
+  else if (id === 'submissions')
+    void router.push({ name: 'submissions', query: { form: props.form.id } })
   else if (id === 'copy') void copyLink(props.form.public_url)
   else if (id === 'open') window.open(props.form.public_url, '_blank', 'noopener')
   else if (id === 'close') confirmOpen.value = true

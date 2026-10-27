@@ -14,5 +14,6 @@ final readonly class SubmissionFilters
         public ?CarbonImmutable $to = null,
         public bool $oldestFirst = false,
         public int $perPage = 20,
+        public ?string $search = null,
     ) {}
 }

@@ -26,6 +26,12 @@ export const forms = {
   loadError: 'Não foi possível carregar seus formulários.',
   retry: 'Tentar de novo',
   loadMore: 'Carregar mais',
+  search: 'Buscar formulários',
+  searchPlaceholder: 'Título do formulário…',
+  noResults: {
+    title: 'Nenhum formulário encontrado',
+    text: (term: string) => `Nada com "${term}" no título.`,
+  },
   empty: {
     all: {
       title: 'Nenhum formulário ainda',
@@ -46,6 +52,7 @@ export const forms = {
   },
   actions: {
     edit: 'Editar',
+    submissions: 'Ver respostas',
     copyLink: 'Copiar link',
     archive: 'Arquivar',
     reopen: 'Reabrir',

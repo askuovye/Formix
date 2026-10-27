@@ -8,6 +8,8 @@ export const duration = {
   fast: 0.12,
   base: 0.2,
   slow: 0.32,
+  /** Círculo que revela o tema novo ao trocar claro/escuro. */
+  reveal: 0.6,
   /** Uma volta do indicador de carregamento. */
   spin: 0.8,
 } as const

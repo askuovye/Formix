@@ -11,7 +11,7 @@ import type { FormStatus, FormSummary } from '@/types/api'
 
 import { relativeTime } from './relativeTime'
 
-export type FormAction = 'edit' | 'copy-link' | 'archive' | 'reopen' | 'delete'
+export type FormAction = 'edit' | 'submissions' | 'copy-link' | 'archive' | 'reopen' | 'delete'
 
 const props = defineProps<{
   form: FormSummary
@@ -33,6 +33,7 @@ const menu = computed<DropdownMenuEntry[]>(() => {
   const { status } = props.form
   const entries: DropdownMenuEntry[] = [
     { type: 'item', id: 'edit', label: t.actions.edit, icon: 'pencil' },
+    { type: 'item', id: 'submissions', label: t.actions.submissions, icon: 'inbox' },
   ]
 
   if (status === 'published') {

@@ -8,7 +8,7 @@ import { distance, duration, ease } from '../tokens'
 // A raiz do Vitest é web/ (vitest.config.ts).
 const motionScss = readFileSync(resolve('src/styles/tokens/_motion.scss'), 'utf8')
 
-// Só o bloco principal: o de prefers-reduced-motion zera as durações de propósito.
+// Só o bloco principal: os de prefers-reduced-motion e da troca de tema zeram as durações de propósito.
 const mainBlock = motionScss.split('@include reduced-motion')[0] ?? ''
 
 function cssToken(name: string): string {

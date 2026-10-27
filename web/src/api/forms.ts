@@ -13,14 +13,20 @@ import { http } from './client'
 export interface ListFormsParams {
   status?: FormStatus
   cursor?: string | null
+  /** Itens por página (≤ 50; padrão do servidor: 20). */
+  perPage?: number
+  /** Busca no título. */
+  search?: string
 }
 
 export async function listForms({
   status,
   cursor,
+  perPage,
+  search,
 }: ListFormsParams): Promise<CursorPage<FormSummary>> {
   const response = await http.get<CursorPage<FormSummary>>('/me/forms', {
-    params: { status, cursor: cursor ?? undefined },
+    params: { status, q: search || undefined, cursor: cursor ?? undefined, per_page: perPage },
   })
 
   return response.data

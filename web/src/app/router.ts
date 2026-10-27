@@ -72,6 +72,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: pageTitles.forms },
       },
       {
+        path: 'respostas',
+        name: 'submissions',
+        component: () => import('@/views/panel/SubmissionsView.vue'),
+        meta: { title: pageTitles.submissions },
+      },
+      {
         path: 'configuracoes',
         name: 'settings',
         component: () => import('@/views/panel/SettingsView.vue'),
