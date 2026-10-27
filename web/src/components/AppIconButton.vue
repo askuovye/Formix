@@ -47,6 +47,12 @@ const props = withDefaults(
     background: var(--color-surface-hover);
   }
 
+  // Botão de alternância (aria-pressed): o escolhido fica marcado.
+  &[aria-pressed='true'] {
+    color: var(--color-text);
+    background: var(--color-surface-hover);
+  }
+
   &:disabled {
     cursor: not-allowed;
     opacity: var(--opacity-disabled);

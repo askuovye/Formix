@@ -35,7 +35,9 @@
   --builder-edge-handle: 0.25rem;
   --builder-palette-width: 16rem;
   --builder-properties-width: 20rem;
-  --builder-canvas-width: 40rem;
+  // Prévia do canvas: largura do formulário publicado e de um celular (390px).
+  --builder-canvas-width: var(--layout-width-md);
+  --builder-canvas-width-mobile: 24.375rem;
   --drawer-panel-width: 26rem;
   --submissions-list-width: 24rem;
   --attachment-preview-height: 12rem;
