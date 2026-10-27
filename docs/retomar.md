@@ -27,7 +27,7 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
   - **4c, tema do dono:** `FormThemeScope` aplica cores, fonte, cantos, botão, alinhamento, capa e logo (página pública, canvas do builder e prévia). Seção **Design** no builder (presets Clássico/Minimalista/Escuro/Moderno/Personalizado, aviso de contraste, envio de capa e logo, tudo no desfazer). **Visualizar** abre a prévia do rascunho numa janela dentro do builder (desktop e celular). Sem tema = Clássico (branco).
   - **4d, anexos:** núcleo do Uppy (`@uppy/core`, carregado sob demanda) com UI própria; regras espelhando o `FileAnswersValidator` (`files.ts`); miniatura das imagens; envio multipart com progresso no botão.
   - **4e, edição pelo respondente** `/f/:slug/respostas/:id/editar#token=…`: formulário preenchido, anexos atuais como "Enviado" (escolher novos substitui), recusas 404/409/410 com motivo.
-- **Front: fase 5 em andamento.** 5a, extras e 5b validados e mergeados no `develop`. **5c** na `feature/results` (api + web, com push; **ainda não mergeada**: falta o usuário validar). 491 testes Vitest; `vue-tsc`, ESLint, Prettier e build limpos.
+- **Front: fase 5 em andamento.** 5a, extras, 5b e **5c** validados e mergeados no `develop` (fase 5 concluída). 491 testes Vitest; `vue-tsc`, ESLint, Prettier e build limpos.
   - **5a, painel de respostas** `/painel/respostas`: lista (cursor) + detalhe ao lado no desktop, um de cada vez no celular; filtros de formulário, período e ordem na URL; respostas, anexos por link assinado, histórico de edições e exclusão. Atalhos "Ver respostas" na lista de formulários e no menu de publicar do builder.
   - **Extras pedidos (2026-10-27):** prévia das imagens anexadas (clicar amplia numa janela; outros tipos com ícone); **busca** em Formulários e Respostas (`?busca=`, com espera depois da digitação, `useUrlSearch`); **troca de tema em círculo** que nasce no centro e cobre a tela (`composables/circleReveal.ts`, View Transitions API; as transições dos componentes ficam zeradas durante a troca por `[data-theme-switching]`).
   - **5b, exportação e PDF:** janela "Exportar respostas" (tela de Respostas, com formulário, período e busca atuais; e menu de cada formulário) com CSV ou PDF; acompanha a fila (`useExportJob`) e, se a janela fechar, `ExportTracker` no painel avisa com "Baixar" quando termina. Botão "Baixar PDF" no detalhe da resposta. O PDF de uma resposta não fica salvo; o arquivo da exportação fica no disco privado e some depois de 24 h (`EXPORT_TTL_HOURS`).
@@ -37,7 +37,7 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
 
 ## Próximo passo
 
-**Validar com o usuário a `feature/results`** (5c: resultados e filtro por pessoa) e mergear no `develop`. Depois: fase 6 (landing), fase 7 (revisão). Confirmar o plano de cada parte antes de codar.
+**Fase 6: landing** (combinar o plano com o usuário antes de codar). Depois: fase 7 (revisão). Confirmar o plano de cada parte antes de codar.
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 
