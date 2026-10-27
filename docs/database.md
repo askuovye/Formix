@@ -17,7 +17,7 @@ Esquema atual (MariaDB/MySQL) e histórico de alterações. Atualizar a cada mig
 | `submissions` | app | `id` ULID, `form_id`, `schema_version`, `data` (json, respostas normalizadas por id de campo), `search_text` (texto das respostas em minúsculas e sem acentos, para a busca do painel; mantido pelo model), `ip_hash` (HMAC), `user_agent` (≤ 255), `idempotency_key` (SHA-256), `edit_token_hash` (SHA-256), `editable_until`, `edited_at`, `owner_notified_at`, `respondent_notified_at` (idempotência dos emails), timestamps. Únicos/índices: `(form_id, idempotency_key)`, `(form_id, created_at)`, FK `form_id` |
 | `submission_revisions` | app | conteúdo anterior de uma resposta editada (imutável): `submission_id`, `data`, `files` (metadados dos anexos substituídos), `replaced_at` |
 | `form_assets` | app | imagens de capa e logo do tema (públicas, **imutáveis**): `form_id`, `kind` (`cover`/`logo`), `disk`, `path`, `mime_type`, `size`, `created_at`. Referenciadas pelo id em `schema.theme` do rascunho e das versões |
-| `exports` | app | exportações CSV: `user_id`, `form_id`, `status` (`pending`/`processing`/`ready`/`failed`), `from`/`to` (período), `disk`, `path`, `rows_count`, `completed_at`, `expires_at` (arquivo apagado ao vencer). Índices `(user_id, status)` e `expires_at` |
+| `exports` | app | exportações CSV: `user_id`, `form_id`, `status` (`pending`/`processing`/`ready`/`failed`), `format` (`csv`/`pdf`), `from`/`to` (período), `search` (busca usada ao pedir), `disk`, `path`, `rows_count`, `completed_at`, `expires_at` (arquivo apagado ao vencer). Índices `(user_id, status)` e `expires_at` |
 | `media` | Spatie MediaLibrary | anexos das respostas: `model_type`/`model_id` (ULID) = `Submission`, `collection_name` = `field_<id do campo>`, `uuid` (usado no link de download), `file_name` (UUID + extensão real), `name` (nome original limpo), `custom_properties.field_id` e `detected_mime_type` |
 
 ## Planejadas (próximas fases)
@@ -41,3 +41,4 @@ Nenhuma no momento.
 | 2026-10-24 | Nova tabela `exports` | exportação CSV em fila (D31) |
 | 2026-10-25 | Nova tabela `form_assets`; o JSON de `forms.schema`/`form_versions.schema` ganha `kind`, blocos, `rating`/`scale`, `visibility` e `theme` | contrato do front (D32, D33). Sem migração de dados: itens sem `kind` são campos |
 | 2026-10-26 | `submissions.search_text` (com preenchimento das linhas existentes) | busca nas respostas do painel: o json de `data` escapa acentos, então o LIKE roda nesta cópia normalizada |
+| 2026-10-27 | `exports.search` e `exports.format` | a exportação respeita a busca do painel e pode sair em PDF (D35) |

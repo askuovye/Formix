@@ -162,8 +162,9 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 |---|---|---|---|
 | `GET /me/submissions` | `form?` (id de formulário seu), `q?` (busca nas respostas, sem diferenciar maiúsculas nem acentos, ≤ 100), `from?`, `to?` (`AAAA-MM-DD` = dia inteiro em Brasília, ou ISO 8601), `sort?` (`newest`/`oldest`), `per_page?` (≤ 50), `cursor?` | `200` lista de `SubmissionSummary` + `meta.next_cursor` | `422` |
 | `GET /me/submissions/{id}` | — | `200` `{ data: Submission }` | `404` |
+| `GET /me/submissions/{id}/pdf` | — | `200` PDF da resposta (`attachment`, `nosniff`, sem cache) | `404`, `429` (20/min) |
 | `DELETE /me/submissions/{id}` | — | `204` (definitivo, apaga anexos) | `404` |
-| `POST /me/forms/{formId}/exports` | `from?`, `to?` | `202` `{ data: Export }` | `404`, `409` (3 em andamento), `422`, `429` (10/h) |
+| `POST /me/forms/{formId}/exports` | `from?`, `to?`, `q?` (mesma busca da lista, ≤ 100), `format?` (`csv` padrão, ou `pdf`: até 300 respostas, uma por página) | `202` `{ data: Export }` | `404`, `409` (3 em andamento), `422` (inclusive PDF acima do teto, em `format`), `429` (10/h) |
 | `GET /me/exports/{id}` | — | `200` `{ data: Export }` | `404` |
 
 ### `SubmissionSummary`
@@ -192,12 +193,12 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 ### `Export`
 
 ```json
-{ "id": "01JB…", "form_id": "…", "status": "pending|processing|ready|failed", "from": null, "to": null,
+{ "id": "01JB…", "form_id": "…", "status": "pending|processing|ready|failed", "format": "csv|pdf", "from": null, "to": null, "search": null,
   "rows_count": 120, "download_url": "https://api…/exports/…/download?signature=…",
   "created_at": "…", "completed_at": "…", "expires_at": "…" }
 ```
 
-Consultar `GET /me/exports/{id}` até `status = ready` (a fila roda a cada minuto). `download_url` só vem quando pronta, vale 60 minutos e é regerada a cada consulta; o arquivo some em `expires_at` (24 h). CSV com `;` e UTF-8 (abre direto no Excel em português).
+Consultar `GET /me/exports/{id}` até `status = ready` (a fila roda a cada minuto). `download_url` só vem quando pronta, vale 60 minutos e é regerada a cada consulta; o arquivo some em `expires_at` (24 h). CSV com `;` e UTF-8 (abre direto no Excel em português). PDF com uma resposta por página; anexos aparecem só pelo nome e tamanho.
 
 ## Página pública do formulário (sem login)
 
@@ -266,6 +267,6 @@ O `schema` é o da versão com que a resposta foi enviada (pode ser diferente da
 
 | Método e rota | Descrição |
 |---|---|
-| `GET /exports/{id}/download?expires&signature` | download do CSV por link assinado (de `Export.download_url`). Vencido/expirado → `403`/`410` |
+| `GET /exports/{id}/download?expires&signature` | download do arquivo (CSV ou PDF) por link assinado (de `Export.download_url`). Vencido/expirado → `403`/`410` |
 | `GET /files/{uuid}?expires&signature` | download de anexo por **link assinado** (gerado pela API: emails ao dono e, na fase 8, o painel). Sempre `Content-Disposition: attachment`. Link adulterado ou vencido → `403`; anexo de resposta/formulário excluído → `404` |
 | `GET /health` | `{ data: { status: ok|degraded|down, checks: {…} } }`; `503` quando `down` |

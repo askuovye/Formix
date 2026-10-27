@@ -94,6 +94,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('asset-uploads', fn (Request $request): Limit => Limit::perHour(30)
             ->by('asset-uploads:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        // PDF de uma resposta é gerado na requisição (CPU): limite próprio por usuário.
+        RateLimiter::for('pdf', fn (Request $request): Limit => Limit::perMinute(20)
+            ->by('pdf:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('exports', fn (Request $request): Limit => Limit::perHour(10)
             ->by('exports:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }

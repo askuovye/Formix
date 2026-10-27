@@ -314,3 +314,10 @@ Decisões novas entram no fim; decisões revogadas são marcadas, não apagadas.
 - **Decisão:** `GET /legal/{terms|privacy}` passa a devolver `content_html` além de `content_markdown`. O HTML é gerado no servidor por `Str::markdown` (league/commonmark, já incluso no Laravel) com `html_input: escape` e `allow_unsafe_links: false`.
 - *Por quê:* a SPA só exibe o texto, sem incluir um conversor de Markdown no bundle nem escrever um próprio. O texto continua vindo da API, com os dados do operador e a versão ligada ao aceite (D20).
 - **Segurança:** HTML vindo do texto ou do `.env` é escapado (aparece como texto) e links `javascript:`/`data:` são descartados; por isso a SPA pode usar `v-html` **só neste campo**, que vem da própria API e não de usuários.
+
+## D35. PDF das respostas com dompdf (2026-10-27)
+
+- **Decisão:** gerar PDF no servidor com `barryvdh/laravel-dompdf` (aprovado pelo responsável). PDF de **uma** resposta na hora (`GET /me/submissions/{id}/pdf`) e de **todas as filtradas** na exportação (`format: pdf`, na fila, como o CSV).
+- *Por quê:* download direto de um arquivo igual em qualquer navegador; dompdf é PHP puro e roda na hospedagem compartilhada (sem binário como Chrome/wkhtmltopdf).
+- **Limites:** o dompdf monta o documento em memória, então a exportação em PDF aceita até `submissions.pdf_export_max_rows` (300) respostas; acima disso, `422` pedindo para filtrar ou usar o CSV. Uma resposta tem limite próprio (`throttle:pdf`, 20/min por usuário).
+- **Segurança:** recursos remotos, PHP e JavaScript do dompdf desligados; conteúdo do respondente escapado pelo Blade. **Anexos entram só pelo nome e tamanho**: imagens não são embutidas, porque isso faria o servidor decodificar arquivos enviados por terceiros (AGENTS.md §6, sem antivírus).

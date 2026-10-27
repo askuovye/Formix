@@ -103,6 +103,10 @@ Route::get('/exports/{export}/download', [ExportController::class, 'download'])
 Route::middleware('auth:sanctum')->prefix('me')->name('me.')->group(function (): void {
     Route::get('/submissions', [SubmissionController::class, 'index'])->name('submissions.index');
     Route::get('/submissions/{submission}', [SubmissionController::class, 'show'])->can('view', 'submission')->name('submissions.show');
+    Route::get('/submissions/{submission}/pdf', [SubmissionController::class, 'pdf'])
+        ->can('view', 'submission')
+        ->middleware('throttle:pdf')
+        ->name('submissions.pdf');
     Route::delete('/submissions/{submission}', [SubmissionController::class, 'destroy'])->can('delete', 'submission')->name('submissions.destroy');
 
     Route::post('/forms/{form}/exports', [ExportController::class, 'store'])
