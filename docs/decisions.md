@@ -321,3 +321,14 @@ Decisões novas entram no fim; decisões revogadas são marcadas, não apagadas.
 - *Por quê:* download direto de um arquivo igual em qualquer navegador; dompdf é PHP puro e roda na hospedagem compartilhada (sem binário como Chrome/wkhtmltopdf).
 - **Limites:** o dompdf monta o documento em memória, então a exportação em PDF aceita até `submissions.pdf_export_max_rows` (300) respostas; acima disso, `422` pedindo para filtrar ou usar o CSV. Uma resposta tem limite próprio (`throttle:pdf`, 20/min por usuário).
 - **Segurança:** recursos remotos, PHP e JavaScript do dompdf desligados; conteúdo do respondente escapado pelo Blade. **Anexos entram só pelo nome e tamanho**: imagens não são embutidas, porque isso faria o servidor decodificar arquivos enviados por terceiros (AGENTS.md §6, sem antivírus).
+
+## D36. Revisão final do front (fase 7, 2026-10-27/28)
+
+- **Acessibilidade:** contraste AA medido e garantido nos tokens dos dois temas (textos secundários e cores de status). Contornos de controles (campos de texto, checkbox, rádio, switch, estrelas) usam `--color-border-control`, com 3:1 sobre o fundo (WCAG 1.4.11). axe-core sem violações em todas as telas, rodado só no navegador de teste, fora do projeto.
+- **Desempenho:** preload da Inter 400/700 no build (plugin em `vite.config.ts`). Reduzir o Motion no bundle principal (`LazyMotion`) ficou **para depois do lançamento**, por decisão do responsável.
+- **Comparação com a referência visual (`design/reference.png`):**
+  - barra lateral **sem** "Início" e "Análises": os resultados ficam na aba da tela de Respostas;
+  - resultados com indicadores em linha, variação contra o período anterior de mesmo tamanho (neutra, sem verde/vermelho), **tempo médio** e **dispositivos**. **Sem taxa de conclusão**: exigiria registrar cada visita ao formulário (mais dados guardados e mais escrita no banco da hospedagem);
+  - tempo de preenchimento medido no navegador (informativo, 1 s a 2 h, senão descartado sem erro) e aparelho deduzido do User-Agent no servidor, sem biblioteca nova;
+  - builder com prévia na largura do **computador** (768px, a do formulário publicado) ou do **celular** (390px); **sem tablet** (igual ao computador, já que o formulário tem 768px de largura máxima) e sem zoom;
+  - logo com símbolo próprio (cartão com duas linhas de resposta) em `AppBrand` e `public/favicon.svg`.
