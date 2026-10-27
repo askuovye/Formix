@@ -364,6 +364,11 @@ export const builder = {
   },
   canvas: {
     label: 'Perguntas do formulário',
+    device: {
+      label: 'Largura da prévia',
+      desktop: 'Ver como no computador',
+      mobile: 'Ver como no celular',
+    },
     emptyTitle: 'Comece adicionando um campo',
     emptyText: 'Escolha um tipo na lista de campos ou arraste-o para cá.',
     required: 'Obrigatório',

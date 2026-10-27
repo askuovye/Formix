@@ -8,6 +8,7 @@ import FormThemeScope from '@/features/renderer/FormThemeScope.vue'
 import { builder } from '@/strings'
 
 import BuilderCanvas from './BuilderCanvas.vue'
+import BuilderDeviceSwitch from './BuilderDeviceSwitch.vue'
 import BuilderDragLift from './BuilderDragLift.vue'
 import BuilderEdgePanel from './BuilderEdgePanel.vue'
 import BuilderProperties from './BuilderProperties.vue'
@@ -90,6 +91,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <BuilderCanvas />
     </FormThemeScope>
     <BuilderDragLift />
+    <BuilderDeviceSwitch class="workspace__device" />
 
     <!-- No celular: desfazer/refazer e "Adicionar campo" flutuam ao alcance do polegar. -->
     <div class="workspace__history">
@@ -203,6 +205,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
   }
 
+  // Largura da prévia: centralizada embaixo do canvas. No celular a tela já é estreita.
+  &__device {
+    position: fixed;
+    inset-block-end: var(--space-4);
+    inset-inline-start: 50%;
+    z-index: var(--layer-raised);
+    display: none;
+    translate: -50% 0;
+
+    @include up(md) {
+      display: flex;
+    }
+  }
+
   &__drawer {
     padding: var(--space-4);
   }
@@ -227,7 +243,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     overflow: hidden;
 
     &__canvas {
-      padding: var(--space-6) var(--space-8);
+      // O fim da lista fica acima da barrinha de largura da prévia.
+      padding: var(--space-6) var(--space-8) calc(var(--space-16) + var(--space-4));
       // As bordas da tela abrem os painéis; a barra de rolagem ficaria embaixo
       // da área da direita. Rola pela roda, trackpad e teclado.
       scrollbar-width: none;

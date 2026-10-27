@@ -8,6 +8,7 @@ import { builder } from '@/strings'
 import type { SchemaItem } from '@/types/schema'
 
 import BuilderCanvasItem from './BuilderCanvasItem.vue'
+import { useCanvasDevice } from './canvasDevice'
 import { GENERAL_ERRORS } from './schemaErrors'
 import { describeVisibility } from './visibility'
 import { BUILDER_DRAG_GROUP, SORTABLE_OPTIONS, sortableAnimationMs } from './dragAndDrop'
@@ -17,6 +18,7 @@ import { useBuilderStore } from './useBuilderStore'
 const store = useBuilderStore()
 const t = builder.canvas
 const lift = useDragLift({ themed: true, ghostClass: 'canvas__ghost' })
+const { device } = useCanvasDevice()
 
 /** Evento `change` do vuedraggable: o estado só muda pelo store (histórico de desfazer). */
 type DragChange =
@@ -68,7 +70,7 @@ function remove(item: SchemaItem): void {
 </script>
 
 <template>
-  <section class="canvas" :aria-label="t.label">
+  <section class="canvas" :class="{ 'canvas--mobile': device === 'mobile' }" :aria-label="t.label">
     <div
       v-if="cover?.url || logo"
       class="canvas__brand"
@@ -145,6 +147,12 @@ function remove(item: SchemaItem): void {
   width: 100%;
   max-width: var(--builder-canvas-width);
   margin-inline: auto;
+  // Troca de largura da prévia (computador/celular); zera com movimento reduzido.
+  transition: max-width var(--duration-slow) var(--ease-out);
+
+  &--mobile {
+    max-width: var(--builder-canvas-width-mobile);
+  }
 
   &__brand {
     display: grid;
