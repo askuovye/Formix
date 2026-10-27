@@ -126,7 +126,7 @@ function optionId(index: number): string {
     height: var(--control-check-size);
     margin: 0;
     background: var(--color-surface-raised);
-    border: var(--border-width) solid var(--color-border-strong);
+    border: var(--border-width) solid var(--color-border-control);
     border-radius: var(--radius-full);
     cursor: pointer;
     appearance: none;

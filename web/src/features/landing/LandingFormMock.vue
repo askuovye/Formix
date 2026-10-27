@@ -245,7 +245,7 @@ const bump = {
     flex: none;
     inline-size: var(--space-4);
     block-size: var(--space-4);
-    border: var(--border-width) solid var(--color-border-strong);
+    border: var(--border-width) solid var(--color-border-control);
     border-radius: var(--radius-full);
     transition: border var(--duration-fast) var(--ease-out);
 

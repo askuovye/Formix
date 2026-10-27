@@ -13,6 +13,7 @@ import AppPageHeader from '@/components/AppPageHeader.vue'
 import AppSelect from '@/components/AppSelect.vue'
 import AppTabs from '@/components/AppTabs.vue'
 import AppTextField from '@/components/AppTextField.vue'
+import { isAtLeast } from '@/config/breakpoints'
 import { useUrlSearch } from '@/composables/useUrlSearch'
 import ExportDialog from '@/features/submissions/ExportDialog.vue'
 import SubmissionDetail from '@/features/submissions/SubmissionDetail.vue'
@@ -74,7 +75,7 @@ function setQuery(changes: LocationQueryRaw): void {
 /** No celular o detalhe toma o lugar da lista: volta ao topo para ler do começo. */
 function open(id: string, changes: LocationQueryRaw = {}): void {
   setQuery({ ...changes, resposta: id })
-  if (!window.matchMedia('(min-width: 1024px)').matches) window.scrollTo({ top: 0 })
+  if (!isAtLeast('lg')) window.scrollTo({ top: 0 })
 }
 
 /** Mudar filtro fecha a resposta aberta (ela pode nem estar mais na lista). */

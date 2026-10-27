@@ -69,7 +69,7 @@ const { inputId, hintId, describedBy } = useFieldIds(props)
     width: var(--control-switch-width);
     height: var(--control-switch-height);
     padding: var(--border-width);
-    background: var(--color-border-strong);
+    background: var(--color-border-control);
     border: 0;
     border-radius: var(--radius-full);
     cursor: pointer;
