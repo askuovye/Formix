@@ -37,7 +37,7 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
 
 ## Próximo passo
 
-**Fase 6: landing** (combinar o plano com o usuário antes de codar). Depois: fase 7 (revisão). Confirmar o plano de cada parte antes de codar.
+**Fase 6: landing**, em duas partes. **6a** (estrutura, conteúdo, temas e celular) na `feature/landing`, com push, aguardando validação: `/` é a landing para todos (logado, o topo mostra "Ir para o painel"); hero com cartão de formulário em HTML, cinco recursos (os quatro da referência + "Respostas de verdade", o anti-lixo), faixa "Tudo o que você precisa" com o tema oposto ao do app e rodapé mínimo (Termos, Privacidade, GitHub). **6b:** animações GSAP (entrada do hero, contador e gráfico ao rolar). Depois: fase 7 (revisão). Confirmar o plano de cada parte antes de codar.
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 

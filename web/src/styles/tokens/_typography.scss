@@ -14,6 +14,8 @@
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 2rem;
   --font-size-4xl: 3rem;
+  /* Título da landing: cresce com a tela entre o celular e o desktop. */
+  --font-size-display: clamp(2.5rem, 1.5rem + 4vw, 4rem);
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -22,6 +24,7 @@
 
   --line-height-none: 1;
   --line-height-tight: 1.2;
+  --line-height-display: 1.05;
   --line-height-base: 1.5;
 
   --letter-spacing-tight: -0.02em;

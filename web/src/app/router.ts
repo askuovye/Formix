@@ -28,8 +28,12 @@ const devRoutes: RouteRecordRaw[] = import.meta.env.DEV
   : []
 
 const routes: RouteRecordRaw[] = [
-  // A landing chega na fase 6; até lá, o início é o painel.
-  { path: '/', redirect: '/painel' },
+  // Landing: aberta a todos; logado, o topo leva ao painel.
+  {
+    path: '/',
+    name: 'home',
+    component: () => import('@/views/LandingView.vue'),
+  },
   // O editor ocupa a tela inteira, fora do shell do painel.
   {
     path: '/painel/formularios/:id',
@@ -148,7 +152,17 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior: (_to, _from, savedPosition) => savedPosition ?? { top: 0 },
+  scrollBehavior: (to, _from, savedPosition) => {
+    if (savedPosition) return savedPosition
+    // Âncoras da landing (#recursos…): rola até a seção, sem deslizar com movimento reduzido.
+    if (to.hash) {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      return { el: to.hash, behavior: reduced ? 'auto' : 'smooth' }
+    }
+
+    return { top: 0 }
+  },
 })
 
 router.beforeEach(async (to) => {
