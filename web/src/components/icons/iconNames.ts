@@ -11,6 +11,7 @@ export const ICON_NAMES = [
   'arrow-right',
   'arrow-up',
   'building-2',
+  'chart-column',
   'calendar',
   'check',
   'chevron-down',
@@ -71,6 +72,7 @@ export const ICON_NAMES = [
   'type',
   'undo-2',
   'upload',
+  'user',
   'x',
 ] as const
 

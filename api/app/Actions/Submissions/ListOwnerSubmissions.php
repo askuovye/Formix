@@ -45,6 +45,7 @@ final class ListOwnerSubmissions
             ->when(
                 $filters->search,
                 fn (Builder $query, string $search) => SearchText::whereContains($query, 'search_text', SearchText::normalize($search)),
-            );
+            )
+            ->when($filters->respondentEmail, fn (Builder $query, string $email) => $query->where('respondent_email', $email));
     }
 }

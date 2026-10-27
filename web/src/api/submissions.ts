@@ -11,6 +11,8 @@ export interface SubmissionFilters {
   sort: 'newest' | 'oldest'
   /** Busca no texto das respostas. */
   q?: string
+  /** Respostas de uma pessoa (email respondido). */
+  email?: string
 }
 
 export async function listSubmissions(

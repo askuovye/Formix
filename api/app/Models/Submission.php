@@ -25,6 +25,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property int $schema_version
  * @property array<string, mixed> $data
  * @property string|null $search_text
+ * @property string|null $respondent_email
  * @property string|null $ip_hash
  * @property string|null $user_agent
  * @property string|null $idempotency_key

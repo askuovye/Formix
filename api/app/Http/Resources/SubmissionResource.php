@@ -40,6 +40,8 @@ final class SubmissionResource extends JsonResource
             'id' => $submission->id,
             'form' => ['id' => $form->id, 'title' => $form->title, 'slug' => $form->slug],
             'schema_version' => $submission->schema_version,
+            // Para "todas as respostas desta pessoa" (filtro `email` da lista).
+            'respondent_email' => $submission->respondent_email,
             'answers' => $presenter->present($schema, $submission->data),
             'files' => $presenter->presentFiles($schema, $submission->media, fn (Media $media): string => $links->temporaryUrl($media)),
             'revisions' => $submission->revisions

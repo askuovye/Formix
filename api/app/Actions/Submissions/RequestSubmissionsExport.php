@@ -34,9 +34,10 @@ final class RequestSubmissionsExport
         ?CarbonImmutable $to,
         ?string $search = null,
         ExportFormat $format = ExportFormat::Csv,
+        ?string $respondentEmail = null,
     ): Export {
         if ($format === ExportFormat::Pdf) {
-            $this->ensureFitsInPdf($owner, new SubmissionFilters(formId: $form->id, from: $from, to: $to, search: $search));
+            $this->ensureFitsInPdf($owner, new SubmissionFilters(formId: $form->id, from: $from, to: $to, search: $search, respondentEmail: $respondentEmail));
         }
 
         $active = Export::query()
@@ -57,6 +58,7 @@ final class RequestSubmissionsExport
             'from' => $from,
             'to' => $to,
             'search' => $search,
+            'respondent_email' => $respondentEmail,
         ])->save();
 
         GenerateSubmissionsExport::dispatch($export->id);

@@ -10,6 +10,7 @@ use App\Models\Submission;
 use App\Services\Submissions\AttachmentStorage;
 use App\Services\Submissions\PublishedFormVersions;
 use App\Services\Submissions\RespondentEditGuard;
+use App\Services\Submissions\RespondentEmail;
 use App\Validation\ResponseValidator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +53,7 @@ final class UpdateSubmissionByRespondent
         $storedFiles = [];
 
         try {
-            $submission = DB::transaction(function () use ($submission, $validated, $replaced, &$storedFiles): Submission {
+            $submission = DB::transaction(function () use ($submission, $schema, $validated, $replaced, &$storedFiles): Submission {
                 $locked = Submission::query()->lockForUpdate()->findOrFail($submission->id);
 
                 $locked->revisions()->create([
@@ -68,6 +69,7 @@ final class UpdateSubmissionByRespondent
 
                 $locked->forceFill([
                     'data' => $validated['answers'],
+                    'respondent_email' => RespondentEmail::from($schema, $validated['answers']),
                     'edited_at' => now(),
                 ])->save();
 

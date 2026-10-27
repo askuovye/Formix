@@ -15,5 +15,6 @@ final readonly class SubmissionFilters
         public bool $oldestFirst = false,
         public int $perPage = 20,
         public ?string $search = null,
+        public ?string $respondentEmail = null,
     ) {}
 }

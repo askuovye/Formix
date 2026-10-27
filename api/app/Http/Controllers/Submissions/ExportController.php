@@ -22,7 +22,7 @@ final class ExportController extends Controller
 {
     public function store(StoreExportRequest $request, Form $form, #[CurrentUser] User $user, RequestSubmissionsExport $requestExport): JsonResponse
     {
-        $export = $requestExport($user, $form, $request->from(), $request->to(), $request->search(), $request->exportFormat());
+        $export = $requestExport($user, $form, $request->from(), $request->to(), $request->search(), $request->exportFormat(), $request->respondentEmail());
 
         return (new ExportResource($export))->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }

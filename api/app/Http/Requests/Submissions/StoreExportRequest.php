@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 
 final class StoreExportRequest extends FormRequest
 {
-    use ParsesPeriod;
+    use FiltersRespondent, ParsesPeriod;
 
     /**
      * @return array<string, list<mixed>>
@@ -19,6 +19,7 @@ final class StoreExportRequest extends FormRequest
     {
         return [
             ...$this->periodRules(),
+            ...$this->respondentRules(),
             'q' => ['sometimes', 'nullable', 'string', 'max:100'],
             'format' => ['sometimes', Rule::enum(ExportFormat::class)],
         ];
@@ -29,7 +30,7 @@ final class StoreExportRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['from' => 'data inicial', 'to' => 'data final', 'q' => 'busca', 'format' => 'formato'];
+        return ['from' => 'data inicial', 'to' => 'data final', 'q' => 'busca', 'format' => 'formato', 'email' => 'email'];
     }
 
     public function exportFormat(): ExportFormat

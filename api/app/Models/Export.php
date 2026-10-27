@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $from
  * @property Carbon|null $to
  * @property string|null $search
+ * @property string|null $respondent_email
  * @property string|null $disk
  * @property string|null $path
  * @property int|null $rows_count

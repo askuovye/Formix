@@ -16,6 +16,7 @@ use App\Http\Controllers\Public\DownloadAttachmentController;
 use App\Http\Controllers\Public\PublicFormController;
 use App\Http\Controllers\Public\PublicSubmissionController;
 use App\Http\Controllers\Submissions\ExportController;
+use App\Http\Controllers\Submissions\ResultsController;
 use App\Http\Controllers\Submissions\SubmissionController;
 use App\Http\Middleware\LimitRequestSize;
 use App\Http\Resources\ExportResource;
@@ -113,6 +114,7 @@ Route::middleware('auth:sanctum')->prefix('me')->name('me.')->group(function ():
         ->can('view', 'form')
         ->middleware('throttle:exports')
         ->name('exports.store');
+    Route::get('/forms/{form}/results', [ResultsController::class, 'show'])->can('view', 'form')->name('results.show');
     Route::get('/exports/{export}', [ExportController::class, 'show'])->can('view', 'export')->name('exports.show');
 });
 

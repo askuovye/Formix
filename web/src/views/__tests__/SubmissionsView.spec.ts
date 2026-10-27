@@ -5,13 +5,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import * as formsApi from '@/api/forms'
+import * as resultsApi from '@/api/results'
 import * as submissionsApi from '@/api/submissions'
 import { SEARCH_DEBOUNCE_MS } from '@/composables/useUrlSearch'
-import type { Submission, SubmissionSummary } from '@/types/api'
+import type { FormResults, Submission, SubmissionSummary } from '@/types/api'
 
 import SubmissionsView from '../panel/SubmissionsView.vue'
 
 vi.mock('@/api/forms')
+vi.mock('@/api/results')
 vi.mock('@/api/submissions')
 
 function summary(id: string, name: string): SubmissionSummary {
@@ -30,6 +32,7 @@ const detail: Submission = {
   id: 's1',
   form: { id: 'f1', title: 'Inscrição', slug: 'inscricao' },
   schema_version: 1,
+  respondent_email: 'maria@example.com',
   answers: [
     { field_id: 'nome', label: 'Nome', value: 'Maria Lima', multiline: false, answered: true },
     {
@@ -258,6 +261,99 @@ describe('SubmissionsView', () => {
 
     expect(submissionsApi.deleteSubmission).toHaveBeenCalledWith('s1')
     expect(router.currentRoute.value.query.resposta).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('"Ver todas desta pessoa" filtra pelo email em todos os formulários', async () => {
+    vi.mocked(submissionsApi.listSubmissions).mockResolvedValue({
+      data: [summary('s1', 'Maria Lima')],
+      meta: { per_page: 20, next_cursor: null, prev_cursor: null },
+    })
+    vi.mocked(submissionsApi.fetchSubmission).mockResolvedValue(detail)
+    const { wrapper, router } = await mountView('/painel/respostas?form=f1&resposta=s1')
+
+    await wrapper
+      .findAll('button')
+      .find((b) => b.text() === 'Ver todas desta pessoa')
+      ?.trigger('click')
+    await flushPromises()
+
+    const query = router.currentRoute.value.query
+    expect(query.pessoa).toBe('maria@example.com')
+    expect(query.form).toBeUndefined()
+    expect(query.resposta).toBeUndefined()
+    expect(submissionsApi.listSubmissions).toHaveBeenLastCalledWith(
+      { sort: 'newest', email: 'maria@example.com' },
+      null,
+    )
+    expect(wrapper.get('.submissions-page__person').text()).toContain(
+      'Respostas de maria@example.com',
+    )
+
+    await wrapper.get('.submissions-page__person button').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.query.pessoa).toBeUndefined()
+    expect(wrapper.find('.submissions-page__person').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('aba Resultados: gráficos com os filtros da tela e abrir uma resposta de texto', async () => {
+    vi.mocked(submissionsApi.listSubmissions).mockResolvedValue({
+      data: [],
+      meta: { per_page: 20, next_cursor: null, prev_cursor: null },
+    })
+    vi.mocked(submissionsApi.fetchSubmission).mockResolvedValue(detail)
+    const data: FormResults = {
+      total: 2,
+      last_7_days: 1,
+      edited: 0,
+      timeline: { unit: 'day', points: [{ date: '2026-10-27', count: 2 }] },
+      fields: [
+        {
+          id: 'nome',
+          label: 'Nome',
+          type: 'short_text',
+          answered: 2,
+          latest: [
+            { submission_id: 's1', value: 'Maria Lima', created_at: '2026-10-27T10:00:00Z' },
+          ],
+        },
+      ],
+    }
+    vi.mocked(resultsApi.fetchResults).mockResolvedValue(data)
+    const { wrapper, router } = await mountView(
+      '/painel/respostas?form=f1&aba=resultados&busca=maria&pessoa=maria@example.com',
+    )
+    // O painel de resultados é um chunk à parte.
+    await vi.dynamicImportSettled()
+    await flushPromises()
+
+    expect(resultsApi.fetchResults).toHaveBeenCalledWith('f1', {
+      q: 'maria',
+      email: 'maria@example.com',
+    })
+    expect(wrapper.get('.results__stats').text()).toContain('Últimos 7 dias')
+
+    await wrapper.get('.result-field__text').trigger('click')
+    await flushPromises()
+
+    const query = router.currentRoute.value.query
+    expect(query.aba).toBeUndefined()
+    expect(query.resposta).toBe('s1')
+    expect(query.form).toBe('f1')
+    wrapper.unmount()
+  })
+
+  it('aba Resultados sem formulário escolhido pede para escolher um', async () => {
+    vi.mocked(submissionsApi.listSubmissions).mockResolvedValue({
+      data: [],
+      meta: { per_page: 20, next_cursor: null, prev_cursor: null },
+    })
+    const { wrapper } = await mountView('/painel/respostas?aba=resultados')
+
+    expect(wrapper.text()).toContain('Escolha um formulário no filtro para ver os resultados.')
+    expect(resultsApi.fetchResults).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 })

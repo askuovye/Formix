@@ -16,6 +16,7 @@ use App\Services\IpHasher;
 use App\Services\Submissions\AttachmentStorage;
 use App\Services\Submissions\EditTokens;
 use App\Services\Submissions\PublishedFormVersions;
+use App\Services\Submissions\RespondentEmail;
 use App\Validation\ResponseValidator;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -105,6 +106,7 @@ final class SubmitFormResponse
                     'form_id' => $locked->id,
                     'schema_version' => $version['version'],
                     'data' => $answers,
+                    'respondent_email' => RespondentEmail::from($version['schema'], $answers),
                     'ip_hash' => $this->ipHasher->hash($attempt->ip),
                     'user_agent' => $attempt->userAgent !== null ? mb_substr($attempt->userAgent, 0, self::USER_AGENT_MAX_LENGTH) : null,
                     'idempotency_key' => $keyHash,

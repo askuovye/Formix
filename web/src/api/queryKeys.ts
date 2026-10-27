@@ -1,3 +1,4 @@
+import type { ResultsFilters } from '@/api/results'
 import type { SubmissionFilters } from '@/api/submissions'
 import type { FormStatus, LegalDocumentKind } from '@/types/api'
 
@@ -16,6 +17,8 @@ export const queryKeys = {
   submissionLists: ['submissions', 'list'] as const,
   submissionList: (filters: SubmissionFilters) => ['submissions', 'list', filters] as const,
   exportJob: (id: string) => ['exports', id] as const,
+  results: ['results'] as const,
+  formResults: (formId: string, filters: ResultsFilters) => ['results', formId, filters] as const,
   submission: (id: string) => ['submissions', 'detail', id] as const,
   publicForm: (slug: string) => ['public-form', slug] as const,
   editableSubmission: (slug: string, id: string) => ['editable-submission', slug, id] as const,

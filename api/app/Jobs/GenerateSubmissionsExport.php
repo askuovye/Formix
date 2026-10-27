@@ -78,6 +78,7 @@ final class GenerateSubmissionsExport implements ShouldQueue
             to: $export->to?->toImmutable(),
             oldestFirst: true,
             search: $export->search,
+            respondentEmail: $export->respondent_email,
         );
 
         $disk = (string) config('submissions.export_disk');

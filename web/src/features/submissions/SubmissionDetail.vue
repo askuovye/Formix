@@ -26,6 +26,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   back: []
   deleted: []
+  /** Filtrar pelas respostas desta pessoa (email de quem respondeu). */
+  person: [email: string]
 }>()
 
 const t = submissions
@@ -65,9 +67,10 @@ const removal = useMutation({
     toasts.show({ title: t.deleted, tone: 'success' })
     queryClient.removeQueries({ queryKey: queryKeys.submission(props.id) })
     emit('deleted')
-    // Listas de respostas e contadores dos formulários.
+    // Listas de respostas, resultados e contadores dos formulários.
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.submissionLists }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.results }),
       queryClient.invalidateQueries({ queryKey: queryKeys.forms }),
     ])
   },
@@ -233,6 +236,15 @@ const removal = useMutation({
           @click="pdf.mutate()"
         >
           {{ t.detail.pdf }}
+        </AppButton>
+        <AppButton
+          v-if="submission.respondent_email"
+          variant="secondary"
+          icon-left="user"
+          size="sm"
+          @click="emit('person', submission.respondent_email)"
+        >
+          {{ t.detail.person }}
         </AppButton>
         <AppButton variant="danger" icon-left="trash-2" size="sm" @click="confirmOpen = true">
           {{ t.detail.remove }}
@@ -532,6 +544,7 @@ const removal = useMutation({
 
   &__footer {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--space-2);
     justify-content: flex-end;
     padding-block-start: var(--space-4);

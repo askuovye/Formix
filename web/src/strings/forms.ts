@@ -53,6 +53,7 @@ export const forms = {
   actions: {
     edit: 'Editar',
     submissions: 'Ver respostas',
+    results: 'Ver resultados',
     export: 'Exportar respostas',
     copyLink: 'Copiar link',
     archive: 'Arquivar',

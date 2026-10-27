@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 
 final class ListSubmissionsRequest extends FormRequest
 {
-    use ParsesPeriod;
+    use FiltersRespondent, ParsesPeriod;
 
     public const DEFAULT_PER_PAGE = 20;
 
@@ -29,6 +29,7 @@ final class ListSubmissionsRequest extends FormRequest
                 ->where('user_id', $this->user()?->getAuthIdentifier())
                 ->whereNull('deleted_at')],
             ...$this->periodRules(),
+            ...$this->respondentRules(),
             'q' => ['sometimes', 'nullable', 'string', 'max:100'],
             'sort' => ['sometimes', Rule::in(self::SORTS)],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:'.self::MAX_PER_PAGE],
@@ -41,7 +42,7 @@ final class ListSubmissionsRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['form' => 'formulário', 'from' => 'data inicial', 'to' => 'data final', 'sort' => 'ordenação', 'q' => 'busca'];
+        return ['form' => 'formulário', 'from' => 'data inicial', 'to' => 'data final', 'sort' => 'ordenação', 'q' => 'busca', 'email' => 'email'];
     }
 
     public function filters(): SubmissionFilters
@@ -53,6 +54,7 @@ final class ListSubmissionsRequest extends FormRequest
             oldestFirst: $this->input('sort') === 'oldest',
             perPage: $this->integer('per_page', self::DEFAULT_PER_PAGE),
             search: $this->filled('q') ? $this->string('q')->trim()->value() : null,
+            respondentEmail: $this->respondentEmail(),
         );
     }
 }

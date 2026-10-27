@@ -34,6 +34,7 @@ export function toFilters(
   period: Period,
   sort: Sort,
   search = '',
+  email = '',
 ): SubmissionFilters {
   const from = periodStart(period)
 
@@ -42,5 +43,6 @@ export function toFilters(
     ...(form ? { form } : {}),
     ...(from ? { from } : {}),
     ...(search ? { q: search } : {}),
+    ...(email ? { email } : {}),
   }
 }

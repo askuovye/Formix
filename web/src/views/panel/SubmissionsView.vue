@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 
 import { listForms } from '@/api/forms'
@@ -8,8 +8,10 @@ import { queryKeys } from '@/api/queryKeys'
 import AppButton from '@/components/AppButton.vue'
 import AppCard from '@/components/AppCard.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import AppIconButton from '@/components/AppIconButton.vue'
 import AppPageHeader from '@/components/AppPageHeader.vue'
 import AppSelect from '@/components/AppSelect.vue'
+import AppTabs from '@/components/AppTabs.vue'
 import AppTextField from '@/components/AppTextField.vue'
 import { useUrlSearch } from '@/composables/useUrlSearch'
 import ExportDialog from '@/features/submissions/ExportDialog.vue'
@@ -24,7 +26,10 @@ import {
   type Period,
   type Sort,
 } from '@/features/submissions/filters'
-import { submissions } from '@/strings'
+import { results, submissions } from '@/strings'
+
+/** Gráficos (e o GSAP) num chunk à parte: só baixa quem abre a aba. */
+const ResultsPanel = defineAsyncComponent(() => import('@/features/results/ResultsPanel.vue'))
 
 const t = submissions
 const route = useRoute()
@@ -40,24 +45,55 @@ const sort = computed<Sort>(() => (isSort(route.query.ordem) ? route.query.ordem
 const selectedId = computed(() =>
   typeof route.query.resposta === 'string' ? route.query.resposta : undefined,
 )
+/** Respostas de uma pessoa só (email de quem respondeu), em todos os formulários. */
+const person = computed(() =>
+  typeof route.query.pessoa === 'string' && route.query.pessoa !== '' ? route.query.pessoa : '',
+)
+const tab = computed(() => (route.query.aba === 'resultados' ? 'results' : 'submissions'))
 
 const { input: searchInput, term: search } = useUrlSearch()
 
-const filters = computed(() => toFilters(formId.value, period.value, sort.value, search.value))
+const filters = computed(() =>
+  toFilters(formId.value, period.value, sort.value, search.value, person.value),
+)
+const resultsFilters = computed(() => {
+  const { from, q, email } = filters.value
+
+  return { ...(from ? { from } : {}), ...(q ? { q } : {}), ...(email ? { email } : {}) }
+})
+
+const tabs = [
+  { value: 'submissions', label: results.tabs.submissions, icon: 'inbox' as const },
+  { value: 'results', label: results.tabs.results, icon: 'chart-column' as const },
+]
 
 function setQuery(changes: LocationQueryRaw): void {
   void router.replace({ query: { ...route.query, ...changes } })
 }
 
 /** No celular o detalhe toma o lugar da lista: volta ao topo para ler do começo. */
-function open(id: string): void {
-  setQuery({ resposta: id })
+function open(id: string, changes: LocationQueryRaw = {}): void {
+  setQuery({ ...changes, resposta: id })
   if (!window.matchMedia('(min-width: 1024px)').matches) window.scrollTo({ top: 0 })
 }
 
 /** Mudar filtro fecha a resposta aberta (ela pode nem estar mais na lista). */
 function setFilter(changes: LocationQueryRaw): void {
   setQuery({ ...changes, resposta: undefined })
+}
+
+function setTab(value: string | undefined): void {
+  setQuery({ aba: value === 'results' ? 'resultados' : undefined })
+}
+
+/** Todas as respostas desta pessoa, em qualquer formulário. */
+function showPerson(email: string): void {
+  setQuery({ pessoa: email, form: undefined, resposta: undefined, aba: undefined })
+}
+
+/** Uma das últimas respostas de texto, nos resultados: abre na aba de respostas. */
+function openFromResults(id: string): void {
+  open(id, { aba: undefined })
 }
 
 const formsQuery = useQuery({
@@ -121,31 +157,70 @@ const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value]
     />
   </div>
 
-  <div class="submissions-page" :class="{ 'submissions-page--detail': selectedId }">
-    <AppCard padding="none" class="submissions-page__list">
-      <SubmissionsList
-        :filters="filters"
-        :selected-id="selectedId"
-        :filtered="formId !== undefined || period !== 'all'"
-        :search="search"
-        @select="open"
-      />
-    </AppCard>
+  <p
+    v-if="person"
+    class="submissions-page__person"
+    :class="{ 'submissions-page__person--behind': selectedId }"
+  >
+    <AppIcon name="user" />
+    <span class="submissions-page__person-text">{{ t.filters.person(person) }}</span>
+    <AppIconButton
+      icon="x"
+      size="sm"
+      :label="t.filters.clearPerson"
+      @click="setFilter({ pessoa: undefined })"
+    />
+  </p>
 
-    <AppCard padding="none" class="submissions-page__detail">
-      <SubmissionDetail
-        v-if="selectedId"
-        :id="selectedId"
-        :key="selectedId"
-        @back="setQuery({ resposta: undefined })"
-        @deleted="setQuery({ resposta: undefined })"
+  <AppTabs
+    :model-value="tab"
+    :items="tabs"
+    :label="results.tabs.label"
+    @update:model-value="setTab"
+  >
+    <template #submissions>
+      <div class="submissions-page" :class="{ 'submissions-page--detail': selectedId }">
+        <AppCard padding="none" class="submissions-page__list">
+          <SubmissionsList
+            :filters="filters"
+            :selected-id="selectedId"
+            :filtered="formId !== undefined || period !== 'all' || person !== ''"
+            :search="search"
+            @select="open"
+          />
+        </AppCard>
+
+        <AppCard padding="none" class="submissions-page__detail">
+          <SubmissionDetail
+            v-if="selectedId"
+            :id="selectedId"
+            :key="selectedId"
+            @back="setQuery({ resposta: undefined })"
+            @deleted="setQuery({ resposta: undefined })"
+            @person="showPerson"
+          />
+          <p v-else class="submissions-page__placeholder">
+            <AppIcon name="inbox" class="submissions-page__placeholder-icon" />
+            {{ t.detail.select }}
+          </p>
+        </AppCard>
+      </div>
+    </template>
+
+    <template #results>
+      <ResultsPanel
+        v-if="formId"
+        :form-id="formId"
+        :filters="resultsFilters"
+        @open="openFromResults"
       />
+      <!-- Resultados são de um formulário só. -->
       <p v-else class="submissions-page__placeholder">
-        <AppIcon name="inbox" class="submissions-page__placeholder-icon" />
-        {{ t.detail.select }}
+        <AppIcon name="chart-column" class="submissions-page__placeholder-icon" />
+        {{ results.needsForm }}
       </p>
-    </AppCard>
-  </div>
+    </template>
+  </AppTabs>
 
   <ExportDialog
     v-model:open="exporting"
@@ -154,6 +229,7 @@ const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value]
     :from="filters.from"
     :period-label="t.filters.periods[period]"
     :search="search || undefined"
+    :email="person || undefined"
   />
 </template>
 
@@ -180,6 +256,37 @@ const sortOptions = SORTS.map((value) => ({ value, label: t.filters.sorts[value]
         display: grid;
       }
     }
+  }
+
+  // Pessoa escolhida em "Ver todas desta pessoa": sai com o X.
+  &__person {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    padding-block: var(--space-1);
+    padding-inline: var(--space-3) var(--space-1);
+    margin-block-end: var(--space-4);
+    font-size: var(--font-size-sm);
+    background: var(--color-surface-raised);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-full);
+
+    &--behind {
+      display: none;
+
+      @include up(lg) {
+        display: flex;
+      }
+    }
+  }
+
+  &__person-text {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   // Busca numa linha só, acima dos três filtros.

@@ -31,6 +31,7 @@ final class ExportResource extends JsonResource
             'from' => $export->from?->toIso8601String(),
             'to' => $export->to?->toIso8601String(),
             'search' => $export->search,
+            'email' => $export->respondent_email,
             'rows_count' => $export->rows_count,
             // Link novo a cada consulta, curto (o arquivo em si expira em `expires_at`).
             'download_url' => $export->isDownloadable()
