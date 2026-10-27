@@ -62,7 +62,7 @@ Todas exigem login. Formulário de outra pessoa → `404`.
 
 | Método e rota | Corpo | Sucesso | Erros |
 |---|---|---|---|
-| `GET /me/forms?status=&per_page=&cursor=` | — | `200` lista de `FormSummary` + `meta.next_cursor`/`prev_cursor` (paginação por cursor, `per_page` ≤ 50, padrão 20) | `422` |
+| `GET /me/forms?status=&q=&per_page=&cursor=` | `q?` busca no título (≤ 100) | `200` lista de `FormSummary` + `meta.next_cursor`/`prev_cursor` (paginação por cursor, `per_page` ≤ 50, padrão 20) | `422` |
 | `POST /me/forms` | `title`, `description?` | `201` `{ data: Form }` (rascunho, schema vazio) | `422` |
 | `GET /me/forms/{id}` | — | `200` `{ data: Form }` | `404` |
 | `PATCH /me/forms/{id}` | qualquer subconjunto de `title`, `description`, `slug`, `schema`, `settings` | `200` `{ data: Form }` | `422` |
@@ -160,7 +160,7 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 
 | Método e rota | Corpo / query | Sucesso | Erros |
 |---|---|---|---|
-| `GET /me/submissions` | `form?` (id de formulário seu), `from?`, `to?` (`AAAA-MM-DD` = dia inteiro em Brasília, ou ISO 8601), `sort?` (`newest`/`oldest`), `per_page?` (≤ 50), `cursor?` | `200` lista de `SubmissionSummary` + `meta.next_cursor` | `422` |
+| `GET /me/submissions` | `form?` (id de formulário seu), `q?` (busca nas respostas, sem diferenciar maiúsculas nem acentos, ≤ 100), `from?`, `to?` (`AAAA-MM-DD` = dia inteiro em Brasília, ou ISO 8601), `sort?` (`newest`/`oldest`), `per_page?` (≤ 50), `cursor?` | `200` lista de `SubmissionSummary` + `meta.next_cursor` | `422` |
 | `GET /me/submissions/{id}` | — | `200` `{ data: Submission }` | `404` |
 | `DELETE /me/submissions/{id}` | — | `204` (definitivo, apaga anexos) | `404` |
 | `POST /me/forms/{formId}/exports` | `from?`, `to?` | `202` `{ data: Export }` | `404`, `409` (3 em andamento), `422`, `429` (10/h) |

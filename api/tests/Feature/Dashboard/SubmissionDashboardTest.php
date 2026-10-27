@@ -67,6 +67,42 @@ it('filtra por formulário do próprio usuário', function () {
         ->assertJsonPath('data.0.form.id', $form->id);
 });
 
+it('busca nas respostas sem diferenciar maiúsculas nem acentos', function () {
+    $form = publishedForm();
+    $joao = submitAnswers($form, ['nome' => 'João Conceição']);
+    submitAnswers($form, ['nome' => 'Maria Lima']);
+
+    foreach (['joao', 'JOÃO', 'conceicao'] as $term) {
+        $this->actingAs($form->user)
+            ->getJson('/api/v1/me/submissions?q='.urlencode($term))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $joao);
+    }
+
+    // Curingas do LIKE digitados pelo usuário valem como texto.
+    $this->getJson('/api/v1/me/submissions?q=%25')->assertJsonCount(0, 'data');
+    $this->getJson('/api/v1/me/submissions?q=')->assertJsonCount(2, 'data');
+});
+
+it('a busca acompanha a edição da resposta', function () {
+    $form = publishedForm();
+    $id = submitAnswers($form, ['nome' => 'Nome Antigo']);
+
+    $submission = Submission::query()->findOrFail($id);
+    $submission->forceFill(['data' => [...$submission->data, 'nome' => 'Nome Novo']])->save();
+
+    $this->actingAs($form->user)->getJson('/api/v1/me/submissions?q=antigo')->assertJsonCount(0, 'data');
+    $this->getJson('/api/v1/me/submissions?q=novo')->assertJsonCount(1, 'data');
+});
+
+it('valida o tamanho da busca', function () {
+    $this->actingAs(User::factory()->create())
+        ->getJson('/api/v1/me/submissions?q='.str_repeat('a', 101))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('q');
+});
+
 it('recusa filtrar por formulário de outra pessoa', function () {
     $form = publishedForm();
     submitAnswers($form);

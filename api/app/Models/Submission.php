@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\SearchText;
 use Database\Factories\SubmissionFactory;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -23,6 +24,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string $form_id
  * @property int $schema_version
  * @property array<string, mixed> $data
+ * @property string|null $search_text
  * @property string|null $ip_hash
  * @property string|null $user_agent
  * @property string|null $idempotency_key
@@ -34,7 +36,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Hidden(['ip_hash', 'idempotency_key', 'edit_token_hash'])]
+#[Hidden(['ip_hash', 'idempotency_key', 'edit_token_hash', 'search_text'])]
 class Submission extends Model implements HasMedia
 {
     /** @use HasFactory<SubmissionFactory> */
@@ -50,6 +52,18 @@ class Submission extends Model implements HasMedia
 
     /** @var list<string> */
     protected $fillable = [];
+
+    /**
+     * Mantém a cópia de busca (minúsculas, sem acentos) junto com as respostas.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Submission $submission): void {
+            if ($submission->isDirty('data')) {
+                $submission->search_text = SearchText::fromAnswers($submission->data ?? []);
+            }
+        });
+    }
 
     /**
      * @return array<string, string>

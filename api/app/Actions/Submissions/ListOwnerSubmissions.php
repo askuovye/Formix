@@ -7,6 +7,7 @@ namespace App\Actions\Submissions;
 use App\Data\SubmissionFilters;
 use App\Models\Submission;
 use App\Models\User;
+use App\Support\SearchText;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -40,6 +41,10 @@ final class ListOwnerSubmissions
             ->whereIn('form_id', $owner->forms()->select('id'))
             ->when($filters->formId, fn (Builder $query, string $formId) => $query->where('form_id', $formId))
             ->when($filters->from, fn (Builder $query, $from) => $query->where('created_at', '>=', $from))
-            ->when($filters->to, fn (Builder $query, $to) => $query->where('created_at', '<=', $to));
+            ->when($filters->to, fn (Builder $query, $to) => $query->where('created_at', '<=', $to))
+            ->when(
+                $filters->search,
+                fn (Builder $query, string $search) => SearchText::whereContains($query, 'search_text', SearchText::normalize($search)),
+            );
     }
 }

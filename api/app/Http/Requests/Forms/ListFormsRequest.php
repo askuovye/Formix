@@ -21,6 +21,7 @@ final class ListFormsRequest extends FormRequest
     {
         return [
             'status' => ['sometimes', Rule::enum(FormStatus::class)],
+            'q' => ['sometimes', 'nullable', 'string', 'max:100'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:'.self::MAX_PER_PAGE],
             'cursor' => ['sometimes', 'string', 'max:500'],
         ];
@@ -29,6 +30,11 @@ final class ListFormsRequest extends FormRequest
     public function status(): ?FormStatus
     {
         return $this->enum('status', FormStatus::class);
+    }
+
+    public function search(): ?string
+    {
+        return $this->filled('q') ? $this->string('q')->trim()->value() : null;
     }
 
     public function perPage(): int
