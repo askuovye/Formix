@@ -41,7 +41,7 @@
   width: 100%;
   color: var(--color-text);
   background: var(--color-surface-raised);
-  border: var(--border-width) solid var(--color-border);
+  border: var(--border-width) solid var(--color-border-control);
   border-radius: var(--radius-md);
   transition:
     border-color var(--duration-fast) var(--ease-out),
@@ -51,8 +51,9 @@
     color: var(--color-text-subtle);
   }
 
+  // O contorno parado já é forte (3:1); o hover sobe mais um degrau.
   &:hover:not(:disabled) {
-    border-color: var(--color-border-strong);
+    border-color: var(--color-text-subtle);
   }
 
   &:focus-visible {

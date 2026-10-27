@@ -11,7 +11,8 @@
   --color-surface-hover: color-mix(in oklab, var(--color-text) 7%, var(--color-surface));
   --color-border: color-mix(in oklab, var(--color-text) 12%, var(--color-surface));
   --color-border-strong: color-mix(in oklab, var(--color-text) 22%, var(--color-surface));
-  // Contorno que identifica um controle (rádio, checkbox, switch, estrela): 3:1 (WCAG 1.4.11).
+  // Contorno que identifica um controle (campo de texto, rádio, checkbox, switch, estrela):
+  // 3:1 (WCAG 1.4.11).
   --color-border-control: color-mix(in oklab, var(--color-text) 46%, var(--color-surface));
   // Proporções escolhidas para o contraste AA (4,5:1) em todos os fundos, nos dois temas
   // e nos temas dos donos de formulário (medido na revisão final, fase 7).
