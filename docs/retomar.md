@@ -37,7 +37,7 @@ Onde paramos, o que vem a seguir e como testar localmente. **Atualize este arqui
 
 ## Próximo passo
 
-**Fase 6: landing**, em duas partes. **6a** (estrutura, conteúdo, temas e celular) na `feature/landing`, com push, aguardando validação: `/` é a landing para todos (logado, o topo mostra "Ir para o painel"); hero com cartão de formulário em HTML, cinco recursos (os quatro da referência + "Respostas de verdade", o anti-lixo), faixa "Tudo o que você precisa" com o tema oposto ao do app e rodapé mínimo (Termos, Privacidade, GitHub). **6b:** animações GSAP (entrada do hero, contador e gráfico ao rolar). Depois: fase 7 (revisão). Confirmar o plano de cada parte antes de codar.
+**Fase 6: landing.** **6a** (estrutura, conteúdo, temas, celular e o formulário do hero respondível, com agradecimento e selo de leads que soma) validada e mergeada no `develop`: `/` é a landing para todos (logado, o topo mostra "Ir para o painel"); cinco recursos (os quatro da referência + "Respostas de verdade"); faixa "Tudo o que você precisa" com o tema oposto ao do app; rodapé mínimo. **6b** (animações GSAP) na `feature/landing-motion`, com push, aguardando validação: entrada do hero em sequência (título, texto, camadas, cartão, selo) e, ao rolar até o destaque (IntersectionObserver, uma vez), passos, número subindo até 1.248 e a linha do gráfico se desenhando. Tokens em `motion/tokens.ts` (`landing`). Depois: fase 7 (revisão). Confirmar o plano de cada parte antes de codar.
 
 **Leitura para retomar o front:** briefing nas mensagens do usuário (resumido em D32 e no AGENTS.md §2/§7), referência visual em `design/reference.png`, contrato em `api.md` e `frontend-contract-requests.md`, espelho do motor em `../fixtures/README.md`.
 
