@@ -40,13 +40,13 @@ describe('rotas', () => {
     await router.replace('/termos')
   }, 30_000)
 
-  // A 1ª navegação ao painel compila o shell inteiro sob demanda: lenta no Windows.
-  it('logado: o início leva à lista de formulários', { timeout: 30_000 }, async () => {
+  // O início é a landing para todos (logado, o topo dela leva ao painel).
+  it('o início é a landing, com ou sem login', { timeout: 30_000 }, async () => {
     session('logged-in')
 
     await router.push('/')
 
-    expect(router.currentRoute.value.name).toBe('forms')
+    expect(router.currentRoute.value.name).toBe('home')
   })
 
   it('sem login: o painel manda para /entrar guardando o destino', async () => {
