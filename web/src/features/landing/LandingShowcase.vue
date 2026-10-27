@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { gsap } from 'gsap'
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import AppIcon from '@/components/AppIcon.vue'
 import type { IconName } from '@/components/icons/iconNames'
+import { useGsapContext } from '@/composables/useGsapContext'
 import { BRAND_NAME } from '@/config/brand'
+import { distance, landing as motion } from '@/motion'
+import { gsapEase } from '@/motion/gsap'
 import { landing } from '@/strings'
 
 /**
@@ -33,10 +38,71 @@ const path = points
 const area = `${path} L100,100 L0,100 Z`
 
 const formatter = new Intl.NumberFormat('pt-BR')
+const root = ref<HTMLElement | null>(null)
+
+/**
+ * Ao aparecer na tela (uma vez): os passos entram em sequência curta, o número
+ * sobe até 1.248, a linha do gráfico se desenha e a área embaixo dela surge.
+ * Até lá, tudo fica no estado inicial (timeline pausada).
+ */
+useGsapContext(root, () => {
+  const value = root.value?.querySelector<HTMLElement>('[data-count]')
+  const text = value?.firstChild
+  const counter = { value: 0 }
+  const clear = { clearProps: 'transform,opacity' }
+  // O número parte do zero (sem mostrar 1.248 e pular para 0 ao começar).
+  if (text instanceof Text) text.nodeValue = formatter.format(0)
+
+  const timeline = gsap
+    .timeline({ paused: true, defaults: { duration: motion.enter, ease: gsapEase.out } })
+    .from('.js-step', { ...clear, x: -distance.md, opacity: 0, stagger: motion.stagger })
+    .fromTo(
+      '.js-chart-line',
+      { strokeDasharray: 1, strokeDashoffset: 1 },
+      {
+        strokeDashoffset: 0,
+        duration: motion.draw,
+        clearProps: 'strokeDasharray,strokeDashoffset',
+      },
+      '<',
+    )
+    .from('.js-chart-area', { opacity: 0, duration: motion.draw, clearProps: 'opacity' }, '<')
+    .to(
+      counter,
+      {
+        value: t.statsValue,
+        duration: motion.draw,
+        // Mexe no nó de texto do Vue (não troca o nó).
+        onUpdate: () => {
+          if (text instanceof Text) text.nodeValue = formatter.format(Math.round(counter.value))
+        },
+      },
+      '<',
+    )
+
+  // Sem IntersectionObserver (navegador antigo, testes), toca na hora.
+  if (!('IntersectionObserver' in window) || !root.value) {
+    timeline.play()
+    return
+  }
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry?.isIntersecting) return
+      timeline.play()
+      observer.disconnect()
+    },
+    { threshold: motion.threshold },
+  )
+  observer.observe(root.value)
+
+  // Chamado pelo revert() do contexto, ao desmontar.
+  return () => observer.disconnect()
+})
 </script>
 
 <template>
-  <section id="como-funciona" class="showcase" aria-labelledby="showcase-title">
+  <section id="como-funciona" ref="root" class="showcase" aria-labelledby="showcase-title">
     <div class="showcase__inner">
       <div class="showcase__copy">
         <h2 id="showcase-title" class="showcase__title">

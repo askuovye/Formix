@@ -48,6 +48,18 @@ export const chart = {
   stagger: 0.02,
 } as const
 
+/** Landing (GSAP), uma vez ao entrar. Sem espelho em CSS. */
+export const landing = {
+  /** Cada peça da abertura (linha do título, texto, cartão) surgindo. */
+  enter: 0.5,
+  /** Atraso entre uma linha do título e a seguinte. */
+  stagger: 0.08,
+  /** Linha do gráfico se desenhando e o número subindo até o valor. */
+  draw: 1.1,
+  /** Parte da seção de destaque que precisa estar visível para começar. */
+  threshold: 0.35,
+} as const
+
 /** Deslocamentos em px usados em entradas e saídas. */
 export const distance = {
   sm: 4,

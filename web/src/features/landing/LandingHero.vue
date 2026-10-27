@@ -1,15 +1,45 @@
 <script setup lang="ts">
+import { gsap } from 'gsap'
+import { ref } from 'vue'
+
 import AppButton from '@/components/AppButton.vue'
+import { useGsapContext } from '@/composables/useGsapContext'
+import { distance, landing as motion } from '@/motion'
+import { gsapEase } from '@/motion/gsap'
 import { landing } from '@/strings'
 
 import LandingFormMock from './LandingFormMock.vue'
 
 /** Abertura: título em três linhas (as duas últimas em tom secundário), texto e chamadas. */
 const t = landing.hero
+const root = ref<HTMLElement | null>(null)
+
+/**
+ * Entrada, uma vez: as linhas do título sobem uma após a outra, depois texto e
+ * botões; as camadas e o cartão assentam na inclinação e o selo chega por último.
+ * Só transform/opacity; no fim, os estilos inline saem (o CSS volta a mandar).
+ */
+useGsapContext(root, () => {
+  // Cada etapa começa na metade da anterior: uma sequência só, sem pausas.
+  const overlap = `-=${motion.enter / 2}`
+  const clear = { clearProps: 'transform,opacity' }
+
+  gsap
+    .timeline({ defaults: { duration: motion.enter, ease: gsapEase.out } })
+    .from('.js-hero-line', { ...clear, y: distance.lg, opacity: 0, stagger: motion.stagger })
+    .from(
+      '.js-hero-fade',
+      { ...clear, y: distance.md, opacity: 0, stagger: motion.stagger },
+      overlap,
+    )
+    .from('.js-mock-layer', { ...clear, rotation: 0, opacity: 0, stagger: motion.stagger }, '<')
+    .from('.js-mock-card', { ...clear, y: distance.lg, rotation: 0, opacity: 0 }, '<')
+    .from('.js-mock-leads', { ...clear, y: distance.md, opacity: 0 }, overlap)
+})
 </script>
 
 <template>
-  <section class="landing-hero" aria-labelledby="landing-title">
+  <section ref="root" class="landing-hero" aria-labelledby="landing-title">
     <div class="landing-hero__copy">
       <h1 id="landing-title" class="landing-hero__title">
         <!-- Espaço entre as linhas: leitores de tela leem a frase inteira. -->
