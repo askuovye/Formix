@@ -6,8 +6,16 @@ import * as resultsApi from '@/api/results'
 import { RESULTS_POLL_MS } from '@/api/results'
 import type { FormResults, ResultField } from '@/types/api'
 
-import { formatDate, formatDecimal, formatShortDate, percentOf } from '../format'
+import {
+  changeOf,
+  formatDate,
+  formatDecimal,
+  formatDuration,
+  formatShortDate,
+  percentOf,
+} from '../format'
 import ResultFieldCard from '../ResultFieldCard.vue'
+import ResultsContent from '../ResultsContent.vue'
 import ResultsPanel from '../ResultsPanel.vue'
 import ResultsTimeline from '../ResultsTimeline.vue'
 
@@ -27,6 +35,66 @@ describe('formatação dos resultados', () => {
     expect(formatDate('2026-10-05')).toBe('05/10/2026')
     expect(formatDate(null)).toBe('—')
     expect(formatShortDate('2026-10-05')).toBe('05/10')
+  })
+
+  it('tempo em texto curto e variação contra o período anterior', () => {
+    expect(formatDuration(null)).toBe('—')
+    expect(formatDuration(45)).toBe('45s')
+    expect(formatDuration(134)).toBe('2m 14s')
+    expect(formatDuration(3900)).toBe('1h 05m')
+    expect(changeOf(112, 100)).toBe(12)
+    expect(changeOf(64, 100)).toBe(-36)
+    // Sem período anterior, ou com ele vazio, não há com o que comparar.
+    expect(changeOf(5, 0)).toBeNull()
+    expect(changeOf(5, undefined)).toBeNull()
+    expect(changeOf(null, 10)).toBeNull()
+  })
+})
+
+describe('ResultsContent', () => {
+  const base: FormResults = {
+    total: 112,
+    last_7_days: 9,
+    edited: 3,
+    average_duration_seconds: 134,
+    devices: [
+      { device: 'desktop', count: 3 },
+      { device: 'mobile', count: 1 },
+      { device: 'tablet', count: 0 },
+    ],
+    previous: { total: 100, average_duration_seconds: null },
+    timeline: { unit: 'day', points: [{ date: '2026-10-27', count: 1 }] },
+    fields: [],
+  }
+
+  it('indicadores com variação só onde há com o que comparar', () => {
+    const wrapper = mount(ResultsContent, { props: { data: base } })
+    const stats = wrapper.findAll('.results__stat').map((stat) => stat.text())
+
+    expect(stats[0]).toContain('112')
+    expect(stats[0]).toContain('+12%')
+    expect(stats[0]).toContain('12% a mais que no período anterior')
+    expect(stats[1]).toContain('2m 14s')
+    expect(stats[1]).not.toContain('%')
+    expect(stats.slice(2).join(' ')).not.toContain('%')
+  })
+
+  it('aparelhos em barras com % sobre os conhecidos; sem dados, avisa', () => {
+    const wrapper = mount(ResultsContent, { props: { data: base } })
+    const rows = wrapper
+      .findAll('.devices .choice-bars__row')
+      .map((row) => row.attributes('aria-label'))
+
+    expect(rows).toEqual([
+      'Computador: 3 respostas (75%)',
+      'Celular: 1 resposta (25%)',
+      'Tablet: 0 respostas (0%)',
+    ])
+
+    const empty = mount(ResultsContent, {
+      props: { data: { ...base, devices: base.devices.map((d) => ({ ...d, count: 0 })) } },
+    })
+    expect(empty.find('.devices').text()).toContain('Ainda sem dados de aparelho.')
   })
 })
 
@@ -188,6 +256,9 @@ describe('ResultsPanel', () => {
     total,
     last_7_days: total,
     edited: 0,
+    average_duration_seconds: null,
+    devices: [],
+    previous: null,
     timeline: { unit: 'day', points: [{ date: '2026-10-27', count: total }] },
     fields: [],
   })

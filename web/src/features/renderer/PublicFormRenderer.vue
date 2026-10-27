@@ -62,6 +62,8 @@ const honeypot = ref('')
 const formError = ref<string>()
 // Mesma chave em retentativas: o servidor devolve o mesmo comprovante, sem duplicar.
 const idempotencyKey = crypto.randomUUID()
+// Tempo de preenchimento (tempo médio nos resultados); o servidor descarta valores absurdos.
+const openedAt = performance.now()
 
 const totalSteps = computed(() => state.steps.value.length)
 const currentItems = computed(() => state.steps.value[state.stepIndex.value] ?? [])
@@ -88,7 +90,12 @@ const mutation = useMutation({
     }
     return submitAnswers(
       props.slug ?? '',
-      { answers, files, website: honeypot.value },
+      {
+        answers,
+        files,
+        website: honeypot.value,
+        durationSeconds: Math.round((performance.now() - openedAt) / 1000),
+      },
       idempotencyKey,
       onProgress,
     )

@@ -179,10 +179,18 @@ export type ResultField =
     })
 
 /** Resultados de um formulário (`GET /me/forms/{id}/results`). */
+export type DeviceType = 'desktop' | 'mobile' | 'tablet'
+
 export interface FormResults {
   total: number
   last_7_days: number
   edited: number
+  /** Média do tempo de preenchimento (medido no navegador); `null` sem medições. */
+  average_duration_seconds: number | null
+  /** Sempre os três tipos, nessa ordem. */
+  devices: { device: DeviceType; count: number }[]
+  /** Período anterior de mesmo tamanho; só com `from` (para a variação). */
+  previous: { total: number; average_duration_seconds: number | null } | null
   timeline: { unit: 'day' | 'week'; points: { date: string; count: number }[] }
   fields: ResultField[]
 }

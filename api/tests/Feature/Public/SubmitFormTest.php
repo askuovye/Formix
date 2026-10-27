@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Forms\CloseForm;
 use App\Actions\Submissions\SubmitFormResponse;
+use App\Enums\DeviceType;
 use App\Enums\FormAvailability;
 use App\Events\SubmissionReceived;
 use App\Http\Requests\Submissions\StoreSubmissionRequest;
@@ -269,4 +270,31 @@ it('passa pelo verificador de CAPTCHA quando ele estiver ativo', function () {
         ->assertJsonPath('errors.captcha.0', StoreSubmissionRequest::CAPTCHA_FAILED_MESSAGE);
 
     expect(Submission::query()->count())->toBe(0);
+});
+
+it('guarda o tempo de preenchimento só dentro do intervalo aceito, sem recusar a resposta', function (mixed $sent, ?int $stored) {
+    $form = publishedForm();
+
+    $id = submitTo($form, ['answers' => validSubmissionAnswers(), 'duration_seconds' => $sent])->assertCreated()->json('data.id');
+
+    expect(Submission::query()->findOrFail($id)->duration_seconds)->toBe($stored);
+})->with([
+    'segundos' => [95, 95],
+    'texto numérico' => ['42', 42],
+    'zero' => [0, null],
+    'acima de 2 horas' => [StoreSubmissionRequest::MAX_DURATION_SECONDS + 1, null],
+    'negativo' => [-5, null],
+    'fração' => [1.5, null],
+    'texto' => ['rápido', null],
+    'ausente' => [null, null],
+]);
+
+it('guarda o tipo de aparelho deduzido do navegador', function () {
+    $form = publishedForm();
+
+    $id = submitTo($form, ['answers' => validSubmissionAnswers()], ['User-Agent' => 'Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile Safari/537.36'])
+        ->assertCreated()
+        ->json('data.id');
+
+    expect(Submission::query()->findOrFail($id)->device)->toBe(DeviceType::Mobile);
 });

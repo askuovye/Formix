@@ -197,6 +197,9 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 ```json
 {
   "total": 42, "last_7_days": 9, "edited": 3,
+  "average_duration_seconds": 95,
+  "devices": [{ "device": "desktop", "count": 20 }, { "device": "mobile", "count": 19 }, { "device": "tablet", "count": 3 }],
+  "previous": { "total": 30, "average_duration_seconds": 110 },
   "timeline": { "unit": "day|week", "points": [{ "date": "2026-10-01", "count": 4 }] },
   "fields": [
     { "id": "nome", "label": "Nome", "type": "short_text", "answered": 40,
@@ -217,6 +220,9 @@ Todas exigem login. Resposta ou exportação de outra pessoa → `404`.
 - Escolhas: opções na ordem do formulário, inclusive as com zero; valores que só existiam em versões antigas vêm no fim, com o próprio valor como rótulo. Múltipla escolha conta cada opção marcada.
 - Estrelas/escala: `distribution` cobre todos os valores possíveis.
 - Texto, texto longo e email: as 5 respostas mais recentes (até 200 caracteres), da mais nova para a mais antiga.
+- `average_duration_seconds`: média das respostas com tempo medido (`null` se nenhuma). Informativo: vem do navegador.
+- `devices`: sempre os três tipos, nessa ordem; respostas sem User-Agent não entram. iPad com iPadOS conta como desktop (se apresenta como Mac).
+- `previous`: só com `from`; total e tempo médio do período anterior de mesmo tamanho (com a mesma busca e pessoa), para a variação. Sem `from`: `null`.
 - `timeline` no fuso de Brasília: últimos 30 dias, ou o período filtrado; acima de 90 dias, por semana (`date` = segunda-feira).
 
 ### `Export`
@@ -236,7 +242,7 @@ Rascunho nunca publicado, formulário excluído e slug inexistente respondem **4
 | Método e rota | Corpo / cabeçalhos | Sucesso | Erros |
 |---|---|---|---|
 | `GET /forms/{slug}` | — | `200` `{ data: PublicForm }` | `404`, `429` (60/min por IP) |
-| `POST /forms/{slug}/submissions` | `{ "answers": { "<id do campo>": valor }, "website": "" }` · `Idempotency-Key?` | `201` `{ data: Receipt }` | `409` não aceita respostas · `413` corpo > 1 MB · `422` · `429` |
+| `POST /forms/{slug}/submissions` | `{ "answers": { "<id do campo>": valor }, "website": "", "duration_seconds"?: 95 }` · `Idempotency-Key?` | `201` `{ data: Receipt }` | `409` não aceita respostas · `413` corpo > 1 MB · `422` · `429` |
 | `GET /forms/{slug}/submissions/{id}` | `X-Edit-Token` | `200` `{ data: EditableSubmission }` | `404` token errado · `409` edição bloqueada · `410` prazo de 4 h passou |
 | `PUT /forms/{slug}/submissions/{id}` | `X-Edit-Token` · `{ "answers": { … } }` | `200` `{ data: EditableSubmission }` | idem + `422` |
 
@@ -263,10 +269,12 @@ Quando `accepts_submissions` é `false`, `schema` vem `null`; mostrar `unavailab
 - **Com anexos:** `multipart/form-data` com
   - `answers` = **texto JSON** das respostas (`JSON.stringify(answers)`);
   - `files[<id do campo>][]` = cada arquivo (Uppy: `fieldName: 'files[comprovante][]'`);
-  - `website` = honeypot vazio.
+  - `website` = honeypot vazio;
+  - `duration_seconds` (opcional).
 
   O tipo é conferido **pelo conteúdo** do arquivo. Limites por campo vêm do schema (`file.accept`, `max_files`, `max_size_mb`); a soma por envio é 25 MB (padrão da instância). Erros: `errors["<id do campo>"]` (um por campo) e `errors.files` (soma total).
 - **Edição com anexos:** `POST /forms/{slug}/submissions/{id}` com `_method=PUT` no corpo multipart (o PHP só lê multipart em POST). Enviar arquivos para um campo **substitui** os anteriores daquele campo; não enviar **mantém** os atuais.
+- **`duration_seconds`** (opcional): segundos entre abrir a página e enviar, medidos no navegador. Só alimenta o tempo médio dos resultados: inteiro de 1 a 7200; fora disso o valor é descartado, sem erro. Edições não mandam.
 - **Erros de validação** vêm por id de campo: `errors["nome"]`, `errors["email"]`, um por campo, já com o rótulo na mensagem. Também podem vir `errors.answers`, `errors.idempotency_key` e `errors.captcha`.
 - **Honeypot:** a página deve ter um input `website` invisível (fora da tela, `tabindex="-1"`, `autocomplete="off"`, `aria-hidden="true"`), sempre enviado vazio.
 - **`Idempotency-Key`:** gere um UUID quando a página do formulário abrir e reutilize-o em retentativas do mesmo envio. Reenviar a mesma chave devolve o mesmo recibo, sem duplicar.

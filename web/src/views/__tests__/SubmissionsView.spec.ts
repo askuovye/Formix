@@ -308,6 +308,9 @@ describe('SubmissionsView', () => {
       total: 2,
       last_7_days: 1,
       edited: 0,
+      average_duration_seconds: null,
+      devices: [],
+      previous: null,
       timeline: { unit: 'day', points: [{ date: '2026-10-27', count: 2 }] },
       fields: [
         {

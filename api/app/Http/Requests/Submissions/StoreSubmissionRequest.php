@@ -24,6 +24,11 @@ final class StoreSubmissionRequest extends FormRequest
 
     public const MAX_ANSWER_KEYS = 200;
 
+    // Tempo de preenchimento aceito (segundos); fora disso fica vazio, sem recusar a resposta.
+    public const MIN_DURATION_SECONDS = 1;
+
+    public const MAX_DURATION_SECONDS = 7_200;
+
     private const IDEMPOTENCY_KEY_PATTERN = '/^[A-Za-z0-9_\-:.]{8,128}$/';
 
     public const INVALID_IDEMPOTENCY_KEY_MESSAGE = 'O cabeçalho Idempotency-Key deve ter de 8 a 128 caracteres (letras, números, - _ : .).';
@@ -70,6 +75,24 @@ final class StoreSubmissionRequest extends FormRequest
             idempotencyKey: $this->header(self::IDEMPOTENCY_HEADER),
             ip: $this->ip(),
             userAgent: $this->userAgent(),
+            durationSeconds: $this->durationSeconds(),
         );
+    }
+
+    /**
+     * Medido no navegador: só um indicador dos resultados. Valor ausente, inválido
+     * ou fora do intervalo vira null em vez de um erro para o respondente.
+     */
+    private function durationSeconds(): ?int
+    {
+        $value = $this->input('duration_seconds');
+
+        if (! is_int($value) && ! (is_string($value) && ctype_digit($value))) {
+            return null;
+        }
+
+        $seconds = (int) $value;
+
+        return $seconds >= self::MIN_DURATION_SECONDS && $seconds <= self::MAX_DURATION_SECONDS ? $seconds : null;
     }
 }

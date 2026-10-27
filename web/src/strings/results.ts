@@ -12,7 +12,24 @@ export const results = {
     title: 'Nada para mostrar ainda',
     text: 'Quando chegarem respostas com estes filtros, os gráficos aparecem aqui.',
   },
-  stats: { total: 'Respostas', lastWeek: 'Últimos 7 dias', edited: 'Editadas' },
+  stats: {
+    total: 'Respostas',
+    duration: 'Tempo médio',
+    lastWeek: 'Últimos 7 dias',
+    edited: 'Editadas',
+  },
+  change: {
+    short: (percent: number) => `${percent > 0 ? '+' : ''}${percent}%`,
+    label: (percent: number) =>
+      percent === 0
+        ? 'igual ao período anterior'
+        : `${Math.abs(percent)}% ${percent > 0 ? 'a mais' : 'a menos'} que no período anterior`,
+  },
+  devices: {
+    title: 'Dispositivos',
+    labels: { desktop: 'Computador', mobile: 'Celular', tablet: 'Tablet' },
+    empty: 'Ainda sem dados de aparelho.',
+  },
   timeline: {
     title: { day: 'Respostas por dia', week: 'Respostas por semana' },
     bar: (date: string, value: number) =>

@@ -12,6 +12,7 @@ final readonly class SubmissionAttempt
     /**
      * @param  array<string, mixed>  $answers
      * @param  array<string, mixed>  $files  arquivos por id de campo (UploadedFile ou lista)
+     * @param  int|null  $durationSeconds  tempo de preenchimento medido no navegador (informativo)
      */
     public function __construct(
         public array $answers,
@@ -20,5 +21,6 @@ final readonly class SubmissionAttempt
         public ?string $idempotencyKey,
         public ?string $ip,
         public ?string $userAgent,
+        public ?int $durationSeconds = null,
     ) {}
 }

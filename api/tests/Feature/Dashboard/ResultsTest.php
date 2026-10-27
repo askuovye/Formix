@@ -196,3 +196,51 @@ it('a exportação leva o filtro da pessoa', function () {
 
     expect(Export::query()->findOrFail($id)->rows_count)->toBe(1);
 });
+
+it('mostra o tempo médio e os aparelhos de quem respondeu', function () {
+    $form = publishedForm();
+    $phone = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Safari/604.1';
+    $tablet = 'Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit/537.36 Chrome/130.0 Safari/537.36';
+
+    foreach ([[$phone, 60], [$phone, 90], [$tablet, null]] as [$agent, $seconds]) {
+        $this->withHeaders(['User-Agent' => $agent])
+            ->postJson("/api/v1/forms/{$form->slug}/submissions", ['answers' => validSubmissionAnswers(), 'duration_seconds' => $seconds])
+            ->assertCreated();
+    }
+
+    $results = $this->actingAs($form->user)->getJson("/api/v1/me/forms/{$form->id}/results")->assertOk()->json('data');
+
+    // Sem tempo medido, a resposta fica fora da média.
+    expect($results['average_duration_seconds'])->toBe(75)
+        ->and($results['devices'])->toBe([
+            ['device' => 'desktop', 'count' => 0],
+            ['device' => 'mobile', 'count' => 2],
+            ['device' => 'tablet', 'count' => 1],
+        ])
+        ->and($results['previous'])->toBeNull();
+});
+
+it('compara com o período anterior de mesmo tamanho', function () {
+    $form = publishedForm();
+    $send = function (string $at, int $seconds) use ($form): void {
+        $this->travelTo($at);
+        $this->postJson("/api/v1/forms/{$form->slug}/submissions", ['answers' => validSubmissionAnswers(), 'duration_seconds' => $seconds])
+            ->assertCreated();
+    };
+
+    // Período de 10 dias (11 a 20): o anterior vai de 1 a 10.
+    $send('2026-10-05 12:00:00', 100);
+    $send('2026-10-06 12:00:00', 200);
+    $send('2026-09-28 12:00:00', 999);
+    $send('2026-10-15 12:00:00', 50);
+    $this->travelTo('2026-10-25 12:00:00');
+
+    $results = $this->actingAs($form->user)
+        ->getJson("/api/v1/me/forms/{$form->id}/results?from=2026-10-11&to=2026-10-20")
+        ->assertOk()
+        ->json('data');
+
+    expect($results['total'])->toBe(1)
+        ->and($results['average_duration_seconds'])->toBe(50)
+        ->and($results['previous'])->toBe(['total' => 2, 'average_duration_seconds' => 150]);
+});

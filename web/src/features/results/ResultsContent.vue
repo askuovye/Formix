@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { gsap } from 'gsap'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import AppCard from '@/components/AppCard.vue'
+import AppIcon from '@/components/AppIcon.vue'
 import { useGsapContext } from '@/composables/useGsapContext'
 import { chart } from '@/motion'
 import { gsapEase } from '@/motion/gsap'
 import { results } from '@/strings'
 import type { FormResults } from '@/types/api'
 
-import { formatCount, formatDecimal } from './format'
+import { changeOf, formatCount, formatDecimal, formatDuration } from './format'
 import ResultFieldCard from './ResultFieldCard.vue'
+import ResultsDevices from './ResultsDevices.vue'
 import ResultsTimeline from './ResultsTimeline.vue'
 
 /**
@@ -28,6 +30,55 @@ const emit = defineEmits<{
 
 const t = results
 const root = ref<HTMLElement | null>(null)
+
+interface Stat {
+  key: string
+  label: string
+  text: string
+  /** Contagem que sobe na entrada; o tempo médio só aparece. */
+  count?: number
+  /** Variação contra o período anterior (%), quando há com o que comparar. */
+  change: number | null
+}
+
+/**
+ * Indicadores no topo. A variação é neutra (sem verde/vermelho): mais tempo ou
+ * menos respostas não são, por si, bons ou ruins.
+ */
+const stats = computed<Stat[]>(() => {
+  const { data } = props
+  const previous = data.previous
+
+  return [
+    {
+      key: 'total',
+      label: t.stats.total,
+      text: formatCount(data.total),
+      count: data.total,
+      change: changeOf(data.total, previous?.total),
+    },
+    {
+      key: 'duration',
+      label: t.stats.duration,
+      text: formatDuration(data.average_duration_seconds),
+      change: changeOf(data.average_duration_seconds, previous?.average_duration_seconds),
+    },
+    {
+      key: 'lastWeek',
+      label: t.stats.lastWeek,
+      text: formatCount(data.last_7_days),
+      count: data.last_7_days,
+      change: null,
+    },
+    {
+      key: 'edited',
+      label: t.stats.edited,
+      text: formatCount(data.edited),
+      count: data.edited,
+      change: null,
+    },
+  ]
+})
 
 useGsapContext(root, () => {
   const tween = { duration: chart.grow, ease: gsapEase.out, stagger: chart.stagger }
@@ -60,30 +111,29 @@ useGsapContext(root, () => {
 
 <template>
   <div ref="root" class="results">
-    <div class="results__overview">
-      <dl class="results__stats">
-        <div class="results__stat">
-          <dt class="results__stat-label">{{ t.stats.total }}</dt>
-          <dd class="results__stat-value" :data-count="props.data.total">
-            {{ formatCount(props.data.total) }}
-          </dd>
-        </div>
-        <div class="results__stat">
-          <dt class="results__stat-label">{{ t.stats.lastWeek }}</dt>
-          <dd class="results__stat-value" :data-count="props.data.last_7_days">
-            {{ formatCount(props.data.last_7_days) }}
-          </dd>
-        </div>
-        <div class="results__stat">
-          <dt class="results__stat-label">{{ t.stats.edited }}</dt>
-          <dd class="results__stat-value" :data-count="props.data.edited">
-            {{ formatCount(props.data.edited) }}
-          </dd>
-        </div>
-      </dl>
+    <dl class="results__stats">
+      <div v-for="stat in stats" :key="stat.key" class="results__stat">
+        <dt class="results__stat-label">{{ stat.label }}</dt>
+        <dd class="results__stat-body">
+          <span class="results__stat-value" :data-count="stat.count">{{ stat.text }}</span>
+          <span v-if="stat.change !== null" class="results__stat-change">
+            <AppIcon
+              v-if="stat.change !== 0"
+              :name="stat.change > 0 ? 'trending-up' : 'trending-down'"
+            />
+            <span aria-hidden="true">{{ t.change.short(stat.change) }}</span>
+            <span class="results__sr-only">{{ t.change.label(stat.change) }}</span>
+          </span>
+        </dd>
+      </div>
+    </dl>
 
-      <AppCard class="results__timeline">
+    <div class="results__charts">
+      <AppCard>
         <ResultsTimeline :timeline="props.data.timeline" />
+      </AppCard>
+      <AppCard>
+        <ResultsDevices :devices="props.data.devices" />
       </AppCard>
     </div>
 
@@ -104,22 +154,22 @@ useGsapContext(root, () => {
   display: grid;
   gap: var(--space-4);
 
-  &__overview {
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+
+    @include up(md) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  &__charts {
     display: grid;
     gap: var(--space-4);
 
     @include up(lg) {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    }
-  }
-
-  &__stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-3);
-
-    @include up(lg) {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     }
   }
 
@@ -138,10 +188,32 @@ useGsapContext(root, () => {
     color: var(--color-text-muted);
   }
 
+  &__stat-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
   &__stat-value {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
     font-variant-numeric: tabular-nums;
+  }
+
+  &__stat-change {
+    display: inline-flex;
+    gap: var(--space-1);
+    align-items: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-muted);
+  }
+
+  &__sr-only {
+    @include visually-hidden;
   }
 
   &__fields {
