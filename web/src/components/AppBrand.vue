@@ -3,7 +3,10 @@ import { RouterLink, type RouteLocationRaw } from 'vue-router'
 
 import { BRAND_NAME } from '@/config/brand'
 
-/** Logotipo em texto, com link para o início. */
+/**
+ * Logotipo (símbolo + nome), com link para o início. O símbolo é um cartão com
+ * duas linhas de resposta; o mesmo desenho está em public/favicon.svg.
+ */
 defineProps<{
   to: RouteLocationRaw
 }>()
@@ -11,7 +14,12 @@ defineProps<{
 
 <template>
   <RouterLink :to="to" class="app-brand">
-    <span class="app-brand__mark" aria-hidden="true" />
+    <svg class="app-brand__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill-rule="evenodd"
+        d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 5.5a1.5 1.5 0 0 0 0 3h10a1.5 1.5 0 0 0 0-3H7Zm0 6a1.5 1.5 0 0 0 0 3h5a1.5 1.5 0 0 0 0-3H7Z"
+      />
+    </svg>
     {{ BRAND_NAME }}
   </RouterLink>
 </template>
@@ -29,11 +37,10 @@ defineProps<{
   text-transform: lowercase;
 
   &__mark {
-    width: var(--space-3);
-    height: var(--space-3);
-    background: var(--color-primary);
-    border-radius: var(--radius-sm);
-    transform: rotate(45deg);
+    flex: none;
+    width: var(--space-6);
+    height: var(--space-6);
+    fill: var(--color-primary);
   }
 }
 </style>
