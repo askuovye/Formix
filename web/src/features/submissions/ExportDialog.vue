@@ -29,6 +29,8 @@ const props = defineProps<{
   from?: string
   periodLabel?: string
   search?: string
+  /** Filtro por pessoa (email de quem respondeu). */
+  email?: string
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
@@ -57,6 +59,7 @@ const mutation = useMutation({
       format: format.value,
       ...(props.from ? { from: props.from } : {}),
       ...(props.search ? { q: props.search } : {}),
+      ...(props.email ? { email: props.email } : {}),
     })
   },
   onSuccess: (job) => {
@@ -127,6 +130,10 @@ function onFormat(value: string | undefined): void {
         <div v-if="props.search" class="export-dialog__row">
           <dt class="export-dialog__term">{{ t.search }}</dt>
           <dd class="export-dialog__value">“{{ props.search }}”</dd>
+        </div>
+        <div v-if="props.email" class="export-dialog__row">
+          <dt class="export-dialog__term">{{ t.person }}</dt>
+          <dd class="export-dialog__value">{{ props.email }}</dd>
         </div>
       </dl>
 

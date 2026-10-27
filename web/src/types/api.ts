@@ -136,6 +136,8 @@ export interface Submission {
   id: string
   form: { id: string; title: string; slug: string }
   schema_version: number
+  /** Email de quem respondeu (primeiro campo de email), para filtrar "desta pessoa". */
+  respondent_email: string | null
   answers: SubmissionAnswer[]
   files: SubmissionFileGroup[]
   /** Versões anteriores, da mais recente para a mais antiga. */
@@ -143,6 +145,46 @@ export interface Submission {
   created_at: string
   edited_at: string | null
   editable_until: string | null
+}
+
+interface ResultFieldBase {
+  id: string
+  label: string
+  /** Respostas com valor neste campo (arquivo: com pelo menos um anexo). */
+  answered: number
+}
+
+/** Agregado de um campo nos resultados, discriminado pelo tipo do campo. */
+export type ResultField =
+  | (ResultFieldBase & {
+      type: 'single_choice' | 'multiple_choice'
+      options: { value: string; label: string; count: number }[]
+    })
+  | (ResultFieldBase & {
+      type: 'rating' | 'scale'
+      average: number | null
+      distribution: { value: number; count: number }[]
+    })
+  | (ResultFieldBase & {
+      type: 'number'
+      min: number | null
+      max: number | null
+      average: number | null
+    })
+  | (ResultFieldBase & { type: 'date'; earliest: string | null; latest: string | null })
+  | (ResultFieldBase & { type: 'file' })
+  | (ResultFieldBase & {
+      type: 'short_text' | 'long_text' | 'email'
+      latest: { submission_id: string; value: string; created_at: string }[]
+    })
+
+/** Resultados de um formulário (`GET /me/forms/{id}/results`). */
+export interface FormResults {
+  total: number
+  last_7_days: number
+  edited: number
+  timeline: { unit: 'day' | 'week'; points: { date: string; count: number }[] }
+  fields: ResultField[]
 }
 
 export type ExportFormat = 'csv' | 'pdf'
@@ -156,6 +198,7 @@ export interface ExportJob {
   from: string | null
   to: string | null
   search: string | null
+  email: string | null
   rows_count: number | null
   /** Só quando pronta; link assinado curto, regerado a cada consulta. */
   download_url: string | null

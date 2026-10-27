@@ -32,4 +32,12 @@
   --submissions-list-width: 24rem;
   --attachment-preview-height: 12rem;
   --search-field-width: 24rem;
+
+  // Gráficos dos resultados: 2px de folga entre barras vizinhas e altura mínima
+  // para o zero continuar visível como trilha.
+  --chart-bar-gap: 2px;
+  --chart-bar-min: 2px;
+  --chart-bar-thickness: 0.5rem;
+  --chart-timeline-height: 9rem;
+  --chart-distribution-height: 7rem;
 }

@@ -7,6 +7,8 @@ export interface ExportRequest {
   format: ExportFormat
   from?: string
   q?: string
+  /** Só as respostas deste email (quem respondeu). */
+  email?: string
 }
 
 /** Enfileira a geração do arquivo; acompanhar por `fetchExport` até `ready`. */

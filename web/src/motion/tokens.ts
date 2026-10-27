@@ -40,6 +40,14 @@ export const ease = {
   inOut: [0.65, 0, 0.35, 1],
 } as const satisfies Record<string, readonly [number, number, number, number]>
 
+/** Gráficos dos resultados (GSAP). Sem espelho em CSS. */
+export const chart = {
+  /** Barras crescendo e contadores subindo até o valor. */
+  grow: 0.7,
+  /** Atraso entre uma barra e a seguinte. */
+  stagger: 0.02,
+} as const
+
 /** Deslocamentos em px usados em entradas e saídas. */
 export const distance = {
   sm: 4,

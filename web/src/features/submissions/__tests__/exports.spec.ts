@@ -25,6 +25,7 @@ function job(overrides: Partial<ExportJob> = {}): ExportJob {
     from: null,
     to: null,
     search: null,
+    email: null,
     rows_count: null,
     download_url: null,
     created_at: '2026-10-27T12:00:00Z',

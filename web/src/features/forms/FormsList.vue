@@ -86,6 +86,9 @@ function onAction(form: FormSummary, action: FormAction): void {
     case 'submissions':
       void router.push({ name: 'submissions', query: { form: form.id } })
       break
+    case 'results':
+      void router.push({ name: 'submissions', query: { form: form.id, aba: 'resultados' } })
+      break
     case 'export':
       exportingForm.value = form
       break
